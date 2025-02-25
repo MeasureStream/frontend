@@ -1,0 +1,9 @@
+#Restore keycloak volume from keycloak-backup.sql
+
+docker volume rm frontend_keycloak-db-data
+docker compose  keycloak-db up -d
+cat keycloak-backup.sql | docker exec -i frontend-keycloak-db-1  psql -U keycloak -d keycloak
+docker compose up -d
+
+#Create a keycloak-backup.sql file
+docker exec keycloak-db pg_dump -U keycloak -d keycloak > keycloak-backup.sql
