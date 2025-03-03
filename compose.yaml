@@ -40,7 +40,9 @@ services:
         ipv4_address: 172.20.0.21
 
   keycloak:
-    image: keycloak/keycloak
+    build:
+      context: .
+      dockerfile: DockerfileKeycloak
     depends_on:
       - keycloak-db
     environment:
@@ -56,11 +58,18 @@ services:
     networks:
       app_network:
         ipv4_address: 172.20.0.22
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/realms/master" ]
+      interval: 60s
+      retries: 3
+      start_period: 50s
+      timeout: 15s
 
   gateway-iam:
     image: 'docker.io/christiand9699/gateway-iam:0.0.1-SNAPSHOT'
     depends_on:
-      - keycloak
+      keycloak:
+        condition: service_healthy
     ports:
       - '8080:8080'
     networks:
