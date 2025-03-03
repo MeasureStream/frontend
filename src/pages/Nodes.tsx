@@ -12,13 +12,15 @@ function Nodes(nodes : NodeDTO[] ) {
             <>
             <Row style={{ display: "flex", flexDirection: "row",  justifyContent: "space-between", alignItems: "center", padding: "10px" }}>
                 <h1 style={{ textAlign: "center", flex: 1 }}>Network Sensor Map</h1>
-                {nodes.map((node,index)=>(
+                {
+                    /*
+                    nodes.map((node,index)=>(
 
                     <BsArrowsAngleContract key={index} style={{ alignSelf: "flex-end", paddingRight: "20px", fontSize: "24px" }} />
 
 
                 ))
-
+*/
 
                 }
 

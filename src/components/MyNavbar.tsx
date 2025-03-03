@@ -1,8 +1,12 @@
-import {Button, Container, Nav, Navbar, NavDropdown} from "react-bootstrap";
+import {Button, Container, Nav, Navbar, NavbarText, NavDropdown} from "react-bootstrap";
 import { BsArrowsAngleContract } from "react-icons/bs";
 import { Link } from "react-router";
+import {MeInterface} from "../API/interfaces";
+interface NavbarProps {
+    me :  MeInterface
+}
 
-function MyNavbar() {
+function MyNavbar( {me} : NavbarProps ) {
 
     return (
         
@@ -25,6 +29,19 @@ function MyNavbar() {
                     </NavDropdown>
                     </Nav>
 
+                </Navbar.Collapse>
+                <Navbar.Collapse className="justify-content-end">
+                    <>
+                        { me.name ?
+                            <>
+                                <Navbar.Text>{ me.name }</Navbar.Text>
+                                <Button variant ="warning">Logout</Button>
+                            </>
+                            :
+                            <Button variant="primary" >Login</Button>
+                        }
+
+                    </>
                 </Navbar.Collapse>
             </Container>
         </Navbar>

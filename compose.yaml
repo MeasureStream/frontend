@@ -5,27 +5,39 @@ services:
       - 'POSTGRES_DB=mydatabase'
       - 'POSTGRES_PASSWORD=secret'
       - 'POSTGRES_USER=myuser'
-    ports:
+    expose:
       - '5432'
+    networks:
+      app_network:
+        ipv4_address: 172.20.0.20
 
   sensor-manager:
     image: 'docker.io/christiand9699/sensor-manager:0.0.1-SNAPSHOT'
     depends_on:
       - postgres
-    ports:
-      - '8080:8080'
+    expose:
+      - '8080'
     environment:
       - 'SPRING_DATASOURCE_URL=jdbc:postgresql://postgres/mydatabase'
       - 'SPRING_DATASOURCE_USERNAME=myuser'
       - 'SPRING_DATASOURCE_PASSWORD=secret'
+    networks:
+      app_network:
+        ipv4_address: 172.20.0.10
+
   keycloak-db:
     image: 'postgres:latest'
     environment:
       - 'POSTGRES_DB=keycloak'
       - 'POSTGRES_USER=keycloak'
       - 'POSTGRES_PASSWORD=keycloakpassword'
+    expose:
+      - "5432"
     volumes:
       - keycloak-db-data:/var/lib/postgresql/data
+    networks:
+      app_network:
+        ipv4_address: 172.20.0.21
 
   keycloak:
     image: keycloak/keycloak
@@ -41,7 +53,63 @@ services:
     ports:
       - '8081:8080'
     command: [ "start-dev" ]
+    networks:
+      app_network:
+        ipv4_address: 172.20.0.22
+
+  gateway-iam:
+    image: 'docker.io/christiand9699/gateway-iam:0.0.1-SNAPSHOT'
+    depends_on:
+      - keycloak
+    ports:
+      - '8080:8080'
+    networks:
+      app_network:
+        ipv4_address: 172.20.0.12
+
+  mongodb:
+    image: 'mongo:latest'
+    environment:
+      - 'MONGO_INITDB_DATABASE=mydatabase'
+      - 'MONGO_INITDB_ROOT_PASSWORD=secret'
+      - 'MONGO_INITDB_ROOT_USERNAME=root'
+    ports:
+      - '27017:27017'
+    networks:
+      app_network:
+        ipv4_address: 172.20.0.23
+    volumes:
+      - mongo_data:/data/db
+      - ./mongod.conf:/etc/mongo/mongod.conf
+    command: ["mongod", "--config", "/etc/mongo/mongod.conf"]
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.runCommand('ping').ok" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  measure-manager:
+    image: 'docker.io/christiand9699/measure:0.0.1-SNAPSHOT'
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    expose:
+      - '8080'
+    environment:
+      - 'SPRING_DATA_MONGODB_URI=mongodb://root:secret@172.20.0.23:27017/mydatabase?authSource=admin'
+    networks:
+      app_network:
+        ipv4_address: 172.20.0.11
+
 
 volumes:
   postgres-data:
   keycloak-db-data:
+  mongo_data:
+
+networks:
+  app_network:
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24

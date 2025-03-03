@@ -1,11 +1,14 @@
+import {string} from "yup";
+
 export interface ControlUnitDTO {
     id: number,
-    networkId:number,
-    name:string,
+    networkId: number,
+    name: string,
     remainingBattery: number,
-    rssi : number,
+    rssi: number,
     nodeId?: number,
 }
+
 export interface MeasurementUnitDTO {
     id: number;
     networkId: number;
@@ -15,28 +18,38 @@ export interface MeasurementUnitDTO {
     nodeId?: number; // Opzionale, poiché in Kotlin è nullable (Long?)
 }
 
-export interface MeasureDTO{
-    id: number ,
+export interface MeasureDTO {
+    id: number,
     value: number,
-    measureUnit: string ,
+    measureUnit: string,
     time: string,//forse può avere senso lasciare in string e poi convertire all'evenienza
     measurementUnitNId: number,
     controlUnitNId: number
 }
+
 export interface NodeDTO {
 
     id: number,
-     name: string,
-     standard :  boolean,
-     controlUnitsId :  number[],
-     measurementUnitsId :  number[],
-     location: Point,
-    
+    name: string,
+    standard: boolean,
+    controlUnitsId: number[],
+    measurementUnitsId: number[],
+    location: Point,
+
 }
+
 export interface Point {
     x: number;
     y: number;
 }
 
+export interface MeInterface {
+    name: string,
+    loginUrl: string,
+    principal: any | null,
+    xsrfToken: string,
+    logoutUrl: string,
+
+}
 
 

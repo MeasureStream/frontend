@@ -5,8 +5,9 @@ import Nodes from "./pages/Nodes";
 import {BrowserRouter as Router, Route, Routes} from "react-router";
 import AddNode from "./pages/AddNode";
 import {useEffect, useState} from "react";
-import {NodeDTO} from "./API/interfaces";
+import {MeInterface, NodeDTO} from "./API/interfaces";
 import {getAllNodes} from "./API/NodeAPI";
+import {getMe} from "./API/MeAPI";
 
 
 
@@ -14,6 +15,13 @@ function App() {
 
     const [nodes, setNodes] = useState<NodeDTO[]>([])
     const [dirty, setDirty] = useState(true)
+    const [me , setMe] = useState<MeInterface>({
+        name:"",
+        loginUrl: "",
+        principal: "",
+        xsrfToken: "",
+        logoutUrl:""
+    })
 
     useEffect( () => {
         const fetchNodes = async () => {
@@ -28,6 +36,9 @@ function App() {
 
                     const nodes_fetch = await res.json() as NodeDTO[]
                     setNodes(nodes_fetch)
+
+                    const resMe = await getMe()
+                    setMe(resMe)
 
                 } catch (error) {
                     console.error("Errore nel fetching dei nodi:", (error as Error).message);
@@ -45,7 +56,7 @@ function App() {
 
 
               <Router>
-                  <MyNavbar/>
+                  <MyNavbar   me={me} />
                   <Container fluid>
                       <Routes>
                           <Route path="/" element={<Nodes/>}/>
