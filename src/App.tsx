@@ -28,17 +28,21 @@ function App() {
             if(dirty){
 
                 try {
-                    const res = await getAllNodes()
+                    const resMe = await getMe()
+                    const me_ = await resMe.json() as MeInterface
+                    setMe( me_ )
+                    if(me.name) {
+                        const res = await getAllNodes()
 
-                    if (!res.ok) {
-                        throw new Error(`Errore HTTP: ${res.status} ${res.statusText}`);
+                        if (!res.ok) {
+                            throw new Error(`Errore HTTP: ${res.status} ${res.statusText}`);
+                        }
+
+                        const nodes_fetch = await res.json() as NodeDTO[]
+                        setNodes(nodes_fetch)
                     }
 
-                    const nodes_fetch = await res.json() as NodeDTO[]
-                    setNodes(nodes_fetch)
 
-                    const resMe = await getMe()
-                    setMe(resMe)
 
                 } catch (error) {
                     console.error("Errore nel fetching dei nodi:", (error as Error).message);
@@ -55,7 +59,7 @@ function App() {
       <>
 
 
-              <Router>
+              <Router basename={"/ui"}>
                   <MyNavbar   me={me} />
                   <Container fluid>
                       <Routes>
