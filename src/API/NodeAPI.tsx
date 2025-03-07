@@ -16,6 +16,7 @@ async function getAllNodes(page?: number, size?: number ) {
     const queryString = new URLSearchParams(params).toString();
     const urlAPI = API_URL
     const url = queryString ? `${urlAPI}?${queryString}` : urlAPI;
+    console.log(url)
 
     return  fetch(url, {
         method: 'GET',

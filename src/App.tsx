@@ -8,6 +8,7 @@ import {useEffect, useState} from "react";
 import {MeInterface, NodeDTO} from "./API/interfaces";
 import {getAllNodes} from "./API/NodeAPI";
 import {getMe} from "./API/MeAPI";
+import LandingPage from "./pages/LandingPage";
 
 
 
@@ -23,6 +24,11 @@ function App() {
         logoutUrl:""
     })
 
+    useEffect(() => {
+        console.log("DEBUG me: ",me)
+        console.log("DEBUG nodes:", nodes)
+    });
+
     useEffect( () => {
         const fetchNodes = async () => {
             if(dirty){
@@ -30,16 +36,21 @@ function App() {
                 try {
                     const resMe = await getMe()
                     const me_ = await resMe.json() as MeInterface
-                    setMe( me_ )
-                    if(me.name) {
+                    setMe( {... me_} )
+                    //console.log("me_:", me_)
+
+
+                    if(me_.name != "") {
                         const res = await getAllNodes()
 
                         if (!res.ok) {
                             throw new Error(`Errore HTTP: ${res.status} ${res.statusText}`);
                         }
 
+
                         const nodes_fetch = await res.json() as NodeDTO[]
-                        setNodes(nodes_fetch)
+                        setNodes( nodes_fetch )
+                        setDirty(false)
                     }
 
 
@@ -63,7 +74,7 @@ function App() {
                   <MyNavbar   me={me} />
                   <Container fluid>
                       <Routes>
-                          <Route path="/" element={<Nodes/>}/>
+                          <Route path="/" element={ me.name?   <Nodes nodes={ nodes}/> : <LandingPage/> }/>
                           <Route path="/add" element={<AddNode/> } />
                           {/* Add more routes here as needed */}
                       </Routes>

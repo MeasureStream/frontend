@@ -34,11 +34,13 @@ function MyNavbar( {me} : NavbarProps ) {
                     <>
                         { me.name ?
                             <>
-                                <Navbar.Text>{ me.name }</Navbar.Text>
-                                <Button variant ="warning">Logout</Button>
+                                <Navbar.Text style={{ padding: "5px" , textTransform: "capitalize", fontWeight: "bold" }} >{me.name}</Navbar.Text>
+
+                                <Button variant="warning" onClick={() => window.location.href = me.logoutUrl } >Logout</Button>
                             </>
                             :
-                            <Button variant="primary" >Login</Button>
+
+                            <Button variant="primary" onClick={() => window.location.href = me.loginUrl }>Login</Button>
                         }
 
                     </>
