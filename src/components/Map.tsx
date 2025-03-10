@@ -2,14 +2,17 @@ import {MapContainer, Marker, Popup, TileLayer, useMap} from "react-leaflet";
 import {NodeDTO} from "../API/interfaces";
 import {useEffect, useState} from "react";
 interface  NodesProps {
-    nodes : NodeDTO[]
+    nodes : NodeDTO[],
+    width : string
 }
 
 
 
-function Map({nodes}: NodesProps) {
+function Map({nodes, width ="100%"}: NodesProps) {
 
     const defaultLocation = [45.4642, 9.1900];
+    // Stato per il centro della mappa
+    const [mapCenter, setMapCenter] = useState<[number, number]>(defaultLocation);
 
     const MapCenterUpdater = ({ center }: { center: [number, number] }) => {
         const map = useMap();
@@ -20,10 +23,17 @@ function Map({nodes}: NodesProps) {
     };
 
     const center = nodes.length > 0 ? [nodes[0].location.x, nodes[0].location.y] : defaultLocation;
-
+    useEffect(() => {
+        setMapCenter(center); // Aggiorna il centro quando cambia la larghezza
+    }, [width, nodes]);
 
     return (
-        <MapContainer center={ nodes.length > 0 ? [nodes[0].location.x, nodes[0].location.y] : defaultLocation } zoom={13} style={{  height: "100vh", width: "100%" }}>
+        <div style={{ width, transition: "width 0.5s ease" }}> {/* Transizione fluida */}
+        <MapContainer center={ mapCenter } zoom={13} style={{  height: "80vh", width: "100%"}}
+                      whenCreated={(map) => {
+                          setTimeout(() => map.invalidateSize(), 500); // Forza il ridisegno dopo il cambio
+                      }}
+        >
 
             <TileLayer
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -40,6 +50,7 @@ function Map({nodes}: NodesProps) {
             }
 
         </MapContainer>
+        </div>
     )
 }
 export default Map
