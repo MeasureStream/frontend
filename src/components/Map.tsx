@@ -1,6 +1,10 @@
 import {MapContainer, Marker, Popup, TileLayer, useMap} from "react-leaflet";
 import {NodeDTO} from "../API/interfaces";
 import {useEffect, useRef, useState} from "react";
+import redMarker from "/src/assets/marker-red.svg";
+import bluMarker from "/src/assets/marker.svg";
+import bluMarkerShadow from '/src/assets/marker-shadow.svg';
+import L from "leaflet";
 interface  NodesProps {
     nodes : NodeDTO[],
     width : string
@@ -17,13 +21,25 @@ function Map({nodes, selected=0 ,width ="100%"}: NodesProps) {
 
     const markerColor = 'blue';  // Colore del marker
 
-    // Crea un'icona con un colore personalizzato (divIcon)
-    const customIcon = new L.divIcon({
-        className: 'custom-icon',  // Classe per applicare il CSS
-        html: `<div style="background-color: ${markerColor}; width: 20px; height: 20px; border-radius: 50%;"></div>`,
-        iconSize: [20, 20],  // Dimensione dell'icona
-    });
+    const redMarkerIcon = L.icon({
+        iconUrl: redMarker, // Percorso dell'icona
+        iconSize: [25, 41], // Dimensione dell'icona (modifica se necessario)
+        iconAnchor: [12, 41], // Punto dell'icona che tocca la mappa
+        popupAnchor: [1, -34], // Posizione del popup rispetto all'icona
+        shadowUrl:  bluMarkerShadow,// Percorso della shadow
+        shadowSize: [41, 41], // Dimensioni della shadow
+        shadowAnchor: [12, 41], // Dove ancorare la shadow rispetto all'icona
 
+    });
+    const blueMarkerIcon = L.icon({
+        iconUrl: bluMarker, // Percorso dell'icona blu
+        iconSize: [25, 41],  // Dimensione dell'icona
+        iconAnchor: [12, 41], // Dove l'icona ancorerà la posizione sulla mappa
+        popupAnchor: [1, -34], // Posizione del popup rispetto all'icona
+        shadowUrl:  bluMarkerShadow,// Percorso della shadow
+        shadowSize: [41, 41], // Dimensioni della shadow
+        shadowAnchor: [12, 41], // Dove ancorare la shadow rispetto all'icona
+    });
 
     const MapCenterUpdater = ({ center }: { center: [number, number] }) => {
         const map = useMap();
@@ -54,11 +70,12 @@ function Map({nodes, selected=0 ,width ="100%"}: NodesProps) {
             <>
             {
                 nodes.map((node, index) => (
-
-                    <Marker key={index} position={ [node.location.x,node.location.y]} style={ {color:"green"}}>
+                    <Marker key={index} position={ [node.location.x,node.location.y]} icon={ index === selected ? redMarkerIcon : blueMarkerIcon}>
                         <Popup>{node.name}  is standard: { node.standard.toString() }</Popup>
                     </Marker>
-                ))
+                    )
+
+                )
             }
             </>
 

@@ -7,6 +7,7 @@ import {NodeDTO} from "../API/interfaces";
 import { CSSTransition } from 'react-transition-group';
 import {Collapse} from "@mui/material";
 import { BsFillInfoCircleFill } from "react-icons/bs";
+import {Link} from "react-router";
 
 
 interface  NodesProps {
@@ -46,7 +47,9 @@ function Nodes({nodes} : NodesProps) {
                                                 onClick={()=>setSelected(index)}
                                 >
                                     {node.name}
+                                    <Link to ={`/nodes/${node.id}`} >
                                     <BsFillInfoCircleFill style={{ marginLeft: "20px" }} />
+                                    </Link>
                                 </ListGroup.Item>
                             ))}
                             </>

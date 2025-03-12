@@ -27,4 +27,18 @@ async function getAllNodes(page?: number, size?: number ) {
     })
 }
 
-export {getAllNodes}
+
+async function getNodesId( id: number) {
+
+    const url =`${API_URL}/?id=${id}`;
+
+    return  fetch(url, {
+        method: 'GET',
+        headers: {
+            //'X-XSRF-TOKEN': me.xsrfToken,
+            'Content-Type': 'application/json'
+        },
+    })
+}
+
+export {getAllNodes,getNodesId}
