@@ -9,6 +9,7 @@ import {MeInterface, NodeDTO} from "./API/interfaces";
 import {getAllNodes} from "./API/NodeAPI";
 import {getMe} from "./API/MeAPI";
 import LandingPage from "./pages/LandingPage";
+import NodeInfoPage from "./pages/NodeModify"
 
 
 
@@ -74,8 +75,9 @@ function App() {
                   <MyNavbar   me={me} />
                   <Container fluid>
                       <Routes>
-                          <Route path="/" element={ me.name?   <Nodes nodes={ nodes}/> : <LandingPage/> }/>
+                          <Route path="/" element={ me.name?   <Nodes nodes={ nodes}/> : <LandingPage/> } />
                           <Route path="/add" element={<AddNode/> } />
+                          <Route path="/nodes/:nodeId" element={  <NodeInfoPage />  } />
                           {/* Add more routes here as needed */}
                       </Routes>
                   </Container>

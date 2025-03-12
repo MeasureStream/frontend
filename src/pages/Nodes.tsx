@@ -6,7 +6,7 @@ import {getAllNodes} from "../API/NodeAPI";
 import {NodeDTO} from "../API/interfaces";
 import { CSSTransition } from 'react-transition-group';
 import {Collapse} from "@mui/material";
-
+import { BsFillInfoCircleFill } from "react-icons/bs";
 
 
 interface  NodesProps {
@@ -15,6 +15,7 @@ interface  NodesProps {
 
 function Nodes({nodes} : NodesProps) {
     const [reduce, setReduce] = useState<boolean>(false)
+    const [selected, setSelected] =useState<number>(0)
     return (
             <>
                 {/*<Row style={{ display: "flex", flexDirection: "row",  justifyContent: "space-between", alignItems: "center", padding: "10px" }}>
@@ -36,17 +37,20 @@ function Nodes({nodes} : NodesProps) {
                     <Col
                         md="auto"
                     >
-
-                                <ListGroup>
-                                    <h3>Nodes:</h3>
-
-                                        {nodes.map((node) => (
-                                            <ListGroup.Item key={node.id}>
-                                                {node.name}
-                                            </ListGroup.Item>
-                                        ))}
-
-                                </ListGroup>
+                        <h3>Nodes:</h3>
+                        <ListGroup >
+                            <>
+                            {nodes.map((node, index) => (
+                                <ListGroup.Item key={node.id} variant ="primary"
+                                                action  style={{ display: "flex",justifyContent: "space-between", alignItems: "center" }}
+                                                onClick={()=>setSelected(index)}
+                                >
+                                    {node.name}
+                                    <BsFillInfoCircleFill style={{ marginLeft: "20px" }} />
+                                </ListGroup.Item>
+                            ))}
+                            </>
+                        </ListGroup>
 
                     </Col>
 
@@ -54,7 +58,7 @@ function Nodes({nodes} : NodesProps) {
                     <Col
 
                     >
-                        <Map nodes={nodes} />
+                        <Map nodes={nodes} selected={selected}/>
                     </Col>
                 </Row>
 
