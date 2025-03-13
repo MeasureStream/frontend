@@ -77,7 +77,7 @@ function App() {
                       <Routes>
                           <Route path="/" element={ me.name?   <Nodes nodes={ nodes}/> : <LandingPage/> } />
                           <Route path="/add" element={<AddNode/> } />
-                          <Route path="/nodes/:nodeId" element={  <NodeInfoPage />  } />
+                          <Route path="/nodes/:nodeId" element={  <NodeInfoPage  nodes = { nodes} />  } />
                           {/* Add more routes here as needed */}
                       </Routes>
                   </Container>

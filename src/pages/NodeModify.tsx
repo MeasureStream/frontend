@@ -4,28 +4,45 @@ import {ControlUnitDTO, MeasurementUnitDTO, MeInterface, NodeDTO} from "../API/i
 import {useParams} from "react-router";
 import {Card, Col, Container, ListGroup, Row, Spinner} from "react-bootstrap";
 import {getMe} from "../API/MeAPI";
+import { BsChevronDown } from "react-icons/bs";
 import {getNodesId} from "../API/NodeAPI";
+import {getMuId} from "../API/MeasurementUnitAPI";
+import {Accordion} from "react-bootstrap";
 
+interface  Props {
+    nodes : NodeDTO[]
+}
 
-const NodeInfoPage = () => {
+const NodeInfoPage = ({nodes} : Props) => {
     const { nodeId } = useParams<{ nodeId: string }>();
     const id = parseInt(nodeId!!, 10);
     const [node, setNode] = useState<NodeDTO | null>(null);
     const [measurementUnits, setMeasurementUnits] = useState<MeasurementUnitDTO[]>([]);
     const [controlUnits, setControlUnits] = useState<ControlUnitDTO[]>([]);
+    const [dirty, setDirty] = useState(true)
+
+    useEffect(() => {
+
+        console.log("DEBUG node:", node)
+        console.log("DEBUG mu:", measurementUnits)
+        console.log("measurementunitnid: " , node?.measurementUnitsId[0]!! )
+        console.log(" dirty" , dirty )
+    });
 
     useEffect( () => {
+        if(nodes.length > 0)
+            setNode(nodes.find((e) => e.id == nodeId))
 
-        const fetchALL = async () => {
-            const res = await getNodesId(id)
-            const fetchedNode = await res.json() as NodeDTO
-            console.log(fetchedNode)
-            setNode(fetchedNode);
+        const fetchMuCu = async () => {
+            console.log("qui")
+            if(node != null && dirty ){
+                console.log("dentro ")
+                const mu = await getMuId(node?.measurementUnitsId[0]!! )
+                setMeasurementUnits(mu)
+                setDirty(false)
+            }
+
         }
-        if (!nodeId) return;
-
-
-
 
 
             const fetchedMeasurementUnits: MeasurementUnitDTO[] = [
@@ -34,13 +51,15 @@ const NodeInfoPage = () => {
         ];
 
         const fetchedControlUnits: ControlUnitDTO[] = [
-            {id: 1, networkId: 100, name: "Controller A", remainingBattery: 80, rssi: -50, nodeId: 1},
+            { id: 1, networkId: 100, name: "Controller A", remainingBattery: 80, rssi: -50, nodeId: 1 },
+            { id: 2, networkId: 101, name: "Controller B", remainingBattery: 65, rssi: -55, nodeId: 1 },
+            { id: 3, networkId: 102, name: "Controller C", remainingBattery: 90, rssi: -45, nodeId: 1 },
         ];
-        fetchALL()
+        fetchMuCu();
 
-        setMeasurementUnits(fetchedMeasurementUnits.filter(mu => mu.nodeId === id));
+       // setMeasurementUnits(fetchedMeasurementUnits.filter(mu => mu.nodeId === id));
         setControlUnits(fetchedControlUnits.filter(cu => cu.nodeId === id));
-    }, [nodeId]);
+    }, [ node ]);
 
     if (!node) {
         return (
@@ -92,11 +111,23 @@ const NodeInfoPage = () => {
                         <Card.Body>
                             <h3>Measurement Units</h3>
                             <ListGroup>
-                                {measurementUnits.map(mu => (
-                                    <ListGroup.Item key={mu.id}>
-                                        {mu.type} ({mu.measuresUnit})
-                                    </ListGroup.Item>
-                                ))}
+                                <>
+                                    {measurementUnits.map((mu,index) => (
+                                        < div key = {index}>
+                                            <ListGroup.Item variant="secondary">
+                                                NetworkId:{mu.id}
+                                            </ListGroup.Item>
+                                            <ListGroup.Item variant="secondary">
+                                               type: {mu.type}
+                                            </ListGroup.Item >
+                                            <ListGroup.Item variant="secondary">
+                                               Unit: {mu.measuresUnit}
+                                            </ListGroup.Item>
+                                        < /div>
+
+                                    ))}
+                                </>
+
                             </ListGroup>
                         </Card.Body>
                     </Card>
@@ -104,13 +135,43 @@ const NodeInfoPage = () => {
                     <Card className="mt-4 shadow">
                         <Card.Body>
                             <h3>Control Units</h3>
-                            <ListGroup>
-                                {controlUnits.map(cu => (
-                                    <ListGroup.Item key={cu.id}>
-                                        {cu.name} - Battery: {cu.remainingBattery}% - RSSI: {cu.rssi}
-                                    </ListGroup.Item>
-                                ))}
-                            </ListGroup>
+
+                                <Accordion>
+
+
+                                <>
+                                    {controlUnits.map((cu,index) => (
+
+                                        <Accordion.Item key = {index} eventKey={index.toString()} >
+                                            <Accordion.Header > {cu.name}  id: {cu.id}</Accordion.Header>
+                                            <Accordion.Body>
+                                                    <ListGroup>
+                                                        <ListGroup.Item variant="secondary">
+                                                            NetworkId: {cu.networkId}
+                                                        </ListGroup.Item >
+                                                        <ListGroup.Item variant="secondary">
+                                                            Name: {cu.name}
+                                                        </ListGroup.Item>
+                                                        <ListGroup.Item variant="secondary">
+                                                            Remaining Battery: {cu.remainingBattery}
+                                                        </ListGroup.Item>
+                                                        <ListGroup.Item variant="secondary">
+                                                            rssi: {cu.rssi}
+                                                        </ListGroup.Item>
+                                                    </ListGroup>
+
+                                            </Accordion.Body>
+
+                                        </Accordion.Item>
+
+
+
+
+
+                                    ))}
+                                </>
+                                </Accordion>
+
                         </Card.Body>
                     </Card>
                 </Col>
