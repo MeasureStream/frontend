@@ -32,7 +32,7 @@ async function getAllMu(page?: number, size?: number ) {
 
 async function getMuId( id: number) {
 
-    const url =`${API_URL}/?networkId=${id}`;
+    const url =`${API_URL}/nodeid/?nodeId=${id}`;
 
     const response = await   fetch(url, {
         method: 'GET',

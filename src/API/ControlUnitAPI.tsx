@@ -1,10 +1,10 @@
-import {NodeDTO} from "./interfaces";
+import {ControlUnitDTO} from "./interfaces";
 
-const API_URL = 'http://localhost:8080/API/nodes';
+const API_URL = 'http://localhost:8080/API/controlunits';
 
 
 //get
-async function getAllNodes(page?: number, size?: number ) {
+async function getAllCu(page?: number, size?: number ) {
     const params: { [key: string]: any } = {};
     if (page !== null) {
         params.page = page;
@@ -30,18 +30,18 @@ async function getAllNodes(page?: number, size?: number ) {
 }
 
 
-async function getNodesId( id: number) {
+async function getCuId( id: number) {
 
-    const url =`${API_URL}/?id=${id}`;
+    const url =`${API_URL}/nodeid/?nodeId=${id}`;
 
-    const response =   await fetch(url, {
+    const response = await   fetch(url, {
         method: 'GET',
         headers: {
             //'X-XSRF-TOKEN': me.xsrfToken,
             'Content-Type': 'application/json'
         },
     })
-    return (await response.json())[0] as NodeDTO
+    return await response.json() as ControlUnitDTO[]
 }
 
-export {getAllNodes,getNodesId}
+export {getCuId}
