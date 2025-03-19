@@ -1,4 +1,5 @@
 import {NodeDTO} from "./interfaces";
+import {useAuth} from "./AuthContext";
 
 const API_URL = 'http://localhost:8080/API/nodes';
 
@@ -44,4 +45,41 @@ async function getNodesId( id: number) {
     return (await response.json())[0] as NodeDTO
 }
 
-export {getAllNodes,getNodesId}
+
+async function deleteNode(xsrfToken:string | null ,id: number) {
+
+
+    const url = `${API_URL}`;
+    const n : NodeDTO =  {
+        id: id,
+        name: "",
+        standard: false,
+        controlUnitsId: [],
+        measurementUnitsId: [],
+        location: {
+            x: 0,
+            y: 0
+        }
+    };
+    //console.log("xsrfToken broroooo::: ",xsrfToken)
+    const response = await fetch(url, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-XSRF-TOKEN': xsrfToken || '',  // Includi il token nell'intestazione
+        },
+        body: JSON.stringify(n),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Errore nel cancellare il nodo: ${response.status} ${response.statusText}`);
+    }
+    // Gestisci la risposta per il codice di stato 202
+    if (response.status === 202) {
+        return "Nodo accettato per eliminazione (in elaborazione)";
+    }
+
+    return await response.json(); // O restituisci una risposta adeguata se serve
+}
+
+export {getAllNodes,getNodesId,deleteNode}

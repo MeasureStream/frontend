@@ -11,12 +11,12 @@ import {getMe} from "./API/MeAPI";
 import LandingPage from "./pages/LandingPage";
 import NodeInfoPage from "./pages/NodeModify"
 
-
+import { useAuth } from "./API/AuthContext";
 
 function App() {
-
+    const { xsrfToken, setXsrfToken, dirty, setDirty } = useAuth(); // Usa il contesto
     const [nodes, setNodes] = useState<NodeDTO[]>([])
-    const [dirty, setDirty] = useState(true)
+    //const [dirty, setDirty] = useState(true)
     const [me , setMe] = useState<MeInterface>({
         name:"",
         loginUrl: "",
@@ -39,6 +39,9 @@ function App() {
                     const me_ = await resMe.json() as MeInterface
                     setMe( {... me_} )
                     //console.log("me_:", me_)
+                    if (me_.xsrfToken) {
+                        setXsrfToken(me_.xsrfToken);
+                    }
 
 
                     if(me_.name != "") {
@@ -65,7 +68,7 @@ function App() {
 
         }
         fetchNodes()
-    }, [])
+    }, [dirty])
 
   return (
       <>

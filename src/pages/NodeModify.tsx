@@ -5,12 +5,15 @@ import {useParams} from "react-router";
 import {Button, Card, Col, Container, ListGroup, Row, Spinner} from "react-bootstrap";
 import {getMe} from "../API/MeAPI";
 import { BsChevronDown } from "react-icons/bs";
-import {getAllNodes, getNodesId} from "../API/NodeAPI";
+import {deleteNode, getAllNodes, getNodesId} from "../API/NodeAPI";
 import {getMuId} from "../API/MeasurementUnitAPI";
 import {Accordion} from "react-bootstrap";
 import {getCuId} from "../API/ControlUnitAPI";
 
 import {Modal } from "react-bootstrap";
+import {number} from "yup";
+import {useAuth} from "../API/AuthContext";
+import { useNavigate } from 'react-router';
 
 
 interface  Props {
@@ -24,7 +27,7 @@ const NodeInfoPage = ({nodes} : Props) => {
     const [measurementUnits, setMeasurementUnits] = useState<MeasurementUnitDTO[]>([]);
     const [controlUnits, setControlUnits] = useState<ControlUnitDTO[]>([]);
     const [dirty, setDirty] = useState(true)
-
+    const navigate = useNavigate()
     useEffect(() => {
 
         console.log("DEBUG node:", node)
@@ -87,6 +90,8 @@ const NodeInfoPage = ({nodes} : Props) => {
 
     const handleDelete = () => {
         alert("Elemento eliminato!");  // Implementa la logica di eliminazione qui
+
+        navigate("/")
     };
 
     return (
@@ -105,7 +110,7 @@ const NodeInfoPage = ({nodes} : Props) => {
                             </Card.Text>
                             <Card.Text>
 
-                                <ConfirmDelete onDelete={handleDelete} />
+                                <ConfirmDelete onDelete={handleDelete} id = {node.id}/>
                             </Card.Text>
                         </Card.Body>
                     </Card>
@@ -222,16 +227,17 @@ const NodeInfoPage = ({nodes} : Props) => {
 
 
 // Funzione ConfirmDelete
-function ConfirmDelete({ onDelete }: { onDelete: () => void }) {
+function ConfirmDelete({onDelete, id}: { onDelete: () => void, id?: number }) {
     const [show, setShow] = useState(false);
-
+    const { xsrfToken, setXsrfToken, dirty, setDirty } = useAuth();  // Recupera il xsrfToken dal contesto
     // Funzioni per mostrare/nascondere il modal
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
 
     // Funzione chiamata quando si conferma l'eliminazione
     const handleDelete = () => {
-        onDelete();  // Chiamata alla funzione passata come prop
+        deleteNode(xsrfToken, id).then(() => {setDirty(true); onDelete() }  ).catch((e)=> console.log("nodo non eliminato xsrf:   ",xsrfToken, e))
+
         setShow(false);
     };
 
