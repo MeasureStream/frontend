@@ -12,5 +12,7 @@ export default defineConfig({
 
     host: "0.0.0.0",
     hmr: true, // Abilita Hot Module Replacement
+    strictPort: true,
+    port: 5173, // you can replace this port with any port
   }
 })
