@@ -8,7 +8,7 @@ import {useEffect, useState} from "react";
 import {MeInterface, NodeDTO} from "./API/interfaces";
 import {getAllNodes} from "./API/NodeAPI";
 import {getMe} from "./API/MeAPI";
-import LandingPage from "./pages/LandingPage";
+import LandingPageENG from "./pages/LandingPageENG";
 import NodeInfoPage from "./pages/NodeModify"
 
 import { useAuth } from "./API/AuthContext";
@@ -78,7 +78,7 @@ function App() {
                   <MyNavbar   me={me} />
                   <Container fluid>
                       <Routes>
-                          <Route path="/" element={ me.name?   <Nodes nodes={ nodes}/> : <LandingPage/> } />
+                          <Route path="/" element={ me.name?   <Nodes nodes={ nodes}/> : <LandingPageENG/> } />
                           <Route path="/add" element={<AddNode/> } />
                           <Route path="/nodes/:nodeId" element={  <NodeInfoPage  nodes = { nodes} />  } />
                           {/* Add more routes here as needed */}

@@ -114,6 +114,24 @@ const NodeInfoPage = ({nodes} : Props) => {
                             </Card.Text>
                         </Card.Body>
                     </Card>
+
+                    <Card className="shadow">
+                        <Card.Body>
+                            <Card.Title>Real Time Measures</Card.Title>
+                            <>
+                            {
+                                ["Celsius", "Kelvin", "Lux"].map((unit, index) => (
+                                    <Card.Text key={index}>
+                                        <ShowChart nodeId={node.id} unit={unit}></ShowChart>
+                                    </Card.Text>
+                                ))
+                            }
+
+                            </>
+
+
+                        </Card.Body>
+                    </Card>
                 </Col>
 
                 <Col md={8}>
@@ -267,6 +285,42 @@ function ConfirmDelete({onDelete, id}: { onDelete: () => void, id?: number }) {
     );
 }
 
+
+
+// Funzione ConfirmDelete
+function ShowChart({nodeId, unit}: { nodeId: number, unit: string }) {
+    const [show, setShow] = useState(false);
+
+    // Funzioni per mostrare/nascondere il modal
+    const handleClose = () => setShow(false);
+    const handleShow = () => setShow(true);
+
+
+    return (
+        <>
+            {/* Bottone che apre il modal */}
+            <Button variant="primary" onClick={handleShow}>
+                Show {unit}
+            </Button>
+
+
+            <Modal show={show} onHide={handleClose} size="xl">
+                <Modal.Header closeButton>
+                    <Modal.Title>Sensor Dashboard</Modal.Title>
+                </Modal.Header>
+                <Modal.Body style={{ height: '80vh' }}>
+                    <iframe
+                        src={`http://localhost:8080/grafana/d-solo/beh39dmpjez28e/dashboard1?orgId=1&from=2025-04-07T02:44:38.103Z&to=2025-04-07T12:39:42.265Z&refresh=30s&theme=light&panelId=1&__feature.dashboardSceneSolo&var-nodeId=${1}&var-measureUnit=${unit}&timezone=browser`}
+                        width="100%"
+                        height="100%"
+                        frameBorder="0"
+                        title="Grafana Panel"
+                    ></iframe>
+                </Modal.Body>
+            </Modal>
+        </>
+    );
+}
 
 
 export default NodeInfoPage;
