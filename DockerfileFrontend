@@ -1,14 +1,13 @@
-FROM node
-
+# Stage 1: build
+FROM node:20-alpine AS builder
 WORKDIR /app
-
-COPY package.json .
-RUN npm i
-
+COPY package.json ./
+COPY package-lock.json ./
+RUN npm ci
 COPY . .
+RUN npm run build
 
-## EXPOSE [Port you mentioned in the vite.config file]
-
-EXPOSE 5173
-
-CMD ["npm", "run", "dev"]
+# Stage 2: production (serve con Nginx)
+FROM nginx:alpine
+COPY --from=builder /app/dist /usr/share/nginx/html
+EXPOSE 80
