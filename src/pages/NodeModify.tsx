@@ -5,7 +5,7 @@ import {useParams} from "react-router";
 import {Button, Card, Col, Container, ListGroup, Row, Spinner} from "react-bootstrap";
 import {getMe} from "../API/MeAPI";
 import { BsChevronDown } from "react-icons/bs";
-import {deleteNode, getAllNodes, getNodesId} from "../API/NodeAPI";
+import {deleteNode, getAllNodes, getNodesId, getNodeUnits} from "../API/NodeAPI";
 import {getMuId} from "../API/MeasurementUnitAPI";
 import {Accordion} from "react-bootstrap";
 import {getCuId} from "../API/ControlUnitAPI";
@@ -26,6 +26,7 @@ const NodeInfoPage = ({nodes} : Props) => {
     const [node, setNode] = useState<NodeDTO | null>(null);
     const [measurementUnits, setMeasurementUnits] = useState<MeasurementUnitDTO[]>([]);
     const [controlUnits, setControlUnits] = useState<ControlUnitDTO[]>([]);
+    const [nodeUnits, setNodeUnits] = useState<string[]>([]);
     const [dirty, setDirty] = useState(true)
     const navigate = useNavigate()
     useEffect(() => {
@@ -56,6 +57,10 @@ const NodeInfoPage = ({nodes} : Props) => {
 
                 const cu = await getCuId((Number(nodeId)))
                 setControlUnits(cu)
+
+                const nu = await getNodeUnits(Number(nodeId))
+                setNodeUnits(nu)
+
                 setDirty(false)
             }
 
@@ -120,7 +125,7 @@ const NodeInfoPage = ({nodes} : Props) => {
                             <Card.Title>Real Time Measures</Card.Title>
                             <>
                             {
-                                ["Celsius", "Kelvin", "Lux"].map((unit, index) => (
+                               nodeUnits.map((unit, index) => (
                                     <Card.Text key={index}>
                                         <ShowChart nodeId={node.id} unit={unit}></ShowChart>
                                     </Card.Text>
@@ -310,7 +315,8 @@ function ShowChart({nodeId, unit}: { nodeId: number, unit: string }) {
                 </Modal.Header>
                 <Modal.Body style={{ height: '80vh' }}>
                     <iframe
-                        src={`http://localhost:8080/grafana/d-solo/beh39dmpjez28e/dashboard1?orgId=1&from=2025-04-07T02:44:38.103Z&to=2025-04-07T12:39:42.265Z&refresh=30s&theme=light&panelId=1&__feature.dashboardSceneSolo&var-nodeId=${1}&var-measureUnit=${unit}&timezone=browser`}
+                        //src={`http://localhost:8080/grafana/d-solo/beh39dmpjez28e/dashboard1?orgId=1&from=2025-04-07T02:44:38.103Z&to=2025-04-07T12:39:42.265Z&refresh=30s&theme=light&panelId=1&__feature.dashboardSceneSolo&var-nodeId=1&var-measureUnit=Celsius&timezone=browser`}
+                        src={`http://localhost:3000/d-solo/beh39dmpjez28e/dashboard1?orgId=&refresh=30s&theme=light&panelId=1&__feature.dashboardSceneSolo&var-nodeId=${nodeId}&var-measureUnit=${unit}&timezone=browser`}
                         //src={`http://172.20.0.30:3000/d-solo/beh39dmpjez28e/dashboard1?orgId=1&from=2025-04-07T02:44:38.103Z&to=2025-04-07T12:39:42.265Z&refresh=30s&theme=light&panelId=1&__feature.dashboardSceneSolo&var-nodeId=${1}&var-measureUnit=${unit}&timezone=browser`}
                         //src={`http://localhost:3000/public-dashboards/366bb25b5951418bae6d2664f20b0f18`}
                         width="100%"

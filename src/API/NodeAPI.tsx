@@ -82,4 +82,18 @@ async function deleteNode(xsrfToken:string | null ,id: number) {
     return await response.json(); // O restituisci una risposta adeguata se serve
 }
 
-export {getAllNodes,getNodesId,deleteNode}
+async function getNodeUnits( id: number) {
+
+    const url =`http://localhost:8080/API/measures/measureUnitOfNode/?nodeId=${id}`;
+
+    const response =   await fetch(url, {
+        method: 'GET',
+        headers: {
+            //'X-XSRF-TOKEN': me.xsrfToken,
+            'Content-Type': 'application/json'
+        },
+    })
+    return (await response.json()) as string[]
+}
+
+export {getAllNodes,getNodesId,deleteNode,getNodeUnits}
