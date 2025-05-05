@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import {ChangeEvent, FormEvent, useEffect, useState} from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import {ControlUnitDTO, MeasurementUnitDTO, MeInterface, NodeDTO} from "../API/interfaces";
 import {useParams} from "react-router";
@@ -137,6 +137,8 @@ const NodeInfoPage = ({nodes} : Props) => {
 
                         </Card.Body>
                     </Card>
+
+                    <UploadCard />
                 </Col>
 
                 <Col md={8}>
@@ -171,7 +173,7 @@ const NodeInfoPage = ({nodes} : Props) => {
                                             <Accordion.Header > MeasurementUnit id: {mu.id}</Accordion.Header>
                                             <Accordion.Body>
                                                 <ListGroup>
-                                                    < div key = {index}>
+                                                    <div key = {index}>
                                                         <ListGroup.Item variant="secondary">
                                                             NetworkId:{mu.id}
                                                         </ListGroup.Item>
@@ -181,7 +183,7 @@ const NodeInfoPage = ({nodes} : Props) => {
                                                         <ListGroup.Item variant="secondary">
                                                             Unit: {mu.measuresUnit}
                                                         </ListGroup.Item>
-                                                    < /div>
+                                                    </div>
                                                 </ListGroup>
 
                                             </Accordion.Body>
@@ -329,6 +331,102 @@ function ShowChart({nodeId, unit}: { nodeId: number, unit: string }) {
         </>
     );
 }
+
+
+
+
+
+const UploadCard = () => {
+    const [file, setFile] = useState<File | null>(null);
+    const { xsrfToken, setXsrfToken } = useAuth();  // Recupera il xsrfToken dal contesto
+
+    const handleUpload = async () => {
+
+
+
+        if (!file) {
+            alert('Seleziona un file PDF prima di fare l\'upload.');
+            return;
+        }
+
+        const formData = new FormData();
+
+        // Oggetto con dati fissi per DCCDTO
+        const dccData = {
+            id: 1,
+            scadenza: '2025-12-31',
+            nodeId: 42,
+        };
+
+        // Aggiungi il file al FormData
+        console.log("file: ", file)
+        formData.append('file', file);
+
+        // Aggiungi i dati DCCDTO come stringa JSON al FormData
+        //formData.append('dcc', JSON.stringify(dccData));
+        /*formData.append(
+            "dcc",
+            new Blob([JSON.stringify({
+                id: 1,
+                scadenza: "2025-12-31",
+                nodeId: 42
+            })], { type: "application/json" })
+        );
+*/
+        try {
+            const response = await fetch('http://localhost:8080/API/pdf/', {
+                method: 'POST',
+                headers: {
+                    'X-XSRF-TOKEN': xsrfToken || '',  // Includi il token nell'intestazione
+                },
+                body: formData,
+            });
+
+            if (response.ok) {
+                console.log('Upload riuscito');
+                alert('Upload riuscito!');
+                //window.location.href = "/uploadSuccess";  // Se il server risponde correttamente
+            } else {
+                const errorText = await response.text();
+                console.error('Errore:', errorText);
+                alert('Errore durante l\'upload');
+            }
+        } catch (err) {
+            console.error('Errore di rete:', err);
+            alert('Errore nella richiesta');
+        }
+    };
+
+
+    const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+        setFile(e.target.files?.[0] ?? null);
+    };
+
+    const handleSubmit = (e: FormEvent) => {
+        e.preventDefault();
+        handleUpload();
+    };
+
+    return (
+        <Card className="mt-4 shadow">
+            <Card.Body>
+                <h3>Upload PDF</h3>
+                <form onSubmit={handleSubmit} encType="multipart/form-data">
+                    <input
+                        type="file"
+                        accept="application/pdf"
+                        onChange={handleFileChange}
+                    />
+                    <Button variant="success" className="mt-3" type="submit">
+                        Upload PDF
+                    </Button>
+                </form>
+            </Card.Body>
+        </Card>
+    );
+};
+
+
 
 
 export default NodeInfoPage;

@@ -96,4 +96,6 @@ async function getNodeUnits( id: number) {
     return (await response.json()) as string[]
 }
 
+
+
 export {getAllNodes,getNodesId,deleteNode,getNodeUnits}
