@@ -14,8 +14,9 @@ export interface MeasurementUnitDTO {
     networkId: number;
     type: string;
     measuresUnit: string;
-    idDcc: number;
+    idDcc?: number;
     nodeId?: number; // Opzionale, poiché in Kotlin è nullable (Long?)
+    dccFileNme?: string;
 }
 
 export interface MeasureDTO {

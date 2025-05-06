@@ -2,7 +2,7 @@ import {ChangeEvent, FormEvent, useEffect, useState} from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import {ControlUnitDTO, MeasurementUnitDTO, MeInterface, NodeDTO} from "../API/interfaces";
 import {useParams} from "react-router";
-import {Button, Card, Col, Container, ListGroup, Row, Spinner} from "react-bootstrap";
+import {Button, Card, Col, Container, Form, ListGroup, Row, Spinner} from "react-bootstrap";
 import {getMe} from "../API/MeAPI";
 import { BsChevronDown } from "react-icons/bs";
 import {deleteNode, getAllNodes, getNodesId, getNodeUnits} from "../API/NodeAPI";
@@ -39,13 +39,9 @@ const NodeInfoPage = ({nodes} : Props) => {
 
     useEffect( () => {
 
-
-
         const fetchNodes = async () => {
             const node_res = await getNodesId(Number(nodeId))
-
             setNode(node_res)
-
 
         }
         const fetchMuCu = async () => {
@@ -66,23 +62,9 @@ const NodeInfoPage = ({nodes} : Props) => {
 
         }
 
-
-            const fetchedMeasurementUnits: MeasurementUnitDTO[] = [
-            {id: 1, networkId: 100, type: "Temperature", measuresUnit: "°C", idDcc: 123, nodeId: 1},
-            {id: 2, networkId: 100, type: "Humidity", measuresUnit: "%", idDcc: 124, nodeId: 1},
-        ];
-
-        const fetchedControlUnits: ControlUnitDTO[] = [
-            { id: 1, networkId: 100, name: "Controller A", remainingBattery: 80, rssi: -50, nodeId: 1 },
-            { id: 2, networkId: 101, name: "Controller B", remainingBattery: 65, rssi: -55, nodeId: 1 },
-            { id: 3, networkId: 102, name: "Controller C", remainingBattery: 90, rssi: -45, nodeId: 1 },
-        ];
         fetchNodes().then( async () => await fetchMuCu() ).catch(e => console.log("ERROR: ", e))
 
-
-       // setMeasurementUnits(fetchedMeasurementUnits.filter(mu => mu.nodeId === id));
-        //setControlUnits(fetchedControlUnits.filter(cu => cu.nodeId === id));
-    }, [ ]);
+    }, [dirty]);
 
     if (!node) {
         return (
@@ -138,7 +120,7 @@ const NodeInfoPage = ({nodes} : Props) => {
                         </Card.Body>
                     </Card>
 
-                    <UploadCard />
+                    <UploadCard muId={ Number(nodeId) } expiration={"2025-12-31"}/>
                 </Col>
 
                 <Col md={8}>
@@ -159,6 +141,10 @@ const NodeInfoPage = ({nodes} : Props) => {
                             </div>
                         </Card.Body>
                     </Card>
+
+                    {
+                        //inizio MeasurementUnit
+                    }
 
                     <Card className="mt-4 shadow">
                         <Card.Body>
@@ -191,9 +177,6 @@ const NodeInfoPage = ({nodes} : Props) => {
                                         </Accordion.Item>
 
 
-
-
-
                                     ))}
                                 </>
                             </Accordion>
@@ -201,12 +184,15 @@ const NodeInfoPage = ({nodes} : Props) => {
                         </Card.Body>
                     </Card>
 
+                    {
+                        //inizio ControlUnit
+                    }
+
                     <Card className="mt-4 shadow">
                         <Card.Body>
                             <h3>Control Units</h3>
 
                                 <Accordion>
-
 
                                 <>
                                     {controlUnits.map((cu,index) => (
@@ -243,6 +229,32 @@ const NodeInfoPage = ({nodes} : Props) => {
 
                         </Card.Body>
                     </Card>
+
+                    {
+                        //inizio DCC
+                    }
+                    <Card className="mt-4 shadow">
+                        <Card.Body>
+                            <h3>DCCs</h3>
+                            <>
+                                        <ListGroup>
+                                        {measurementUnits
+                                            .slice() // per evitare mutazioni se measurementUnits viene da uno state
+                                            .sort((a, b) => a.id - b.id)
+                                            .map((mu,index) => (
+
+                                            <div key = {mu.id}>
+                                                <DccMu mu={mu} expiration={"2025-12-31"} setDirty={setDirty}></DccMu>
+
+                                            </div>
+                                        ))}
+                                        </ListGroup>
+                                    </>
+
+
+                        </Card.Body>
+                    </Card>
+
                 </Col>
             </Row>
         </Container>
@@ -254,14 +266,16 @@ const NodeInfoPage = ({nodes} : Props) => {
 // Funzione ConfirmDelete
 function ConfirmDelete({onDelete, id}: { onDelete: () => void, id?: number }) {
     const [show, setShow] = useState(false);
-    const { xsrfToken, setXsrfToken, dirty, setDirty } = useAuth();  // Recupera il xsrfToken dal contesto
+    const { xsrfToken, setXsrfToken} = useAuth();  // Recupera il xsrfToken dal contesto
     // Funzioni per mostrare/nascondere il modal
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
 
     // Funzione chiamata quando si conferma l'eliminazione
     const handleDelete = () => {
-        deleteNode(xsrfToken, id).then(() => {setDirty(true); onDelete() }  ).catch((e)=> console.log("nodo non eliminato xsrf:   ",xsrfToken, e))
+        deleteNode(xsrfToken, id).then(() => {
+            //setDirty(true);
+            onDelete() }  ).catch((e)=> console.log("nodo non eliminato xsrf:   ",xsrfToken, e))
 
         setShow(false);
     };
@@ -332,17 +346,10 @@ function ShowChart({nodeId, unit}: { nodeId: number, unit: string }) {
     );
 }
 
-
-
-
-
-const UploadCard = () => {
+function DccMu( {mu, expiration, setDirty}: { mu: MeasurementUnitDTO, expiration : string ,  setDirty: React.Dispatch<React.SetStateAction<boolean>> } ){
     const [file, setFile] = useState<File | null>(null);
     const { xsrfToken, setXsrfToken } = useAuth();  // Recupera il xsrfToken dal contesto
-
     const handleUpload = async () => {
-
-
 
         if (!file) {
             alert('Seleziona un file PDF prima di fare l\'upload.');
@@ -350,31 +357,140 @@ const UploadCard = () => {
         }
 
         const formData = new FormData();
-
-        // Oggetto con dati fissi per DCCDTO
-        const dccData = {
-            id: 1,
-            scadenza: '2025-12-31',
-            nodeId: 42,
-        };
-
-        // Aggiungi il file al FormData
-        console.log("file: ", file)
         formData.append('file', file);
 
-        // Aggiungi i dati DCCDTO come stringa JSON al FormData
-        //formData.append('dcc', JSON.stringify(dccData));
-        /*formData.append(
-            "dcc",
-            new Blob([JSON.stringify({
-                id: 1,
-                scadenza: "2025-12-31",
-                nodeId: 42
-            })], { type: "application/json" })
-        );
-*/
+
         try {
-            const response = await fetch('http://localhost:8080/API/pdf/', {
+            const response = await fetch(`http://localhost:8080/API/pdf/?muId=${mu.id}&expiration=${expiration}`, {
+                method: 'POST',
+                headers: {
+                    'X-XSRF-TOKEN': xsrfToken || '',  // Includi il token nell'intestazione
+                },
+                body: formData,
+            });
+
+            if (response.ok) {
+                console.log('Upload riuscito');
+                alert('Upload riuscito!');
+                setDirty(true)
+                //window.location.href = "/uploadSuccess";  // Se il server risponde correttamente
+            } else {
+                const errorText = await response.text();
+                console.error('Errore:', errorText);
+                alert('Errore durante l\'upload');
+            }
+        } catch (err) {
+            console.error('Errore di rete:', err);
+            alert('Errore nella richiesta');
+        }
+    };
+    const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+        setFile(e.target.files?.[0] ?? null);
+    };
+    const handleSubmit = (e: FormEvent) => {
+        e.preventDefault();
+        handleUpload();
+    };
+    const [showModal, setShowModal] = useState(false);
+
+    const handleOpen = () => setShowModal(true);
+    const handleClose = () => setShowModal(false);
+    const handleDelete = async () => {
+        const confirm = window.confirm(`Sei sicuro di voler eliminare il file PDF della MU ${mu.id}?`);
+        if (!confirm) return;
+
+        try {
+            const response = await fetch(`http://localhost:8080/API/dcc/${mu.idDcc}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-XSRF-TOKEN': xsrfToken || '', // se usi la protezione CSRF
+                },
+            });
+
+            if (response.ok) {
+                alert('File PDF eliminato con successo.');
+                setDirty(true); // forza il genitore a rifare il fetch
+            } else {
+                const errorText = await response.text();
+                console.error('Errore:', errorText);
+                alert('Errore durante l\'eliminazione.');
+            }
+        } catch (err) {
+            console.error('Errore di rete:', err);
+            alert('Errore di rete durante la richiesta.');
+        }
+    };
+
+
+    return (
+        <>
+            <ListGroup.Item variant="light" className="d-flex justify-content-between align-items-center">
+                <div>
+                    MU: {mu.id} {mu.dccFileNme}
+                </div>
+                <div className="ms-auto d-flex gap-2">
+                    <Button variant="outline-primary" onClick={handleOpen}>
+                        Download
+                    </Button>
+                    <Button variant="outline-warning" onClick={handleDelete}>
+                        Delete
+                    </Button>
+                    <Button variant="outline-secondary" onClick={handleOpen}>
+                        Details
+                    </Button>
+                </div>
+            </ListGroup.Item>
+
+            <Modal show={showModal} onHide={handleClose}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Upload DCC for MU</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <p><strong>MUId:</strong> {mu.id}</p>
+                    <p><strong>Dcc file name:</strong> {mu.dccFileNme}</p>
+                    <Form onSubmit={handleSubmit} encType="multipart/form-data">
+                        <Form.Group controlId="formFile">
+                            <Form.Label>Carica file PDF</Form.Label>
+                            <Form.Control
+                                type="file"
+                                accept="application/pdf"
+                                onChange={handleFileChange}
+                            />
+                        </Form.Group>
+                        <Button variant="success" className="mt-3" type="submit">
+                            Upload PDF
+                        </Button>
+                    </Form>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={handleClose}>
+                        Chiudi
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+        </>
+    )
+}
+
+
+
+const UploadCard = ({muId, expiration}: { muId: number, expiration : string }) => {
+    const [file, setFile] = useState<File | null>(null);
+    const { xsrfToken, setXsrfToken } = useAuth();  // Recupera il xsrfToken dal contesto
+
+    const handleUpload = async () => {
+
+        if (!file) {
+            alert('Seleziona un file PDF prima di fare l\'upload.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+
+        try {
+            const response = await fetch(`http://localhost:8080/API/pdf/?muId=${muId}&expiration=${expiration}`, {
                 method: 'POST',
                 headers: {
                     'X-XSRF-TOKEN': xsrfToken || '',  // Includi il token nell'intestazione
