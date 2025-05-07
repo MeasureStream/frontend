@@ -17,6 +17,7 @@ export interface MeasurementUnitDTO {
     idDcc?: number;
     nodeId?: number; // Opzionale, poiché in Kotlin è nullable (Long?)
     dccFileNme?: string;
+    expiration?: string;
 }
 
 export interface MeasureDTO {

@@ -19,7 +19,8 @@ function MyNavbar( {me} : NavbarProps ) {
                         {
                             //<Nav.Link  as = {Link} to="/">Home</Nav.Link>}
                         }
-                    <Nav.Link  as = {Link} to="/" >Measures</Nav.Link>
+                    <Nav.Link  as = {Link} to="/measures" >Measures</Nav.Link>
+                        <Nav.Link  as = {Link} to="/dcc" >DCC</Nav.Link>
                     <NavDropdown title="Dropdown" id="basic-nav-dropdown">
                         <NavDropdown.Item  as = {Link} to="/add" >Add</NavDropdown.Item>
                         <NavDropdown.Item href="#action/3.2">Another action</NavDropdown.Item>

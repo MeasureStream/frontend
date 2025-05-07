@@ -450,7 +450,7 @@ function DccMu( {mu, expiration, setDirty}: { mu: MeasurementUnitDTO, expiration
         <>
             <ListGroup.Item variant="light" className="d-flex justify-content-between align-items-center">
                 <div>
-                    MU: {mu.id} {mu.dccFileNme}
+                    MU: {mu.id} {mu.expiration} {mu.dccFileNme}
                 </div>
                 <div className="ms-auto d-flex gap-2">
                     <Button variant="outline-primary" onClick={handleDownload}>

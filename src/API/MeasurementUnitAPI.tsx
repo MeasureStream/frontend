@@ -30,6 +30,20 @@ async function getAllMu(page?: number, size?: number ) {
 }
 
 
+async function getAllMuList() {
+
+    const response = await  fetch(API_URL, {
+        method: 'GET',
+        headers: {
+            //'X-XSRF-TOKEN': me.xsrfToken,
+            'Content-Type': 'application/json'
+        },
+    })
+
+    return await response.json() as MeasurementUnitDTO[]
+}
+
+
 async function getMuId( id: number) {
 
     const url =`${API_URL}/nodeid/?nodeId=${id}`;
@@ -44,4 +58,4 @@ async function getMuId( id: number) {
     return await response.json() as MeasurementUnitDTO[]
 }
 
-export {getMuId}
+export {getMuId, getAllMuList}
