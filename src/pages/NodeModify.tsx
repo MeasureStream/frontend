@@ -420,6 +420,30 @@ function DccMu( {mu, expiration, setDirty}: { mu: MeasurementUnitDTO, expiration
             alert('Errore di rete durante la richiesta.');
         }
     };
+    const handleDownload = async () => {
+        try {
+            const response = await fetch(`http://localhost:8080/API/dcc/${mu.idDcc}/download`, {
+                method: 'GET',
+            });
+
+            if (!response.ok) {
+                throw new Error('Errore nel download del file');
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = mu.dccFileNme || 'file.pdf';  // nome del file da salvare
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Errore durante il download:', error);
+        }
+    };
 
 
     return (
@@ -429,7 +453,7 @@ function DccMu( {mu, expiration, setDirty}: { mu: MeasurementUnitDTO, expiration
                     MU: {mu.id} {mu.dccFileNme}
                 </div>
                 <div className="ms-auto d-flex gap-2">
-                    <Button variant="outline-primary" onClick={handleOpen}>
+                    <Button variant="outline-primary" onClick={handleDownload}>
                         Download
                     </Button>
                     <Button variant="outline-warning" onClick={handleDelete}>
