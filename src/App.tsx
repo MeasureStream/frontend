@@ -14,6 +14,9 @@ import NodeInfoPage from "./pages/NodeModify"
 import { useAuth } from "./API/AuthContext";
 import Measures from "./pages/Measures";
 import Dcc from "./pages/Dcc";
+import CreateNodePage from "./pages/CreateNode";
+import CreateMeasurementUnitPage from "./pages/CreateMeasurementUnitPage";
+import CreateControlUnitPage from "./pages/CreateControlUnitPage";
 
 function App() {
     const { xsrfToken, setXsrfToken, dirty, setDirty } = useAuth(); // Usa il contesto
@@ -85,6 +88,9 @@ function App() {
                           <Route path="/nodes/:nodeId" element={  <NodeInfoPage  nodes = { nodes} />  } />
                           <Route path="/measures" element={  <Measures/> } />
                           <Route path="/dcc" element={  <Dcc/> } />
+                          <Route path="/create-node" element={  <CreateNodePage/> } />
+                          <Route path="/create-mu" element={  <CreateMeasurementUnitPage/> } />
+                          <Route path="/create-cu" element={  <CreateControlUnitPage/> } />
                           {/* Add more routes here as needed */}
                       </Routes>
                   </Container>

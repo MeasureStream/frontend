@@ -237,15 +237,18 @@ function DccMuButtons( {mu, expiration, setDirty}: { mu: MeasurementUnitDTO, exp
         <>
 
 
-                    <Button variant="outline-primary" onClick={handleDownload}>
-                        Download
-                    </Button>
-                    <Button variant="outline-warning" onClick={handleDelete}>
-                        Delete
-                    </Button>
-                    <Button variant="outline-secondary" onClick={handleOpen}>
-                        Details
-                    </Button>
+            <div className="d-flex gap-2">
+                <Button variant="outline-primary" onClick={handleDownload}>
+                    Download
+                </Button>
+                <Button variant="outline-warning" onClick={handleDelete}>
+                    Delete
+                </Button>
+                <Button variant="outline-secondary" onClick={handleOpen}>
+                    Details
+                </Button>
+            </div>
+
 
 
 
