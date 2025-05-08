@@ -1,10 +1,11 @@
-import {useEffect, useState} from "react";
+import {ChangeEvent, FormEvent, useEffect, useState} from "react";
 import {MeasurementUnitDTO} from "../API/interfaces";
 import {getAllMuList, getMuId} from "../API/MeasurementUnitAPI";
 import {getCuId} from "../API/ControlUnitAPI";
 import {getNodeUnits} from "../API/NodeAPI";
 import Table from 'react-bootstrap/Table';
-import {Button, Col, Container, Form, Modal, Row} from "react-bootstrap";
+import {Button, Col, Container, Form, ListGroup, Modal, Row} from "react-bootstrap";
+import {useAuth} from "../API/AuthContext";
 
 function Dcc() {
     const [measurementUnits, setMeasurementUnits] = useState<MeasurementUnitDTO[]>([]);
@@ -27,7 +28,7 @@ function Dcc() {
 
         }
         fetchMuCu()
-    }, []);
+    }, [dirty]);
     return (
         <>
             <Container fluid>
@@ -118,7 +119,7 @@ function Dcc() {
 
 
 
-
+                            <td><DccMuButtons mu={mu} expiration={"2025-12-31"} setDirty={setDirty}/></td>
 
                             </tr>
                         ))}
@@ -132,41 +133,151 @@ function Dcc() {
 
 
 
-function ShowChart({nodeId, unit}: { nodeId: number, unit: string }) {
-    const [show, setShow] = useState(false);
+function DccMuButtons( {mu, expiration, setDirty}: { mu: MeasurementUnitDTO, expiration : string ,  setDirty: React.Dispatch<React.SetStateAction<boolean>> } ){
+    const [file, setFile] = useState<File | null>(null);
+    const { xsrfToken, setXsrfToken } = useAuth();  // Recupera il xsrfToken dal contesto
+    const handleUpload = async () => {
 
-    // Funzioni per mostrare/nascondere il modal
-    const handleClose = () => setShow(false);
-    const handleShow = () => setShow(true);
+        if (!file) {
+            alert('Seleziona un file PDF prima di fare l\'upload.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+
+        try {
+            const response = await fetch(`http://localhost:8080/API/pdf/?muId=${mu.id}&expiration=${expiration}`, {
+                method: 'POST',
+                headers: {
+                    'X-XSRF-TOKEN': xsrfToken || '',  // Includi il token nell'intestazione
+                },
+                body: formData,
+            });
+
+            if (response.ok) {
+                console.log('Upload riuscito');
+                alert('Upload riuscito!');
+                setDirty(true)
+                //window.location.href = "/uploadSuccess";  // Se il server risponde correttamente
+            } else {
+                const errorText = await response.text();
+                console.error('Errore:', errorText);
+                alert('Errore durante l\'upload');
+            }
+        } catch (err) {
+            console.error('Errore di rete:', err);
+            alert('Errore nella richiesta');
+        }
+    };
+    const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+        setFile(e.target.files?.[0] ?? null);
+    };
+    const handleSubmit = (e: FormEvent) => {
+        e.preventDefault();
+        handleUpload();
+    };
+    const [showModal, setShowModal] = useState(false);
+
+    const handleOpen = () => setShowModal(true);
+    const handleClose = () => setShowModal(false);
+    const handleDelete = async () => {
+        const confirm = window.confirm(`Sei sicuro di voler eliminare il file PDF della MU ${mu.id}?`);
+        if (!confirm) return;
+
+        try {
+            const response = await fetch(`http://localhost:8080/API/dcc/${mu.idDcc}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-XSRF-TOKEN': xsrfToken || '', // se usi la protezione CSRF
+                },
+            });
+
+            if (response.ok) {
+                alert('File PDF eliminato con successo.');
+                setDirty(true); // forza il genitore a rifare il fetch
+            } else {
+                const errorText = await response.text();
+                console.error('Errore:', errorText);
+                alert('Errore durante l\'eliminazione.');
+            }
+        } catch (err) {
+            console.error('Errore di rete:', err);
+            alert('Errore di rete durante la richiesta.');
+        }
+    };
+    const handleDownload = async () => {
+        try {
+            const response = await fetch(`http://localhost:8080/API/dcc/${mu.idDcc}/download`, {
+                method: 'GET',
+            });
+
+            if (!response.ok) {
+                throw new Error('Errore nel download del file');
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = mu.dccFileNme || 'file.pdf';  // nome del file da salvare
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Errore durante il download:', error);
+        }
+    };
 
 
     return (
         <>
-            {/* Bottone che apre il modal */}
-            <Button variant="primary" onClick={handleShow}>
-                Show {unit}
-            </Button>
 
 
-            <Modal show={show} onHide={handleClose} size="xl">
+                    <Button variant="outline-primary" onClick={handleDownload}>
+                        Download
+                    </Button>
+                    <Button variant="outline-warning" onClick={handleDelete}>
+                        Delete
+                    </Button>
+                    <Button variant="outline-secondary" onClick={handleOpen}>
+                        Details
+                    </Button>
+
+
+
+            <Modal show={showModal} onHide={handleClose}>
                 <Modal.Header closeButton>
-                    <Modal.Title>Sensor Dashboard</Modal.Title>
+                    <Modal.Title>Upload DCC for MU</Modal.Title>
                 </Modal.Header>
-                <Modal.Body style={{ height: '80vh' }}>
-                    <iframe
-                        //src={`http://localhost:8080/grafana/d-solo/beh39dmpjez28e/dashboard1?orgId=1&from=2025-04-07T02:44:38.103Z&to=2025-04-07T12:39:42.265Z&refresh=30s&theme=light&panelId=1&__feature.dashboardSceneSolo&var-nodeId=1&var-measureUnit=Celsius&timezone=browser`}
-                        src={`http://localhost:3000/d-solo/beh39dmpjez28e/dashboard1?orgId=&refresh=30s&theme=light&panelId=1&__feature.dashboardSceneSolo&var-nodeId=${nodeId}&var-measureUnit=${unit}&timezone=browser`}
-                        //src={`http://172.20.0.30:3000/d-solo/beh39dmpjez28e/dashboard1?orgId=1&from=2025-04-07T02:44:38.103Z&to=2025-04-07T12:39:42.265Z&refresh=30s&theme=light&panelId=1&__feature.dashboardSceneSolo&var-nodeId=${1}&var-measureUnit=${unit}&timezone=browser`}
-                        //src={`http://localhost:3000/public-dashboards/366bb25b5951418bae6d2664f20b0f18`}
-                        width="100%"
-                        height="100%"
-                        frameBorder="0"
-                        title="Grafana Panel"
-                    ></iframe>
+                <Modal.Body>
+                    <p><strong>MUId:</strong> {mu.id}</p>
+                    <p><strong>Dcc file name:</strong> {mu.dccFileNme}</p>
+                    <Form onSubmit={handleSubmit} encType="multipart/form-data">
+                        <Form.Group controlId="formFile">
+                            <Form.Label>Carica file PDF</Form.Label>
+                            <Form.Control
+                                type="file"
+                                accept="application/pdf"
+                                onChange={handleFileChange}
+                            />
+                        </Form.Group>
+                        <Button variant="success" className="mt-3" type="submit">
+                            Upload PDF
+                        </Button>
+                    </Form>
                 </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={handleClose}>
+                        Chiudi
+                    </Button>
+                </Modal.Footer>
             </Modal>
         </>
-    );
+    )
 }
 
 export default Dcc

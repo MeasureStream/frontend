@@ -120,7 +120,8 @@ const NodeInfoPage = ({nodes} : Props) => {
                         </Card.Body>
                     </Card>
 
-                    <UploadCard muId={ Number(nodeId) } expiration={"2025-12-31"}/>
+
+
                 </Col>
 
                 <Col md={8}>
@@ -496,75 +497,6 @@ function DccMu( {mu, expiration, setDirty}: { mu: MeasurementUnitDTO, expiration
     )
 }
 
-
-
-const UploadCard = ({muId, expiration}: { muId: number, expiration : string }) => {
-    const [file, setFile] = useState<File | null>(null);
-    const { xsrfToken, setXsrfToken } = useAuth();  // Recupera il xsrfToken dal contesto
-
-    const handleUpload = async () => {
-
-        if (!file) {
-            alert('Seleziona un file PDF prima di fare l\'upload.');
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append('file', file);
-
-
-        try {
-            const response = await fetch(`http://localhost:8080/API/pdf/?muId=${muId}&expiration=${expiration}`, {
-                method: 'POST',
-                headers: {
-                    'X-XSRF-TOKEN': xsrfToken || '',  // Includi il token nell'intestazione
-                },
-                body: formData,
-            });
-
-            if (response.ok) {
-                console.log('Upload riuscito');
-                alert('Upload riuscito!');
-                //window.location.href = "/uploadSuccess";  // Se il server risponde correttamente
-            } else {
-                const errorText = await response.text();
-                console.error('Errore:', errorText);
-                alert('Errore durante l\'upload');
-            }
-        } catch (err) {
-            console.error('Errore di rete:', err);
-            alert('Errore nella richiesta');
-        }
-    };
-
-
-    const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-        setFile(e.target.files?.[0] ?? null);
-    };
-
-    const handleSubmit = (e: FormEvent) => {
-        e.preventDefault();
-        handleUpload();
-    };
-
-    return (
-        <Card className="mt-4 shadow">
-            <Card.Body>
-                <h3>Upload PDF</h3>
-                <form onSubmit={handleSubmit} encType="multipart/form-data">
-                    <input
-                        type="file"
-                        accept="application/pdf"
-                        onChange={handleFileChange}
-                    />
-                    <Button variant="success" className="mt-3" type="submit">
-                        Upload PDF
-                    </Button>
-                </form>
-            </Card.Body>
-        </Card>
-    );
-};
 
 
 
