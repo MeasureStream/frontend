@@ -10,7 +10,7 @@ function MyNavbar( {me} : NavbarProps ) {
 
     return (
         
-        <Navbar expand="xxl" className="bg-body-tertiary">
+        <Navbar expand="sm" className="bg-body-tertiary">
             <Container fluid>
                 <Navbar.Brand as = {Link} to="/">MeasureStream</Navbar.Brand>
                 <Navbar.Toggle aria-controls="basic-navbar-nav" />
