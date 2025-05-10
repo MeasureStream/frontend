@@ -2,6 +2,9 @@ import {useState} from "react";
 import { useNavigate } from "react-router";
 import {Button, Container, Form} from "react-bootstrap";
 import {MapContainer, Marker, Popup, TileLayer, useMapEvent} from "react-leaflet";
+import {useAuth} from "../API/AuthContext";
+import {CreateNode} from "../API/NodeAPI";
+import {NodeDTO} from "../API/interfaces";
 
 //import { createNode } from "../api"; // You should have this function in your API client
 
@@ -10,18 +13,23 @@ const CreateNodePage = () => {
     const [standard, setStandard] = useState(false);
     const [location, setLocation] = useState<{ lat: number, lng: number }>({ lat: 45.07, lng: 7.69 });
     const navigate = useNavigate();
+    const { xsrfToken , setDirty } = useAuth();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        const node = {
+        const node: NodeDTO = {
+            id: 0,
             name,
             standard,
+            controlUnitsId : [],
+            measurementUnitsId : [],
             location: { x: location.lat, y: location.lng },
         };
 
         try {
-            //await createNode(node); // API call
+            let newnode = await CreateNode(xsrfToken,node);
+            setDirty(true);
             navigate("/"); // Torna alla home
         } catch (err) {
             console.error("Error creating node:", err);

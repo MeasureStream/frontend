@@ -30,6 +30,19 @@ async function getAllNodes(page?: number, size?: number ) {
     })
 }
 
+async function getAllNodesList() {
+
+    const response = await fetch(API_URL, {
+        method: 'GET',
+        headers: {
+            //'X-XSRF-TOKEN': me.xsrfToken,
+            'Content-Type': 'application/json'
+        },
+    })
+
+    return  (await response.json()) as NodeDTO[]
+}
+
 
 async function getNodesId( id: number) {
 
@@ -97,5 +110,24 @@ async function getNodeUnits( id: number) {
 }
 
 
+async function CreateNode(xsrfToken:string | null ,node : NodeDTO) {
 
-export {getAllNodes,getNodesId,deleteNode,getNodeUnits}
+    const url = `${API_URL}`;
+
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-XSRF-TOKEN': xsrfToken || '',  // Includi il token nell'intestazione
+        },
+        body: JSON.stringify(node),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Error: ${response.status} ${response.statusText}`);
+    }
+
+    return ( await response.json()) as NodeDTO
+}
+
+export {getAllNodes,getNodesId,deleteNode,getNodeUnits, CreateNode, getAllNodesList}

@@ -1,4 +1,4 @@
-import {MeasurementUnitDTO} from "./interfaces";
+import {MeasurementUnitDTO, NodeDTO} from "./interfaces";
 
 const API_URL = 'http://localhost:8080/API/measurementunits';
 
@@ -57,5 +57,27 @@ async function getMuId( id: number) {
     })
     return await response.json() as MeasurementUnitDTO[]
 }
+async function CreateMu(xsrfToken:string | null , mu : MeasurementUnitDTO) {
 
-export {getMuId, getAllMuList}
+
+    const url = `${API_URL}`;
+
+
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-XSRF-TOKEN': xsrfToken || '',  // Includi il token nell'intestazione
+        },
+        body: JSON.stringify(mu),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Error: ${response.status} ${response.statusText}`);
+    }
+
+
+    return ( await response.json()) as MeasurementUnitDTO
+}
+
+export {getMuId, getAllMuList, CreateMu}

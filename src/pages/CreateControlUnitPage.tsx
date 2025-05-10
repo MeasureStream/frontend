@@ -1,6 +1,10 @@
 import {useEffect, useState} from "react";
 import {Button, Container, Form} from "react-bootstrap";
 import { useNavigate } from "react-router";
+import {ControlUnitDTO, NodeDTO} from "../API/interfaces";
+import {getAllNodesList} from "../API/NodeAPI";
+import {CreateCu} from "../API/ControlUnitAPI";
+import {useAuth} from "../API/AuthContext";
 
 const CreateControlUnitPage = () => {
     const [networkId, setNetworkId] = useState<number>(0);
@@ -9,14 +13,15 @@ const CreateControlUnitPage = () => {
     const [rssi, setRssi] = useState<number>(-50);
     const [nodeId, setNodeId] = useState<number | undefined>(undefined);
     const [nodes, setNodes] = useState<NodeDTO[]>([]);
+    const { xsrfToken, setDirty} = useAuth();
 
     const navigate = useNavigate();
 
     useEffect(() => {
         const fetchNodes = async () => {
             try {
-                //const response = await getNodes();
-                //setNodes(response);
+                const response = await getAllNodesList(); // fetch all nodes
+                setNodes(response);
             } catch (error) {
                 console.error("Error loading nodes:", error);
             }
@@ -28,7 +33,8 @@ const CreateControlUnitPage = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        const controlUnit = {
+        const controlUnit : ControlUnitDTO = {
+            id: 0,
             networkId,
             name,
             remainingBattery,
@@ -37,7 +43,7 @@ const CreateControlUnitPage = () => {
         };
 
         try {
-            //await createControlUnit(controlUnit);
+            const cu = await CreateCu(xsrfToken,controlUnit);
             navigate("/");
         } catch (error) {
             console.error("Error creating control unit:", error);

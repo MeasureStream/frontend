@@ -3,6 +3,8 @@ import { createContext, useState, useContext, ReactNode } from "react";
 interface AuthContextType {
     xsrfToken: string | null;
     setXsrfToken: (token: string) => void;
+    dirty: boolean;
+    setDirty:(dirty: boolean) => void;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);

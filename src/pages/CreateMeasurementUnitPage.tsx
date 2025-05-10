@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { Button, Container, Form } from "react-bootstrap";
 import {useNavigate} from "react-router";
+import {CreateMu} from "../API/MeasurementUnitAPI";
+import {useAuth} from "../API/AuthContext";
+import {MeasurementUnitDTO} from "../API/interfaces";
+import {getAllNodes, getAllNodesList} from "../API/NodeAPI";
 
 
 
@@ -16,12 +20,13 @@ const CreateMeasurementUnitPage = () => {
     const [nodeId, setNodeId] = useState<number | undefined>(undefined);
     const [nodes, setNodes] = useState<NodeDTO[]>([]);
     const navigate = useNavigate();
+    const { xsrfToken, setDirty} = useAuth();
 
     useEffect(() => {
         const fetchNodes = async () => {
             try {
-                //const response = await getNodes(); // fetch all nodes
-                //setNodes(response);
+                const response = await getAllNodesList(); // fetch all nodes
+                setNodes(response);
             } catch (error) {
                 console.error("Failed to load nodes:", error);
             }
@@ -33,7 +38,8 @@ const CreateMeasurementUnitPage = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        const measurementUnit = {
+        const measurementUnit: MeasurementUnitDTO = {
+            id: 0,
             networkId,
             type,
             measuresUnit,
@@ -41,7 +47,8 @@ const CreateMeasurementUnitPage = () => {
         };
 
         try {
-            //await createMeasurementUnit(measurementUnit);
+            const mu = await CreateMu(xsrfToken,measurementUnit);
+            setDirty(true);
             navigate("/"); // return to home
         } catch (err) {
             console.error("Error creating measurement unit:", err);

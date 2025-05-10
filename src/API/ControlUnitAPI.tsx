@@ -1,4 +1,4 @@
-import {ControlUnitDTO} from "./interfaces";
+import {ControlUnitDTO, MeasurementUnitDTO} from "./interfaces";
 
 const API_URL = 'http://localhost:8080/API/controlunits';
 
@@ -43,5 +43,27 @@ async function getCuId( id: number) {
     })
     return await response.json() as ControlUnitDTO[]
 }
+async function CreateCu(xsrfToken:string | null , cu : ControlUnitDTO) {
 
-export {getCuId}
+
+    const url = `${API_URL}`;
+
+
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-XSRF-TOKEN': xsrfToken || '',  // Includi il token nell'intestazione
+        },
+        body: JSON.stringify(cu),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Error: ${response.status} ${response.statusText}`);
+    }
+
+
+    return ( await response.json()) as ControlUnitDTO
+}
+
+export {getCuId,CreateCu}

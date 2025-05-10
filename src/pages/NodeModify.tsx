@@ -267,7 +267,7 @@ const NodeInfoPage = ({nodes} : Props) => {
 // Funzione ConfirmDelete
 function ConfirmDelete({onDelete, id}: { onDelete: () => void, id?: number }) {
     const [show, setShow] = useState(false);
-    const { xsrfToken, setXsrfToken} = useAuth();  // Recupera il xsrfToken dal contesto
+    const { xsrfToken, setDirty} = useAuth();  // Recupera il xsrfToken dal contesto
     // Funzioni per mostrare/nascondere il modal
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
@@ -275,7 +275,7 @@ function ConfirmDelete({onDelete, id}: { onDelete: () => void, id?: number }) {
     // Funzione chiamata quando si conferma l'eliminazione
     const handleDelete = () => {
         deleteNode(xsrfToken, id).then(() => {
-            //setDirty(true);
+            setDirty(true);
             onDelete() }  ).catch((e)=> console.log("nodo non eliminato xsrf:   ",xsrfToken, e))
 
         setShow(false);
