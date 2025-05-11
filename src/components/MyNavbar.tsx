@@ -27,6 +27,7 @@ function MyNavbar( {me} : NavbarProps ) {
                                     <NavDropdown title="Other Actions" id="basic-nav-dropdown">
                                         <NavDropdown.Item  as = {Link} to="/create-mu" >Create MU</NavDropdown.Item>
                                         <NavDropdown.Item  as = {Link} to="/create-cu" >Create CU</NavDropdown.Item>
+                                        <NavDropdown.Item  as = {Link} to="/create-user" >Create User</NavDropdown.Item>
                                         {/*
                                     <NavDropdown.Item  as = {Link} to="/add" >Add</NavDropdown.Item>
                                     <NavDropdown.Item href="#action/3.2">Another action</NavDropdown.Item>

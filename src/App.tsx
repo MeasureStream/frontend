@@ -17,6 +17,7 @@ import Dcc from "./pages/Dcc";
 import CreateNodePage from "./pages/CreateNode";
 import CreateMeasurementUnitPage from "./pages/CreateMeasurementUnitPage";
 import CreateControlUnitPage from "./pages/CreateControlUnitPage";
+import CreateUserPage from "./pages/CreateUserPage";
 
 function App() {
     const { xsrfToken, setXsrfToken, dirty, setDirty } = useAuth(); // Usa il contesto
@@ -91,6 +92,8 @@ function App() {
                           <Route path="/create-node" element={  <CreateNodePage/> } />
                           <Route path="/create-mu" element={  <CreateMeasurementUnitPage/> } />
                           <Route path="/create-cu" element={  <CreateControlUnitPage/> } />
+                          <Route path="/create-user" element={  <CreateUserPage/> } />
+
                           {/* Add more routes here as needed */}
                       </Routes>
                   </Container>
