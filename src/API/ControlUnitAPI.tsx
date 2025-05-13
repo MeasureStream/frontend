@@ -20,14 +20,16 @@ async function getAllCu(page?: number, size?: number ) {
     const url = queryString ? `${urlAPI}?${queryString}` : urlAPI;
     console.log(url)
 
-    return  fetch(url, {
+    const response =  await  fetch(url, {
         method: 'GET',
         headers: {
             //'X-XSRF-TOKEN': me.xsrfToken,
             'Content-Type': 'application/json'
         },
     })
+    return await response.json() as ControlUnitDTO[]
 }
+
 
 
 async function getCuId( id: number) {
@@ -43,6 +45,20 @@ async function getCuId( id: number) {
     })
     return await response.json() as ControlUnitDTO[]
 }
+async function getAllAvailableCuList( ) {
+
+    const url =`${API_URL}/available`;
+
+    const response = await   fetch(url, {
+        method: 'GET',
+        headers: {
+            //'X-XSRF-TOKEN': me.xsrfToken,
+            'Content-Type': 'application/json'
+        },
+    })
+    return await response.json() as ControlUnitDTO[]
+}
+
 async function CreateCu(xsrfToken:string | null , cu : ControlUnitDTO) {
 
 
@@ -66,4 +82,49 @@ async function CreateCu(xsrfToken:string | null , cu : ControlUnitDTO) {
     return ( await response.json()) as ControlUnitDTO
 }
 
-export {getCuId,CreateCu}
+async function EditCu(xsrfToken:string | null , cu : ControlUnitDTO) {
+
+
+    const url = `${API_URL}`;
+
+
+    const response = await fetch(url, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-XSRF-TOKEN': xsrfToken || '',  // Includi il token nell'intestazione
+        },
+        body: JSON.stringify(cu),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Error: ${response.status} ${response.statusText}`);
+    }
+
+
+    return ( await response.json()) as ControlUnitDTO
+}
+
+async function DeleteCu(xsrfToken:string | null , cu : ControlUnitDTO) {
+
+
+    const url = `${API_URL}`;
+
+
+    const response = await fetch(url, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-XSRF-TOKEN': xsrfToken || '',  // Includi il token nell'intestazione
+        },
+        body: JSON.stringify(cu),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Error: ${response.status} ${response.statusText}`);
+    }
+
+
+
+}
+export {getCuId,CreateCu, EditCu, getAllAvailableCuList, getAllCu, DeleteCu}

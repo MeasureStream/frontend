@@ -130,4 +130,25 @@ async function CreateNode(xsrfToken:string | null ,node : NodeDTO) {
     return ( await response.json()) as NodeDTO
 }
 
-export {getAllNodes,getNodesId,deleteNode,getNodeUnits, CreateNode, getAllNodesList}
+
+async function EditNode(xsrfToken:string | null ,node : NodeDTO) {
+
+    const url = `${API_URL}`;
+
+    const response = await fetch(url, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-XSRF-TOKEN': xsrfToken || '',  // Includi il token nell'intestazione
+        },
+        body: JSON.stringify(node),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Error: ${response.status} ${response.statusText}`);
+    }
+
+    return ( await response.json()) as NodeDTO
+}
+
+export {getAllNodes,getNodesId,deleteNode,getNodeUnits, CreateNode, getAllNodesList,EditNode}

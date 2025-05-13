@@ -20,13 +20,15 @@ async function getAllMu(page?: number, size?: number ) {
     const url = queryString ? `${urlAPI}?${queryString}` : urlAPI;
     console.log(url)
 
-    return  fetch(url, {
+    const response = await   fetch(url, {
         method: 'GET',
         headers: {
             //'X-XSRF-TOKEN': me.xsrfToken,
             'Content-Type': 'application/json'
         },
     })
+
+    return await response.json() as MeasurementUnitDTO[]
 }
 
 
@@ -43,6 +45,18 @@ async function getAllMuList() {
     return await response.json() as MeasurementUnitDTO[]
 }
 
+async function getAllAvailableMuList() {
+
+    const response = await  fetch(API_URL+"/available", {
+        method: 'GET',
+        headers: {
+            //'X-XSRF-TOKEN': me.xsrfToken,
+            'Content-Type': 'application/json'
+        },
+    })
+
+    return await response.json() as MeasurementUnitDTO[]
+}
 
 async function getMuId( id: number) {
 
@@ -80,4 +94,45 @@ async function CreateMu(xsrfToken:string | null , mu : MeasurementUnitDTO) {
     return ( await response.json()) as MeasurementUnitDTO
 }
 
-export {getMuId, getAllMuList, CreateMu}
+async function EditMu(xsrfToken:string | null , mu : MeasurementUnitDTO) {
+
+    const url = `${API_URL}`;
+
+    const response = await fetch(url, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-XSRF-TOKEN': xsrfToken || '',  // Includi il token nell'intestazione
+        },
+        body: JSON.stringify(mu),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Error: ${response.status} ${response.statusText}`);
+    }
+
+    return ( await response.json()) as MeasurementUnitDTO
+}
+
+async function DeleteMu(xsrfToken:string | null , mu : MeasurementUnitDTO) {
+
+    const url = `${API_URL}`;
+
+    const response = await fetch(url, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-XSRF-TOKEN': xsrfToken || '',  // Includi il token nell'intestazione
+        },
+        body: JSON.stringify(mu),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Error: ${response.status} ${response.statusText}`);
+    }
+
+
+}
+
+
+export {getMuId, getAllMuList, CreateMu,EditMu, getAllAvailableMuList, getAllMu, DeleteMu}

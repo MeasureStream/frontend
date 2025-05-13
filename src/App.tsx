@@ -18,6 +18,8 @@ import CreateNodePage from "./pages/CreateNode";
 import CreateMeasurementUnitPage from "./pages/CreateMeasurementUnitPage";
 import CreateControlUnitPage from "./pages/CreateControlUnitPage";
 import CreateUserPage from "./pages/CreateUserPage";
+import MeasurementUnitPage from "./pages/MeasurementUnitPage";
+import ControlUnitsPage from "./pages/ControlUnitsPage";
 
 function App() {
     const { xsrfToken, setXsrfToken, dirty, setDirty } = useAuth(); // Usa il contesto
@@ -93,6 +95,8 @@ function App() {
                           <Route path="/create-mu" element={  <CreateMeasurementUnitPage/> } />
                           <Route path="/create-cu" element={  <CreateControlUnitPage/> } />
                           <Route path="/create-user" element={  <CreateUserPage/> } />
+                          <Route path="/mus" element={<MeasurementUnitPage /> }/>
+                          <Route path="/cus" element={<ControlUnitsPage />}/>
 
                           {/* Add more routes here as needed */}
                       </Routes>
