@@ -5,6 +5,12 @@ COPY package.json ./
 COPY package-lock.json ./
 RUN npm ci
 COPY . .
+
+# Imposta la variabile d'ambiente per Vite (se non già impostata)
+ARG VITE_API_URL
+ENV VITE_API_URL=${VITE_API_URL:-http://localhost:8080}
+
+
 RUN npm run build
 
 # Stage 2: serve with nginx

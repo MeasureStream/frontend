@@ -7,6 +7,8 @@ import Table from 'react-bootstrap/Table';
 import {Button, Col, Container, Form, ListGroup, Modal, Row} from "react-bootstrap";
 import {useAuth} from "../API/AuthContext";
 
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+
 function Dcc() {
     const [measurementUnits, setMeasurementUnits] = useState<MeasurementUnitDTO[]>([]);
     const [dirty, setDirty] = useState(true)
@@ -148,7 +150,7 @@ function DccMuButtons( {mu, expiration, setDirty}: { mu: MeasurementUnitDTO, exp
 
 
         try {
-            const response = await fetch(`http://localhost:8080/API/pdf/?muId=${mu.id}&expiration=${expiration}`, {
+            const response = await fetch(`${BASE_URL}/API/pdf/?muId=${mu.id}&expiration=${expiration}`, {
                 method: 'POST',
                 headers: {
                     'X-XSRF-TOKEN': xsrfToken || '',  // Includi il token nell'intestazione
@@ -187,7 +189,7 @@ function DccMuButtons( {mu, expiration, setDirty}: { mu: MeasurementUnitDTO, exp
         if (!confirm) return;
 
         try {
-            const response = await fetch(`http://localhost:8080/API/dcc/${mu.idDcc}`, {
+            const response = await fetch(`${BASE_URL}/API/dcc/${mu.idDcc}`, {
                 method: 'DELETE',
                 headers: {
                     'X-XSRF-TOKEN': xsrfToken || '', // se usi la protezione CSRF
@@ -209,7 +211,7 @@ function DccMuButtons( {mu, expiration, setDirty}: { mu: MeasurementUnitDTO, exp
     };
     const handleDownload = async () => {
         try {
-            const response = await fetch(`http://localhost:8080/API/dcc/${mu.idDcc}/download`, {
+            const response = await fetch(`${BASE_URL}/API/dcc/${mu.idDcc}/download`, {
                 method: 'GET',
             });
 

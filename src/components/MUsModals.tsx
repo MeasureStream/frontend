@@ -5,6 +5,8 @@ import {Button, Form, ListGroup, Modal} from "react-bootstrap";
 import {EditNode} from "../API/NodeAPI";
 import {DeleteMu, EditMu, getAllAvailableMuList} from "../API/MeasurementUnitAPI";
 
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+
 function DccMu( {mu, expiration, setDirty}: { mu: MeasurementUnitDTO, expiration : string ,  setDirty: React.Dispatch<React.SetStateAction<boolean>> } ){
     const [file, setFile] = useState<File | null>(null);
     const { xsrfToken, setXsrfToken } = useAuth();  // Recupera il xsrfToken dal contesto
@@ -20,7 +22,7 @@ function DccMu( {mu, expiration, setDirty}: { mu: MeasurementUnitDTO, expiration
 
 
         try {
-            const response = await fetch(`http://localhost:8080/API/pdf/?muId=${mu.id}&expiration=${expiration}`, {
+            const response = await fetch(`${BASE_URL}/API/pdf/?muId=${mu.id}&expiration=${expiration}`, {
                 method: 'POST',
                 headers: {
                     'X-XSRF-TOKEN': xsrfToken || '',  // Includi il token nell'intestazione
@@ -59,7 +61,7 @@ function DccMu( {mu, expiration, setDirty}: { mu: MeasurementUnitDTO, expiration
         if (!confirm) return;
 
         try {
-            const response = await fetch(`http://localhost:8080/API/dcc/${mu.idDcc}`, {
+            const response = await fetch(`${BASE_URL}/API/dcc/${mu.idDcc}`, {
                 method: 'DELETE',
                 headers: {
                     'X-XSRF-TOKEN': xsrfToken || '', // se usi la protezione CSRF
@@ -81,7 +83,7 @@ function DccMu( {mu, expiration, setDirty}: { mu: MeasurementUnitDTO, expiration
     };
     const handleDownload = async () => {
         try {
-            const response = await fetch(`http://localhost:8080/API/dcc/${mu.idDcc}/download`, {
+            const response = await fetch(`${BASE_URL}/API/dcc/${mu.idDcc}/download`, {
                 method: 'GET',
             });
 

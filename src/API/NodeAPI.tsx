@@ -1,7 +1,8 @@
 import {NodeDTO} from "./interfaces";
 import {useAuth} from "./AuthContext";
 
-const API_URL = 'http://localhost:8080/API/nodes';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+const API_URL = `${BASE_URL}/API/nodes`;
 
 
 //get
