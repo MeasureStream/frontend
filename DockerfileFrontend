@@ -9,7 +9,7 @@ COPY . .
 # Imposta la variabile d'ambiente per Vite (se non già impostata)
 ARG VITE_API_URL
 #ENV VITE_API_URL=${VITE_API_URL:-http://localhost:8080}
-ENV VITE_API_URL=http://christiandellisanti.uk
+ENV VITE_API_URL=https://christiandellisanti.uk
 
 
 RUN npm run build
