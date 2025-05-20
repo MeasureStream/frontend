@@ -16,6 +16,9 @@ import {useAuth} from "../API/AuthContext";
 import { useNavigate } from 'react-router';
 import {AddMu, DccMu, RemoveMU} from "../components/MUsModals";
 import {AddCu, RemoveCu} from "../components/CUsModal";
+import L from "leaflet";
+import redMarker from "*.svg";
+import bluMarkerShadow from "*.svg";
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -79,6 +82,17 @@ const NodeInfoPage = ({nodes} : Props) => {
         );
     }
 
+    const redMarkerIcon = L.icon({
+        iconUrl: redMarker, // Percorso dell'icona
+        iconSize: [25, 41], // Dimensione dell'icona (modifica se necessario)
+        iconAnchor: [12, 41], // Punto dell'icona che tocca la mappa
+        popupAnchor: [1, -34], // Posizione del popup rispetto all'icona
+        shadowUrl:  bluMarkerShadow,// Percorso della shadow
+        shadowSize: [41, 41], // Dimensioni della shadow
+        shadowAnchor: [12, 41], // Dove ancorare la shadow rispetto all'icona
+
+    });
+
     const handleDelete = () => {
         alert("Elemento eliminato!");  // Implementa la logica di eliminazione qui
 
@@ -139,7 +153,7 @@ const NodeInfoPage = ({nodes} : Props) => {
                                     style={{ height: "100%", width: "100%" }}
                                 >
                                     <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                                    <Marker position={[node.location.x, node.location.y]}>
+                                    <Marker position={[node.location.x, node.location.y]} icon={ redMarkerIcon }>
                                         <Popup>{node.name}</Popup>
                                     </Marker>
                                 </MapContainer>
