@@ -36,6 +36,14 @@ const NodeInfoPage = ({nodes} : Props) => {
     const [nodeUnits, setNodeUnits] = useState<string[]>([]);
     const [dirty, setDirty] = useState(true)
     const navigate = useNavigate()
+
+    useEffect(() => {
+        const iframe = document.createElement("iframe");
+        iframe.style.display = "none";
+        iframe.src = "https://grafana.christiandellisanti.uk/login/generic_oauth";
+        document.body.appendChild(iframe);
+    }, []);
+
     useEffect(() => {
 
         console.log("DEBUG node:", node)
