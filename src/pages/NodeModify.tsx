@@ -365,8 +365,9 @@ function ShowChart({nodeId, unit}: { nodeId: number, unit: string }) {
                     <iframe
                         src={
                             BASE_URL == "https://www.christiandellisanti.uk"?
-                                `https://grafana.christiandellisanti.uk/d-solo/beh39dmpjez28e/dashboard1?orgId=1&refresh=30s&theme=light&panelId=1&__feature.dashboardSceneSolo&var-nodeId=${nodeId}&var-measureUnit=${unit}&timezone=browser`
-                                :
+                                //`https://grafana.christiandellisanti.uk/d-solo/beh39dmpjez28e/dashboard1?orgId=1&refresh=30s&theme=light&panelId=1&__feature.dashboardSceneSolo&var-nodeId=${nodeId}&var-measureUnit=${unit}&timezone=browser`
+                                `https://www.christiandellisanti.uk/grafana/d-solo/beh39dmpjez28e/dashboard1?orgId=1&refresh=30s&theme=light&panelId=1&__feature.dashboardSceneSolo&var-nodeId=${nodeId}&var-measureUnit=${unit}&timezone=browser`
+                            :
                                 `http://localhost:3000/d-solo/beh39dmpjez28e/dashboard1?orgId=&refresh=30s&theme=light&panelId=1&__feature.dashboardSceneSolo&var-nodeId=${nodeId}&var-measureUnit=${unit}&timezone=browser`
 
                         }
