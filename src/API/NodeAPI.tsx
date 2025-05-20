@@ -98,7 +98,7 @@ async function deleteNode(xsrfToken:string | null ,id: number) {
 
 async function getNodeUnits( id: number) {
 
-    const url =`http://localhost:8080/API/measures/measureUnitOfNode/?nodeId=${id}`;
+    const url =`${BASE_URL}/API/measures/measureUnitOfNode/?nodeId=${id}`;
 
     const response =   await fetch(url, {
         method: 'GET',
