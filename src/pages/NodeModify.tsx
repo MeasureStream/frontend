@@ -17,8 +17,8 @@ import { useNavigate } from 'react-router';
 import {AddMu, DccMu, RemoveMU} from "../components/MUsModals";
 import {AddCu, RemoveCu} from "../components/CUsModal";
 import L from "leaflet";
-import redMarker from "*.svg";
-import bluMarkerShadow from "*.svg";
+import redMarker from "/src/assets/marker-red.svg";
+import bluMarkerShadow from '/src/assets/marker-shadow.svg';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
