@@ -72,11 +72,15 @@ const LandingPageENG = () => {
             <section id="contact" style={{ padding: '40px 0' }}>
                 <Container>
                     <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Contact Us</h2>
-                    <p style={{ textAlign: 'center', marginBottom: '20px' }}>Have questions? Want to learn more about MeasureStream? Get in touch with us now!</p>
+                    <p style={{ textAlign: 'center', marginBottom: '20px' }}>
+                        Interested in accessing the MeasureStream application? Please note that self-registration is not available.
+                        To request access, kindly contact our team directly using the information below.
+                    </p>
                     <div style={{ textAlign: 'center' }}>
                         <Button variant="primary" href="mailto:support@measurestream.com">Contact Us</Button>
                     </div>
                 </Container>
+
             </section>
 
             {/* Footer */}
