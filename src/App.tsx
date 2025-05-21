@@ -66,7 +66,7 @@ function App() {
                         setNodes( nodes_fetch )
                         setDirty(false)
 
-                        const idToken = me.principal.authorities[0].attributes.idToken.tokenValue;
+                        const idToken = me.principal.idToken.tokenValue;
                         localStorage.setItem('idToken', idToken);
                     }
 
