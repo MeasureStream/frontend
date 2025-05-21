@@ -45,6 +45,8 @@ function App() {
                 try {
                     const resMe = await getMe()
                     const me_ = await resMe.json() as MeInterface
+
+
                     setMe( {... me_} )
                     //console.log("me_:", me_)
                     if (me_.xsrfToken) {
@@ -63,7 +65,12 @@ function App() {
                         const nodes_fetch = await res.json() as NodeDTO[]
                         setNodes( nodes_fetch )
                         setDirty(false)
+
+                        const idToken = me.principal.authorities[0].attributes.idToken.tokenValue;
+                        localStorage.setItem('idToken', idToken);
                     }
+
+
 
 
 

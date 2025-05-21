@@ -5,6 +5,10 @@ import {MapContainer, Marker, Popup, TileLayer, useMapEvent} from "react-leaflet
 import {useAuth} from "../API/AuthContext";
 import {CreateNode} from "../API/NodeAPI";
 import {NodeDTO} from "../API/interfaces";
+import L from "leaflet";
+import redMarker from "/src/assets/marker-red.svg";
+import bluMarker from "/src/assets/marker.svg";
+import bluMarkerShadow from '/src/assets/marker-shadow.svg';
 
 //import { createNode } from "../api"; // You should have this function in your API client
 
@@ -43,6 +47,17 @@ const CreateNodePage = () => {
     const handleLngChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setLocation({ ...location, lng: parseFloat(e.target.value) });
     };
+
+    const redMarkerIcon = L.icon({
+        iconUrl: redMarker, // Percorso dell'icona
+        iconSize: [25, 41], // Dimensione dell'icona (modifica se necessario)
+        iconAnchor: [12, 41], // Punto dell'icona che tocca la mappa
+        popupAnchor: [1, -34], // Posizione del popup rispetto all'icona
+        shadowUrl:  bluMarkerShadow,// Percorso della shadow
+        shadowSize: [41, 41], // Dimensioni della shadow
+        shadowAnchor: [12, 41], // Dove ancorare la shadow rispetto all'icona
+
+    });
 
     return (
         <Container className="mt-5">
@@ -92,7 +107,7 @@ const CreateNodePage = () => {
                             key={`${location.lat}-${location.lng}`} // forzatura re-render se necessario
                         >
                             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                            <Marker position={[location.lat, location.lng]}>
+                            <Marker position={[location.lat, location.lng]} icon={ redMarkerIcon }>
                                 <Popup>Selected Location</Popup>
                             </Marker>
                             <LocationMarker setLocation={setLocation} />
