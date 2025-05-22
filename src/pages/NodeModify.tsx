@@ -19,6 +19,7 @@ import {AddCu, RemoveCu} from "../components/CUsModal";
 import L from "leaflet";
 import redMarker from "/src/assets/marker-red.svg";
 import bluMarkerShadow from '/src/assets/marker-shadow.svg';
+import ShowChart from "../components/ShowChart";
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -347,7 +348,7 @@ function ConfirmDelete({onDelete, id}: { onDelete: () => void, id?: number }) {
 }
 
 
-
+/*
 // Funzione ConfirmDelete
 function ShowChart({nodeId, unit}: { nodeId: number, unit: string }) {
     const [show, setShow] = useState(false);
@@ -359,7 +360,7 @@ function ShowChart({nodeId, unit}: { nodeId: number, unit: string }) {
 
     return (
         <>
-            {/* Bottone che apre il modal */}
+
             <Button variant="primary" onClick={handleShow}>
                 Show {unit}
             </Button>
@@ -390,7 +391,7 @@ function ShowChart({nodeId, unit}: { nodeId: number, unit: string }) {
     );
 }
 
-
+*/
 
 
 export default NodeInfoPage;

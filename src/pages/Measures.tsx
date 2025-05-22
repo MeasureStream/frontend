@@ -5,6 +5,7 @@ import {getCuId} from "../API/ControlUnitAPI";
 import {getNodeUnits} from "../API/NodeAPI";
 import Table from 'react-bootstrap/Table';
 import {Button, Col, Container, Form, Modal, Row} from "react-bootstrap";
+import ShowChart from "../components/ShowChart";
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 function Measures() {
@@ -134,7 +135,7 @@ function Measures() {
 
 
 
-
+/*
 function ShowChart({nodeId, unit}: { nodeId: number, unit: string }) {
     const [show, setShow] = useState(false);
 
@@ -166,7 +167,7 @@ function ShowChart({nodeId, unit}: { nodeId: number, unit: string }) {
 
     return (
         <>
-            {/* Bottone che apre il modal */}
+
             <Button variant="primary" onClick={handleShow}>
                 Show {unit}
             </Button>
@@ -178,7 +179,7 @@ function ShowChart({nodeId, unit}: { nodeId: number, unit: string }) {
                 </Modal.Header>
                 <Modal.Body style={{ height: '80vh' }}>
 
-                    {/* Intervallo temporale manuale */}
+
                     <div className="mb-3 d-flex gap-3 align-items-center">
                         <label className="form-label">From:</label>
                         <input
@@ -200,11 +201,11 @@ function ShowChart({nodeId, unit}: { nodeId: number, unit: string }) {
                     <iframe
                         //src={`http://localhost:8080/grafana/d-solo/beh39dmpjez28e/dashboard1?orgId=1&from=2025-04-07T02:44:38.103Z&to=2025-04-07T12:39:42.265Z&refresh=30s&theme=light&panelId=1&__feature.dashboardSceneSolo&var-nodeId=1&var-measureUnit=Celsius&timezone=browser`}
                         src={
-                            /*BASE_URL == "https://www.christiandellisanti.uk"?
-                                `https://grafana.christiandellisanti.uk/d-solo/beh39dmpjez28e/dashboard1?orgId=1&from=now-5m&to=now&refresh=30s&theme=light&panelId=1&__feature.dashboardSceneSolo&var-nodeId=${nodeId}&var-measureUnit=${unit}&timezone=browser`
-                                :
-                                `http://localhost:3000/d-solo/beh39dmpjez28e/dashboard1?orgId=&refresh=30s&theme=light&panelId=1&__feature.dashboardSceneSolo&var-nodeId=${nodeId}&var-measureUnit=${unit}&timezone=browser`
-                            */
+                            //BASE_URL == "https://www.christiandellisanti.uk"?
+                              //  `https://grafana.christiandellisanti.uk/d-solo/beh39dmpjez28e/dashboard1?orgId=1&from=now-5m&to=now&refresh=30s&theme=light&panelId=1&__feature.dashboardSceneSolo&var-nodeId=${nodeId}&var-measureUnit=${unit}&timezone=browser`
+                                //:
+                                //`http://localhost:3000/d-solo/beh39dmpjez28e/dashboard1?orgId=&refresh=30s&theme=light&panelId=1&__feature.dashboardSceneSolo&var-nodeId=${nodeId}&var-measureUnit=${unit}&timezone=browser`
+
                             grafanaSrc()
                         }
                         //src={`http://172.20.0.30:3000/d-solo/beh39dmpjez28e/dashboard1?orgId=1&from=2025-04-07T02:44:38.103Z&to=2025-04-07T12:39:42.265Z&refresh=30s&theme=light&panelId=1&__feature.dashboardSceneSolo&var-nodeId=${1}&var-measureUnit=${unit}&timezone=browser`}
@@ -219,5 +220,7 @@ function ShowChart({nodeId, unit}: { nodeId: number, unit: string }) {
         </>
     );
 }
+
+*/
 
 export default Measures
