@@ -1,5 +1,6 @@
 import {useState} from "react";
 import {Button, Modal} from "react-bootstrap";
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 function ShowChart({nodeId, unit}: { nodeId: number, unit: string }) {
     const [show, setShow] = useState(false);
