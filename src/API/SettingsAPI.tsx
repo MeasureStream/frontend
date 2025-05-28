@@ -1,7 +1,7 @@
 import {CuSettingDTO, MuSettingDTO, NodeDTO} from "./interfaces";
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
-const API_URL = `${BASE_URL}/API/`;
+const API_URL = `${BASE_URL}/API`;
 
 
 async function getCuSettingId( id: number) {
