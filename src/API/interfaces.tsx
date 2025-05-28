@@ -54,4 +54,22 @@ export interface MeInterface {
 
 }
 
+export interface CuSettingDTO {
+    networkId: number;
+    gateway?: number;
+    bandwidth: number;
+    codingRate: number;
+    spreadingFactor: number;
+    updateInterval: number;
+    mus: number[]; // più facile da gestire in JSON
+}
+
+export interface MuSettingDTO {
+    networkId: number;
+    gateway?: number; // opzionale (nullable in Kotlin)
+    cu?: number;       // anche questo è opzionale
+    samplingFrequency: number;
+}
+
+
 
