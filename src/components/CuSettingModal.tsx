@@ -27,6 +27,7 @@ export function AddCuSettings({ cuNetworkId }: { cuNetworkId:number }) {
                 setForm(cusetting)
             }
         }
+        fetchSettings()
     }, []);
 
     const handleShow = () => setShowModal(true);
