@@ -58,7 +58,7 @@ export function AddMuSettings({ muNetworkId }: { muNetworkId:number }) {
 
     return (
         <>
-            <Button variant="success" onClick={handleShow}>Set CU Settings</Button>
+            <Button variant="success" onClick={handleShow}>Set MU Settings</Button>
 
             <Modal show={showModal} onHide={handleClose}>
                 <Modal.Header closeButton>
