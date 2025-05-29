@@ -4,7 +4,7 @@ import {deleteMEasures, downloadMeasures} from "../API/measuresAPI";
 import {useAuth} from "../API/AuthContext";
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
-function ShowChart({nodeId, unit}: { nodeId: number, unit: string }) {
+function ShowChart({nodeId, unit, setDirty }: { nodeId: number, unit: string, setDirty : () => void }) {
     const [show, setShow] = useState(false);
 
     // Funzioni per mostrare/nascondere il modal
@@ -33,6 +33,8 @@ function ShowChart({nodeId, unit}: { nodeId: number, unit: string }) {
     };
     const handleDelete = async () => {
         await deleteMEasures(nodeId, unit, from, to, xsrfToken)
+        handleClose()
+        setDirty()
     }
 
 

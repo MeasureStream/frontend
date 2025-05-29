@@ -141,7 +141,7 @@ const NodeInfoPage = ({nodes} : Props) => {
                             {
                                nodeUnits.map((unit, index) => (
                                     <Card.Text key={index}>
-                                        <ShowChart nodeId={node.id} unit={unit}></ShowChart>
+                                        <ShowChart nodeId={node.id} unit={unit} setDirty={() => setDirty(true)}></ShowChart>
                                     </Card.Text>
                                 ))
                             }

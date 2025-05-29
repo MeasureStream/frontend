@@ -122,7 +122,7 @@ function Measures() {
                     <td>{mu.measuresUnit}</td>
 
                     <td>
-                        <ShowChart nodeId={mu.nodeId ?? 0} unit={mu.measuresUnit ?? ''}></ShowChart>
+                        <ShowChart nodeId={mu.nodeId ?? 0} unit={mu.measuresUnit ?? ''} setDirty={ () => setDirty(true)}></ShowChart>
                     </td>
                 </tr>
             ))}
