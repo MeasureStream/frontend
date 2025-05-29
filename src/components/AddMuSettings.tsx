@@ -13,7 +13,7 @@ export function AddMuSettings({ muNetworkId }: { muNetworkId:number }) {
        samplingFrequency: 0
     });
     const [dirty, setDirty] = useState(true)
-
+    const [isCooldown, setIsCooldown] = useState(false);
     const {xsrfToken} = useAuth()
 
     useEffect(() => {
@@ -21,10 +21,11 @@ export function AddMuSettings({ muNetworkId }: { muNetworkId:number }) {
             if(dirty) {
                 const musetting = await getMuSettingId(muNetworkId)
                 setForm(musetting)
+                setDirty(false)
             }
         }
         fetchSettings()
-    }, []);
+    }, [dirty]);
 
     const handleShow = () => setShowModal(true);
     const handleClose = () => setShowModal(false);
@@ -44,8 +45,13 @@ export function AddMuSettings({ muNetworkId }: { muNetworkId:number }) {
 
     const handleConfirm = () => {
         //onAdd(form);
-        updateMuSettingId(form, xsrfToken!! ).then(() =>
-            handleClose() //
+        updateMuSettingId(form, xsrfToken!! ).then(() => {
+            handleClose()
+            setDirty(true)
+            setIsCooldown(true); // Start cooldown
+            setTimeout(() => setIsCooldown(false), 2 * 60 * 1000); // 2 minutes
+
+            }
         )
 
     };
@@ -114,8 +120,8 @@ export function AddMuSettings({ muNetworkId }: { muNetworkId:number }) {
                     <Button variant="secondary" onClick={handleClose}>
                         Cancel
                     </Button>
-                    <Button variant="primary" onClick={handleConfirm}>
-                        Confirm Add
+                    <Button variant="primary" onClick={handleConfirm}  disabled={isCooldown} >
+                        {isCooldown ? "Wait 2 minutes..." : "Confirm Add"}
                     </Button>
                 </Modal.Footer>
             </Modal>

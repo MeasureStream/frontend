@@ -17,7 +17,7 @@ export function AddCuSettings({ cuNetworkId }: { cuNetworkId:number }) {
         mus: [],
     });
     const [dirty, setDirty] = useState(true)
-
+    const [isCooldown, setIsCooldown] = useState(false);
     const {xsrfToken} = useAuth()
 
     useEffect(() => {
@@ -25,10 +25,11 @@ export function AddCuSettings({ cuNetworkId }: { cuNetworkId:number }) {
             if(dirty) {
                 const cusetting = await getCuSettingId(cuNetworkId)
                 setForm(cusetting)
+                setDirty(false)
             }
         }
         fetchSettings()
-    }, []);
+    }, [dirty]);
 
     const handleShow = () => setShowModal(true);
     const handleClose = () => setShowModal(false);
@@ -48,9 +49,14 @@ export function AddCuSettings({ cuNetworkId }: { cuNetworkId:number }) {
 
     const handleConfirm = () => {
         //onAdd(form);
-        updateCuSettingId(form, xsrfToken!! ).then(() =>
-            handleClose() //
+        updateCuSettingId(form, xsrfToken!! ).then(() => {
+                handleClose()
+                setDirty(true)
+                setIsCooldown(true); // Start cooldown
+                setTimeout(() => setIsCooldown(false), 2 * 60 * 1000); // 2 minutes
+            }
         )
+            .catch((e) => console.log("Error not added ", e));
 
     };
 
@@ -124,8 +130,8 @@ export function AddCuSettings({ cuNetworkId }: { cuNetworkId:number }) {
                     <Button variant="secondary" onClick={handleClose}>
                         Cancel
                     </Button>
-                    <Button variant="primary" onClick={handleConfirm}>
-                        Confirm Add
+                    <Button variant="primary" onClick={handleConfirm} disabled={isCooldown}>
+                        {isCooldown ? "Wait 2 minutes..." : "Confirm Add"}
                     </Button>
                 </Modal.Footer>
             </Modal>
