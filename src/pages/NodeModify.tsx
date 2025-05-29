@@ -22,6 +22,7 @@ import bluMarkerShadow from '/src/assets/marker-shadow.svg';
 import ShowChart from "../components/ShowChart";
 import {AddCuSettings} from "../components/CuSettingModal";
 import {getCuSettingId} from "../API/SettingsAPI";
+import {AddMuSettings} from "../components/AddMuSettings";
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -183,6 +184,7 @@ const NodeInfoPage = ({nodes} : Props) => {
                             <div className="d-flex justify-content-between align-items-center mb-4">
                                 <h3 className="mb-0">Measurement Units</h3>
                                 <AddMu node={node!!} setDirty={setDirty} />
+
                             </div>
 
                             <Accordion>
@@ -207,6 +209,7 @@ const NodeInfoPage = ({nodes} : Props) => {
                                                         </ListGroup.Item>
                                                         <ListGroup.Item variant="secondary">
                                                             <RemoveMU mu={mu} setDirty={setDirty}/>
+                                                            <AddMuSettings muNetworkId={mu.networkId}/>
                                                         </ListGroup.Item>
                                                     </div>
                                                 </ListGroup>
