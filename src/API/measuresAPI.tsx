@@ -36,7 +36,7 @@ async function deleteMEasures(nodeId : number, measureUnit: string, start: strin
     // Aggiungi start/end solo se sono presenti
     if (start) params.append("start", new Date(start).toISOString());
     if (end) params.append("end", new Date(end).toISOString() );
-    const response = await fetch(`${BASE_URL}/API/measures/download?${params.toString()}`, {
+    const response = await fetch(`${BASE_URL}/API/measures/nodeId?${params.toString()}`, {
         method: 'DELETE',
         headers: {
             'Content-Type': 'application/json',
