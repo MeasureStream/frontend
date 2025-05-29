@@ -1,5 +1,7 @@
 import {useState} from "react";
 import {Button, Modal} from "react-bootstrap";
+import {deleteMEasures, downloadMeasures} from "../API/measuresAPI";
+import {useAuth} from "../API/AuthContext";
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 function ShowChart({nodeId, unit}: { nodeId: number, unit: string }) {
@@ -11,6 +13,28 @@ function ShowChart({nodeId, unit}: { nodeId: number, unit: string }) {
 
     const [from, setFrom] = useState("");
     const [to, setTo] = useState("");
+    const {xsrfToken} = useAuth()
+
+
+    const handleDownload = async () => {
+
+
+            const blob = await  downloadMeasures(nodeId, unit, from, to)
+            const url = window.URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `measures-${nodeId}${from}${to}.json`; // nome del file
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+
+    };
+    const handleDelete = async () => {
+        await deleteMEasures(nodeId, unit, from, to, xsrfToken)
+    }
+
 
     // Calcola lo src dinamicamente
     const grafanaSrc = () => {
@@ -61,7 +85,9 @@ function ShowChart({nodeId, unit}: { nodeId: number, unit: string }) {
                             onChange={(e) => setTo(e.target.value)}
                             className="form-control"
                         />
-                        <Button variant={"danger"} onClick={() => {setFrom(""); setTo("")}}>Reset</Button>
+                        <Button variant={"secondary"} onClick={() => {setFrom(""); setTo("")}}>Last 5 Minutes</Button>
+                        <Button variant={"primary"} onClick={() => handleDownload() }> Download Measures</Button>
+                        <Button variant={"danger"} onClick={() => handleDelete() }> Delete Selected Measures</Button>
                     </div>
 
                     <iframe
