@@ -24,7 +24,7 @@ function DccMu( {mu, expiration, setDirty}: { mu: MeasurementUnitDTO, expiration
 
 
         try {
-            const response = await fetch(`${BASE_URL}/API/pdf/?muId=${mu.id}&expiration=${expiration}`, {
+            const response = await fetch(`${BASE_URL}/API/pdf/?muId=${mu.id}&expiration=${newExpiration}`, {
                 method: 'POST',
                 headers: {
                     'X-XSRF-TOKEN': xsrfToken || '',  // Includi il token nell'intestazione
