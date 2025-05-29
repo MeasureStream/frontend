@@ -9,6 +9,8 @@ const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
 function DccMu( {mu, expiration, setDirty}: { mu: MeasurementUnitDTO, expiration : string ,  setDirty: React.Dispatch<React.SetStateAction<boolean>> } ){
     const [file, setFile] = useState<File | null>(null);
+    const [newExpiration, setNewExpiration] = useState(expiration); // 👈 Nuova expiration modificabile
+
     const { xsrfToken, setXsrfToken } = useAuth();  // Recupera il xsrfToken dal contesto
     const handleUpload = async () => {
 
@@ -47,6 +49,9 @@ function DccMu( {mu, expiration, setDirty}: { mu: MeasurementUnitDTO, expiration
     };
     const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
         setFile(e.target.files?.[0] ?? null);
+    };
+    const handleDateChange = (e: ChangeEvent<HTMLInputElement>) => {
+        setNewExpiration(e.target.value);
     };
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
@@ -142,6 +147,17 @@ function DccMu( {mu, expiration, setDirty}: { mu: MeasurementUnitDTO, expiration
                                 onChange={handleFileChange}
                             />
                         </Form.Group>
+
+                        <Form.Group controlId="formDate" className="mt-3">
+                            <Form.Label>Expiration date</Form.Label>
+                            <Form.Control
+                                type="date"
+                                value={newExpiration}
+                                onChange={handleDateChange}
+                                required
+                            />
+                        </Form.Group>
+
                         <Button variant="success" className="mt-3" type="submit">
                             Upload PDF
                         </Button>
