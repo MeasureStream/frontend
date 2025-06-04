@@ -53,7 +53,10 @@ export function AddCuSettings({ cuNetworkId }: { cuNetworkId:number }) {
                 handleClose()
                 setDirty(true)
                 setIsCooldown(true); // Start cooldown
-                setTimeout(() => setIsCooldown(false), 2 * 60 * 1000); // 2 minutes
+                setTimeout(() => {
+                    setDirty(true)
+                    setIsCooldown(false)
+                }, 60 * 1000); // 1 minutes
             }
         )
             .catch((e) => console.log("Error not added ", e));

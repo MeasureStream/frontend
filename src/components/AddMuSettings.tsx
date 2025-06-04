@@ -49,7 +49,10 @@ export function AddMuSettings({ muNetworkId }: { muNetworkId:number }) {
             handleClose()
             setDirty(true)
             setIsCooldown(true); // Start cooldown
-            setTimeout(() => setIsCooldown(false), 2 * 60 * 1000); // 2 minutes
+            setTimeout(() => {
+                setIsCooldown(false)
+                setDirty(true)
+            },  60 * 1000); // 2 minutes
 
             }
         )

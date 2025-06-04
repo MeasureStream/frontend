@@ -24,7 +24,7 @@ async function updateCuSettingId( cusetting:CuSettingDTO, xsrfToken:string) {
     const url =`${API_URL}/cu-setting/`;
 
     const response =   await fetch(url, {
-        method: 'GET',
+        method: 'PUT',
         headers: {
             'X-XSRF-TOKEN': xsrfToken,
             'Content-Type': 'application/json'
@@ -55,7 +55,7 @@ async function updateMuSettingId( musetting:MuSettingDTO, xsrfToken:string) {
     const url =`${API_URL}/mu-setting/`;
 
     const response =   await fetch(url, {
-        method: 'GET',
+        method: 'PUT',
         headers: {
             'X-XSRF-TOKEN': xsrfToken,
             'Content-Type': 'application/json'
