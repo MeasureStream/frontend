@@ -62,7 +62,7 @@ export function AddMuSettings({ muNetworkId }: { muNetworkId:number }) {
 
             <Modal show={showModal} onHide={handleClose}>
                 <Modal.Header closeButton>
-                    <Modal.Title>Add Control Unit Settings</Modal.Title>
+                    <Modal.Title>Add Measurement Unit Settings</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <Form>
@@ -85,8 +85,8 @@ export function AddMuSettings({ muNetworkId }: { muNetworkId:number }) {
                                 type="number"
                                 name="gateway"
                                 value={form.gateway}
-                                //onChange={handleChange}
-                                disabled={true}
+                                onChange={handleChange}
+                                disabled={false}
                             />
                         </Form.Group>
 
