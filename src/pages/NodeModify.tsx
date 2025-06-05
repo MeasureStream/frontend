@@ -287,7 +287,7 @@ const NodeInfoPage = ({nodes} : Props) => {
                                         <ListGroup>
                                             <>
                                         {measurementUnits
-                                            .slice() // per evitare mutazioni se measurementUnits viene da uno state
+                                            //.slice() // per evitare mutazioni se measurementUnits viene da uno state
                                             .sort((a, b) => a.id - b.id)
                                             .map((mu,index) => (
 
