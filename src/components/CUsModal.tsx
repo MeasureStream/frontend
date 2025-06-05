@@ -40,11 +40,11 @@ function AddCu({node, setDirty}:{node:NodeDTO, setDirty:React.Dispatch<React.Set
             <Button variant="success" onClick={handleAdd}>Add</Button>
             <Modal show={showModal} onHide={handleClose}>
                 <Modal.Header closeButton>
-                    <Modal.Title>Add Measurement Unit</Modal.Title>
+                    <Modal.Title>Add Control Unit</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <Form.Group controlId="selectMeasurementUnit">
-                        <Form.Label>Select Measurement Unit</Form.Label>
+                        <Form.Label>Select Control Unit</Form.Label>
                         <Form.Select
                             value={selectedMU}
                             onChange={(e) => setSelectedMU(e.target.value)}
@@ -69,7 +69,7 @@ function AddCu({node, setDirty}:{node:NodeDTO, setDirty:React.Dispatch<React.Set
                         onClick={handleConfirmAdd}
                         disabled={!selectedMU}
                     >
-                        Add Measurement Unit
+                        Add Control Unit
                     </Button>
                 </Modal.Footer>
             </Modal>
