@@ -65,9 +65,7 @@ const CreateMeasurementUnitPage = () => {
                         type="number"
                         value={networkId}
                         onChange={(e) => setNetworkId(Number(e.target.value))}
-                        onFocus={() => {
-                            if (value === '0') setValue('');
-                        }}
+
                         required
                     />
                 </Form.Group>
