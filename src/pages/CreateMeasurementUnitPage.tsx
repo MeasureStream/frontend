@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Button, Container, Form } from "react-bootstrap";
 import {useNavigate} from "react-router";
-import {CreateMu} from "../API/MeasurementUnitAPI";
+import {CreateMu, getfirstavailableMU} from "../API/MeasurementUnitAPI";
 import {useAuth} from "../API/AuthContext";
 import {MeasurementUnitDTO} from "../API/interfaces";
 import {getAllNodes, getAllNodesList} from "../API/NodeAPI";
@@ -27,6 +27,9 @@ const CreateMeasurementUnitPage = () => {
             try {
                 const response = await getAllNodesList(); // fetch all nodes
                 setNodes(response);
+
+                const first_nid = await getfirstavailableMU()
+                setNetworkId(first_nid)
             } catch (error) {
                 console.error("Failed to load nodes:", error);
             }

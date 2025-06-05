@@ -127,4 +127,19 @@ async function DeleteCu(xsrfToken:string | null , cu : ControlUnitDTO) {
 
 
 }
-export {getCuId,CreateCu, EditCu, getAllAvailableCuList, getAllCu, DeleteCu}
+
+
+async function getfirstavailableCU()  {
+    const response = await  fetch(API_URL+"/firstavailable", {
+        method: 'GET',
+        headers: {
+
+            'Content-Type': 'application/json'
+        },
+    })
+
+    return await response.json() as number
+}
+
+
+export {getCuId,CreateCu, EditCu, getAllAvailableCuList, getAllCu, DeleteCu, getfirstavailableCU}

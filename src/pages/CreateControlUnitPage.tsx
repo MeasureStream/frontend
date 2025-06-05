@@ -3,7 +3,7 @@ import {Button, Container, Form} from "react-bootstrap";
 import { useNavigate } from "react-router";
 import {ControlUnitDTO, NodeDTO} from "../API/interfaces";
 import {getAllNodesList} from "../API/NodeAPI";
-import {CreateCu} from "../API/ControlUnitAPI";
+import {CreateCu, getfirstavailableCU} from "../API/ControlUnitAPI";
 import {useAuth} from "../API/AuthContext";
 
 const CreateControlUnitPage = () => {
@@ -22,6 +22,9 @@ const CreateControlUnitPage = () => {
             try {
                 const response = await getAllNodesList(); // fetch all nodes
                 setNodes(response);
+
+                const nid = await getfirstavailableCU()
+                setNetworkId(nid)
             } catch (error) {
                 console.error("Error loading nodes:", error);
             }

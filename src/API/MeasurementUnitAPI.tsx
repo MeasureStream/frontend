@@ -134,5 +134,17 @@ async function DeleteMu(xsrfToken:string | null , mu : MeasurementUnitDTO) {
 
 }
 
+async function getfirstavailableMU()  {
+    const response = await  fetch(API_URL+"/firstavailable", {
+        method: 'GET',
+        headers: {
 
-export {getMuId, getAllMuList, CreateMu,EditMu, getAllAvailableMuList, getAllMu, DeleteMu}
+            'Content-Type': 'application/json'
+        },
+    })
+
+    return await response.json() as number
+}
+
+
+export {getMuId, getAllMuList, CreateMu,EditMu, getAllAvailableMuList, getAllMu, DeleteMu, getfirstavailableMU}
