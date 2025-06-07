@@ -1,6 +1,6 @@
 import {ChangeEvent, FormEvent, useEffect, useState} from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import {ControlUnitDTO, CuSettingDTO, MeasurementUnitDTO, MeInterface, NodeDTO} from "../API/interfaces";
+import {ControlUnitDTO, CuGw, CuSettingDTO, MeasurementUnitDTO, MeInterface, NodeDTO} from "../API/interfaces";
 import {useParams} from "react-router";
 import {Button, Card, Col, Container, Form, ListGroup, Row, Spinner} from "react-bootstrap";
 import {getMe} from "../API/MeAPI";
@@ -21,7 +21,7 @@ import redMarker from "/src/assets/marker-red.svg";
 import bluMarkerShadow from '/src/assets/marker-shadow.svg';
 import ShowChart from "../components/ShowChart";
 import {AddCuSettings} from "../components/CuSettingModal";
-import {getCuSettingId} from "../API/SettingsAPI";
+import {CuAreAlive, Cuisalive, getCuSettingId} from "../API/SettingsAPI";
 import {AddMuSettings} from "../components/AddMuSettings";
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
@@ -37,6 +37,7 @@ const NodeInfoPage = ({nodes} : Props) => {
     const [node, setNode] = useState<NodeDTO | null>(null);
     const [measurementUnits, setMeasurementUnits] = useState<MeasurementUnitDTO[]>([]);
     const [controlUnits, setControlUnits] = useState<ControlUnitDTO[]>([]);
+    const [cugw, setCugw] = useState<CuGw[]>([])
     //const [cusettings, setCusettings] = useState<CuSettingDTO>()
     const [nodeUnits, setNodeUnits] = useState<string[]>([]);
     const [dirty, setDirty] = useState(true)
@@ -77,6 +78,8 @@ const NodeInfoPage = ({nodes} : Props) => {
                 const nu = await getNodeUnits(Number(nodeId))
                 setNodeUnits(nu)
 
+                const _cugw = await CuAreAlive(cu.map( e => e.networkId))
+                setCugw(_cugw)
 
                 setDirty(false)
             }
@@ -112,6 +115,14 @@ const NodeInfoPage = ({nodes} : Props) => {
 
         navigate("/")
     };
+
+    const isAlive = (Cuid: number ) => {
+        const c = cugw.find(e => e.cuNetworkId == Cuid)
+        if(c.gateway == null)
+            return "OFFLINE"
+        else return "ONLINE"
+    }
+
 
     return (
         <Container className="mt-5">
@@ -244,7 +255,7 @@ const NodeInfoPage = ({nodes} : Props) => {
                                     {controlUnits.map((cu, index) => (
 
                                         <Accordion.Item key={index} eventKey={index.toString()}>
-                                            <Accordion.Header> {cu.name} id: {cu.id}</Accordion.Header>
+                                            <Accordion.Header> {cu.name} id: {cu.id}  {isAlive(cu.networkId)} </Accordion.Header>
                                             <Accordion.Body>
                                                 <ListGroup>
                                                     <ListGroup.Item variant="secondary">

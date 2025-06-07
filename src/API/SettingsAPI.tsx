@@ -1,4 +1,4 @@
-import {CuSettingDTO, MuSettingDTO, NodeDTO} from "./interfaces";
+import {CuGw, CuSettingDTO, MuSettingDTO, NodeDTO} from "./interfaces";
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 const API_URL = `${BASE_URL}/API`;
@@ -65,5 +65,33 @@ async function updateMuSettingId( musetting:MuSettingDTO, xsrfToken:string) {
     return (await response.json()) as MuSettingDTO
 }
 
+async function Cuisalive( id: number) {
 
-export {getCuSettingId, updateCuSettingId, getMuSettingId, updateMuSettingId}
+    const url =`${API_URL}/cu-setting/${id}/isalive`;
+
+    const response =   await fetch(url, {
+        method: 'GET',
+        headers: {
+            //'X-XSRF-TOKEN': me.xsrfToken,
+            'Content-Type': 'application/json'
+        },
+    })
+    return (await response.json()) as number || null
+}
+
+async function CuAreAlive( ids: number[]) {
+
+    const url =`${API_URL}/cu-setting/arealive`;
+
+    const response =   await fetch(url, {
+        method: 'POST',
+        headers: {
+            //'X-XSRF-TOKEN': me.xsrfToken,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(ids)
+    })
+    return (await response.json()) as CuGw[]
+}
+
+export {getCuSettingId, updateCuSettingId, getMuSettingId, updateMuSettingId, Cuisalive, CuAreAlive}

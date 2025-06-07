@@ -71,5 +71,10 @@ export interface MuSettingDTO {
     samplingFrequency: number;
 }
 
+export interface CuGw {
+    cuNetworkId : number;
+    gateway : number | null ;
+}
+
 
 

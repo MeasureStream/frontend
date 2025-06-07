@@ -101,7 +101,9 @@ function App() {
                           <Route path="/create-node" element={  <CreateNodePage/> } />
                           <Route path="/create-mu" element={  <CreateMeasurementUnitPage/> } />
                           <Route path="/create-cu" element={  <CreateControlUnitPage/> } />
-                          <Route path="/create-user" element={  <CreateUserPage/> } />
+                          {
+                              //<Route path="/create-user" element={<CreateUserPage/>}/>
+                               }
                           <Route path="/mus" element={<MeasurementUnitPage /> }/>
                           <Route path="/cus" element={<ControlUnitsPage />}/>
 
