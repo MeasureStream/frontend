@@ -62,7 +62,11 @@ export function AddMuSettings({ muNetworkId }: { muNetworkId:number }) {
     return (
         <>
             <Button variant="success" onClick={handleShow}>Set MU Settings</Button>
-
+            { form.gateway == undefined ?
+                "WARNING THIS MU IS OFFLINE  🔴"
+                :
+                "ONLINE  🟢"
+            }
             <Modal show={showModal} onHide={handleClose}>
                 <Modal.Header closeButton>
                     <Modal.Title>Add Measurement Unit Settings</Modal.Title>
