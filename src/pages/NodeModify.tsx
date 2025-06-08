@@ -90,7 +90,7 @@ const NodeInfoPage = ({nodes} : Props) => {
 
         fetchNodes().then( async () => await fetchMuCu() ).catch(e => console.log("ERROR: ", e))
 
-    }, [dirty]);
+    }, [dirty, xsrfToken]);
 
     if (!node) {
         return (
