@@ -43,6 +43,10 @@ async function getCuId( id: number) {
             'Content-Type': 'application/json'
         },
     })
+    if (!response.ok) {
+        throw new Error(`Error get CU id: ${id}  ${response.status} ${response.statusText}`);
+    }
+
     return await response.json() as ControlUnitDTO[]
 }
 async function getAllAvailableCuList( ) {

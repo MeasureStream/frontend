@@ -91,6 +91,10 @@ async function CuAreAlive(ids: number[], xsrfToken: string | null) {
         },
         body: JSON.stringify(ids)
     })
+
+    if(!response.ok)
+        throw new Error(`Error retrive ${url} POST ${ids} xsrfToken : ${xsrfToken}`)
+
     return (await response.json()) as CuGw[]
 }
 

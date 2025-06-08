@@ -56,6 +56,11 @@ async function getNodesId( id: number) {
             'Content-Type': 'application/json'
         },
     })
+
+    if (!response.ok) {
+        throw new Error(`Error get il node id: ${id}  ${response.status} ${response.statusText}`);
+    }
+
     return (await response.json())[0] as NodeDTO
 }
 
@@ -107,6 +112,9 @@ async function getNodeUnits( id: number) {
             'Content-Type': 'application/json'
         },
     })
+    if (!response.ok) {
+        throw new Error(`Error GET measureUnitOfNode of node id: ${id}  ${response.status} ${response.statusText}`);
+    }
     return (await response.json()) as string[]
 }
 

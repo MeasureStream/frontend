@@ -69,6 +69,10 @@ async function getMuId( id: number) {
             'Content-Type': 'application/json'
         },
     })
+    if (!response.ok) {
+        throw new Error(`Error get Mu id: ${id}  ${response.status} ${response.statusText}`);
+    }
+
     return await response.json() as MeasurementUnitDTO[]
 }
 async function CreateMu(xsrfToken:string | null , mu : MeasurementUnitDTO) {
