@@ -40,7 +40,7 @@ const NodeInfoPage = ({nodes} : Props) => {
     const [nodeUnits, setNodeUnits] = useState<string[]>([]);
     const [dirty, setDirty] = useState(true)
     const navigate = useNavigate()
-    const {xsrfToken} = useAuth()
+    const {xsrfToken} = useAuth();
 
     useEffect(() => {
         const iframe = document.createElement("iframe");
@@ -53,7 +53,7 @@ const NodeInfoPage = ({nodes} : Props) => {
 
         console.log("DEBUG node:", node)
         console.log("DEBUG mu:", measurementUnits)
-
+        console.log("xsrfToken: ", xsrfToken)
         console.log(" dirty" , dirty )
     });
 
