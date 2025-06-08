@@ -76,11 +76,14 @@ const NodeInfoPage = ({nodes} : Props) => {
 
                 const nu = await getNodeUnits(Number(nodeId))
                 setNodeUnits(nu)
+                if(xsrfToken) {
+                    const _cugw = await CuAreAlive(cu.map( e => e.networkId), xsrfToken)
+                    setCugw(_cugw)
+                    setDirty(false)
+                }
 
-                const _cugw = await CuAreAlive(cu.map( e => e.networkId), xsrfToken)
-                setCugw(_cugw)
 
-                setDirty(false)
+
             }
 
         }
@@ -116,10 +119,13 @@ const NodeInfoPage = ({nodes} : Props) => {
     };
 
     const isAlive = (Cuid: number ) => {
-        const c = cugw.find(e => e.cuNetworkId == Cuid)
+        /*const c = cugw.find(e => e.cuNetworkId == Cuid)
         if(c.gateway == null)
             return "OFFLINE"
-        else return "ONLINE"
+        else return "ONLINE"*/
+        const c = Array.isArray(cugw) ? cugw.find(e => e.cuNetworkId === Cuid) : undefined;
+        if (!c || c.gateway == null) return "OFFLINE";
+        return "ONLINE";
     }
 
 
