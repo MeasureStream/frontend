@@ -42,7 +42,7 @@ const NodeInfoPage = ({nodes} : Props) => {
     const [nodeUnits, setNodeUnits] = useState<string[]>([]);
     const [dirty, setDirty] = useState(true)
     const navigate = useNavigate()
-
+    const {xsrfToken} = useAuth()
     useEffect(() => {
         const iframe = document.createElement("iframe");
         iframe.style.display = "none";
@@ -78,7 +78,7 @@ const NodeInfoPage = ({nodes} : Props) => {
                 const nu = await getNodeUnits(Number(nodeId))
                 setNodeUnits(nu)
 
-                const _cugw = await CuAreAlive(cu.map( e => e.networkId))
+                const _cugw = await CuAreAlive(cu.map( e => e.networkId), xsrfToken)
                 setCugw(_cugw)
 
                 setDirty(false)

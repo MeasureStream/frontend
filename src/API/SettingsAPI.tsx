@@ -79,14 +79,14 @@ async function Cuisalive( id: number) {
     return (await response.json()) as number || null
 }
 
-async function CuAreAlive( ids: number[]) {
+async function CuAreAlive( ids: number[], xsrfToken: string) {
 
     const url =`${API_URL}/cu-setting/arealive`;
 
     const response =   await fetch(url, {
         method: 'POST',
         headers: {
-            //'X-XSRF-TOKEN': me.xsrfToken,
+            'X-XSRF-TOKEN': xsrfToken,
             'Content-Type': 'application/json'
         },
         body: JSON.stringify(ids)
