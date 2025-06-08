@@ -63,9 +63,9 @@ export function AddMuSettings({ muNetworkId }: { muNetworkId:number }) {
         <>
             <Button variant="success" onClick={handleShow}>Set MU Settings</Button>
             { form.gateway == undefined ?
-                "WARNING THIS MU IS OFFLINE  🔴"
+                "  WARNING THIS MU IS OFFLINE  🔴"
                 :
-                "ONLINE  🟢"
+                "  ONLINE  🟢"
             }
             <Modal show={showModal} onHide={handleClose}>
                 <Modal.Header closeButton>
