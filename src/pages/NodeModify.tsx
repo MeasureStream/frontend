@@ -41,6 +41,7 @@ const NodeInfoPage = ({nodes} : Props) => {
     const [dirty, setDirty] = useState(true)
     const navigate = useNavigate()
     const {xsrfToken} = useAuth()
+
     useEffect(() => {
         const iframe = document.createElement("iframe");
         iframe.style.display = "none";

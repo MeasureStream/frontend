@@ -86,8 +86,8 @@ async function CuAreAlive(ids: number[], xsrfToken: string | null) {
     const response =   await fetch(url, {
         method: 'POST',
         headers: {
-            'X-XSRF-TOKEN': xsrfToken || "",
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'X-XSRF-TOKEN': xsrfToken || '',
         },
         body: JSON.stringify(ids)
     })
