@@ -73,7 +73,7 @@ export interface MuSettingDTO {
 
 export interface CuGw {
     cuNetworkId : number;
-    gateway : number | null ;
+    gw : number | null ;
 }
 
 

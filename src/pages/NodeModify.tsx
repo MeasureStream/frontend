@@ -123,8 +123,8 @@ const NodeInfoPage = ({nodes} : Props) => {
         if(c.gateway == null)
             return "OFFLINE"
         else return "ONLINE"*/
-        const c = Array.isArray(cugw) ? cugw.find(e => e.cuNetworkId === Cuid) : undefined;
-        if (!c || c.gateway == null) return "OFFLINE";
+        const c = Array.isArray(cugw) ? cugw.find(e => e.cuNetworkId === Cuid) : null;
+        if ( c == null || c.gw == null) return "OFFLINE";
         return "ONLINE";
     }
 
