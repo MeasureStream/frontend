@@ -1,17 +1,15 @@
-import {ChangeEvent, FormEvent, useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import {ControlUnitDTO, CuGw, CuSettingDTO, MeasurementUnitDTO, MeInterface, NodeDTO} from "../API/interfaces";
+import {ControlUnitDTO, CuGw,  MeasurementUnitDTO,  NodeDTO} from "../API/interfaces";
 import {useParams} from "react-router";
-import {Button, Card, Col, Container, Form, ListGroup, Row, Spinner} from "react-bootstrap";
-import {getMe} from "../API/MeAPI";
-import { BsChevronDown } from "react-icons/bs";
-import {deleteNode, EditNode, getAllNodes, getNodesId, getNodeUnits} from "../API/NodeAPI";
-import {EditMu, getAllAvailableMuList, getMuId} from "../API/MeasurementUnitAPI";
+import {Button, Card, Col, Container, ListGroup, Row, Spinner} from "react-bootstrap";
+import {deleteNode, getNodesId, getNodeUnits} from "../API/NodeAPI";
+import { getMuId} from "../API/MeasurementUnitAPI";
 import {Accordion} from "react-bootstrap";
 import {getCuId} from "../API/ControlUnitAPI";
 
 import {Modal } from "react-bootstrap";
-import {number} from "yup";
+
 import {useAuth} from "../API/AuthContext";
 import { useNavigate } from 'react-router';
 import {AddMu, DccMu, RemoveMU} from "../components/MUsModals";
@@ -21,7 +19,7 @@ import redMarker from "/src/assets/marker-red.svg";
 import bluMarkerShadow from '/src/assets/marker-shadow.svg';
 import ShowChart from "../components/ShowChart";
 import {AddCuSettings} from "../components/CuSettingModal";
-import {CuAreAlive, Cuisalive, getCuSettingId} from "../API/SettingsAPI";
+import {CuAreAlive } from "../API/SettingsAPI";
 import {AddMuSettings} from "../components/AddMuSettings";
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
