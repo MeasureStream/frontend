@@ -5,7 +5,7 @@ import Nodes from "./pages/Nodes";
 import {BrowserRouter as Router, Route, Routes} from "react-router";
 import AddNode from "./pages/AddNode";
 import {useEffect, useState} from "react";
-import {MeInterface, NodeDTO} from "./API/interfaces";
+import {MeInterface, NodeDTO, UserDTO} from "./API/interfaces";
 import {getAllNodes} from "./API/NodeAPI";
 import {getMe} from "./API/MeAPI";
 import LandingPageENG from "./pages/LandingPageENG";
@@ -55,13 +55,14 @@ function App() {
                         const surname = me_.principal.userInfo.claims.name.family_name
                         const email = me_.principal.userInfo.claims.name.email
                         const userId = me_.principal.userInfo.claims.name.sub
-
-                        setUser({
+                        const actual_user:UserDTO = {
                             name:name,
                             surname: surname,
                             email:email,
                             userId:userId
-                        })
+                        }
+                        console.log("userDTO: ", actual_user)
+                        setUser(actual_user)
 
                     }else{
                         setRole("ANONYMOUS")
