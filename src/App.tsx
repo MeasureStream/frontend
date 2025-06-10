@@ -45,7 +45,8 @@ function App() {
                 try {
                     const resMe = await getMe()
                     const me_ = await resMe.json() as MeInterface
-
+                    const role = me_.principal.claims.realm_access.roles.includes("app-admin") ? "ADMIN" : "USER"
+                    console.log("this is my role:   ", role)
 
                     setMe( {... me_} )
                     //console.log("me_:", me_)
