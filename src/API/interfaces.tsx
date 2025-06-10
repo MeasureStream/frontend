@@ -76,5 +76,10 @@ export interface CuGw {
     gw : number | null ;
 }
 
-
+export interface UserDTO {
+    userId: string;
+    email: string;
+    name: string;
+    surname: string;
+}
 

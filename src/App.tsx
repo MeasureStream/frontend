@@ -22,7 +22,7 @@ import MeasurementUnitPage from "./pages/MeasurementUnitPage";
 import ControlUnitsPage from "./pages/ControlUnitsPage";
 
 function App() {
-    const { xsrfToken, setXsrfToken, dirty, setDirty } = useAuth(); // Usa il contesto
+    const { xsrfToken, setXsrfToken, dirty, setDirty , role, setRole} = useAuth(); // Usa il contesto
     const [nodes, setNodes] = useState<NodeDTO[]>([])
     //const [dirty, setDirty] = useState(true)
     const [me , setMe] = useState<MeInterface>({
@@ -49,6 +49,9 @@ function App() {
                     if(me_.principal != null ){
                         const role = me_.principal.claims.realm_access.roles.includes("app-admin") ? "ADMIN" : "USER"
                         console.log("this is my role:   ", role)
+                        setRole(role)
+                    }else{
+                        setRole("ANONYMOUS")
                     }
 
 

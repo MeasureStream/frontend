@@ -1,14 +1,15 @@
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import { useNavigate } from "react-router";
 import {Button, Container, Form} from "react-bootstrap";
 import {MapContainer, Marker, Popup, TileLayer, useMapEvent} from "react-leaflet";
 import {useAuth} from "../API/AuthContext";
-import {CreateNode} from "../API/NodeAPI";
-import {NodeDTO} from "../API/interfaces";
+import {CreateNode, CreateNodeAdmin} from "../API/NodeAPI";
+import {NodeDTO, UserDTO} from "../API/interfaces";
 import L from "leaflet";
 import redMarker from "/src/assets/marker-red.svg";
 import bluMarker from "/src/assets/marker.svg";
 import bluMarkerShadow from '/src/assets/marker-shadow.svg';
+import {getUsers} from "../API/UsersAPI";
 
 //import { createNode } from "../api"; // You should have this function in your API client
 
@@ -16,8 +17,20 @@ const CreateNodePage = () => {
     const [name, setName] = useState("");
     const [standard, setStandard] = useState(false);
     const [location, setLocation] = useState<{ lat: number, lng: number }>({ lat: 45.07, lng: 7.69 });
+    const [userList, setUserList] = useState<UserDTO[]>([])
     const navigate = useNavigate();
-    const { xsrfToken , setDirty } = useAuth();
+    const { xsrfToken , setDirty , role} = useAuth();
+    const [userId, setUserId] = useState("")
+
+    useEffect(() => {
+        const fetchUsers = async () => {
+            if(role == "ADMIN"){
+                const users = await getUsers()
+                setUserList(users)
+            }
+        }
+        fetchUsers()
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -32,7 +45,12 @@ const CreateNodePage = () => {
         };
 
         try {
-            let newnode = await CreateNode(xsrfToken,node);
+            if(role == "ADMIN"){
+                let newnode = await CreateNodeAdmin(xsrfToken,node,userId)
+            }else{
+                let newnode = await CreateNode(xsrfToken,node);
+            }
+
             setDirty(true);
             navigate("/"); // Torna alla home
         } catch (err) {
@@ -67,7 +85,29 @@ const CreateNodePage = () => {
                     <Form.Label>Name</Form.Label>
                     <Form.Control value={name} onChange={e => setName(e.target.value)} required />
                 </Form.Group>
-
+                <>
+                    {role === "ADMIN" && (
+                        <Form.Group className="mb-3"> {/* Aggiunto mb-3 per spaziatura */}
+                            <Form.Label>Assign to User</Form.Label>
+                            <Form.Select
+                                value={userId}
+                                onChange={e => setUserId(e.target.value)}
+                                required
+                            >
+                                <option value="" disabled>Seleziona un utente...</option> {/* Opzione placeholder */}
+                                <>
+                                {
+                                    userList.map((user) => (
+                                    <option key={user.userId} value={user.userId}>
+                                        {user.name} {user.surname} ({user.email})
+                                    </option>
+                                ))
+                                }
+                                </>
+                            </Form.Select>
+                        </Form.Group>
+                    )}
+                </>
                 <Form.Group>
                     <Form.Check
                         type="checkbox"

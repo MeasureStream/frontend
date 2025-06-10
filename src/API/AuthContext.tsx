@@ -5,6 +5,8 @@ interface AuthContextType {
     setXsrfToken: (token: string) => void;
     dirty: boolean;
     setDirty:(dirty: boolean) => void;
+    role:string;
+    setRole:(role:string) => void;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -12,8 +14,9 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [xsrfToken, setXsrfToken] = useState<string | null>(null);
     const [dirty, setDirty] = useState<boolean>(true); // Aggiunta della variabile dirty
+    const [role , setRole] = useState<string>("ANONYMOUS")
     return (
-        <AuthContext.Provider value={{ xsrfToken, setXsrfToken, dirty, setDirty }}>
+        <AuthContext.Provider value={{ xsrfToken, setXsrfToken, dirty, setDirty , role, setRole}}>
             {children}
         </AuthContext.Provider>
     );

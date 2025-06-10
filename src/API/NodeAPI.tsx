@@ -140,6 +140,29 @@ async function CreateNode(xsrfToken:string | null ,node : NodeDTO) {
 }
 
 
+
+
+async function CreateNodeAdmin(xsrfToken:string | null ,node : NodeDTO, userId : string) {
+
+    const url = `${API_URL}`;
+
+    const response = await fetch(url+`/admin-create?userId=${userId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-XSRF-TOKEN': xsrfToken || '',  // Includi il token nell'intestazione
+        },
+        body: JSON.stringify(node),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Error: ${response.status} ${response.statusText}`);
+    }
+
+    return ( await response.json()) as NodeDTO
+}
+
+
 async function EditNode(xsrfToken:string | null ,node : NodeDTO) {
 
     const url = `${API_URL}`;
@@ -160,4 +183,4 @@ async function EditNode(xsrfToken:string | null ,node : NodeDTO) {
     return ( await response.json()) as NodeDTO
 }
 
-export {getAllNodes,getNodesId,deleteNode,getNodeUnits, CreateNode, getAllNodesList,EditNode}
+export {getAllNodes,getNodesId,deleteNode,getNodeUnits, CreateNode, getAllNodesList,EditNode, CreateNodeAdmin}
