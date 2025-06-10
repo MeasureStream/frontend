@@ -89,7 +89,7 @@ async function CreateCu(xsrfToken:string | null , cu : ControlUnitDTO) {
 async function CreateCuAdmin(xsrfToken:string | null , cu : ControlUnitDTO, userId :string) {
 
 
-    const url = `${API_URL}/admin-create/userId?=${userId}`;
+    const url = `${API_URL}/admin-create?userId=${userId}`;
 
 
     const response = await fetch(url, {
