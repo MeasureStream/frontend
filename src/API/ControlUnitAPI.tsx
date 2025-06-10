@@ -86,6 +86,30 @@ async function CreateCu(xsrfToken:string | null , cu : ControlUnitDTO) {
     return ( await response.json()) as ControlUnitDTO
 }
 
+async function CreateCuAdmin(xsrfToken:string | null , cu : ControlUnitDTO, userId :string) {
+
+
+    const url = `${API_URL}/admin-create/userId?=${userId}`;
+
+
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-XSRF-TOKEN': xsrfToken || '',  // Includi il token nell'intestazione
+        },
+        body: JSON.stringify(cu),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Error: ${response.status} ${response.statusText}`);
+    }
+
+
+    return ( await response.json()) as ControlUnitDTO
+}
+
+
 async function EditCu(xsrfToken:string | null , cu : ControlUnitDTO) {
 
 
@@ -146,4 +170,4 @@ async function getfirstavailableCU()  {
 }
 
 
-export {getCuId,CreateCu, EditCu, getAllAvailableCuList, getAllCu, DeleteCu, getfirstavailableCU}
+export {getCuId,CreateCu, EditCu, getAllAvailableCuList, getAllCu, DeleteCu, getfirstavailableCU, CreateCuAdmin}

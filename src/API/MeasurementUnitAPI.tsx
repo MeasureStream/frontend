@@ -75,6 +75,7 @@ async function getMuId( id: number) {
 
     return await response.json() as MeasurementUnitDTO[]
 }
+
 async function CreateMu(xsrfToken:string | null , mu : MeasurementUnitDTO) {
 
 
@@ -97,6 +98,31 @@ async function CreateMu(xsrfToken:string | null , mu : MeasurementUnitDTO) {
 
     return ( await response.json()) as MeasurementUnitDTO
 }
+
+
+async function CreateMuAdmin(xsrfToken:string | null , mu : MeasurementUnitDTO, userId : string) {
+
+
+    const url = `${API_URL}/admin-create?userId=${userId}`;
+
+
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-XSRF-TOKEN': xsrfToken || '',  // Includi il token nell'intestazione
+        },
+        body: JSON.stringify(mu),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Error: ${response.status} ${response.statusText}`);
+    }
+
+
+    return ( await response.json()) as MeasurementUnitDTO
+}
+
 
 async function EditMu(xsrfToken:string | null , mu : MeasurementUnitDTO) {
 
@@ -151,4 +177,4 @@ async function getfirstavailableMU()  {
 }
 
 
-export {getMuId, getAllMuList, CreateMu,EditMu, getAllAvailableMuList, getAllMu, DeleteMu, getfirstavailableMU}
+export {getMuId, getAllMuList, CreateMu,EditMu, getAllAvailableMuList, getAllMu, DeleteMu, getfirstavailableMU, CreateMuAdmin}

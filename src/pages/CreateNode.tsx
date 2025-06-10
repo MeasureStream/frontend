@@ -18,15 +18,19 @@ const CreateNodePage = () => {
     const [standard, setStandard] = useState(false);
     const [location, setLocation] = useState<{ lat: number, lng: number }>({ lat: 45.07, lng: 7.69 });
     const [userList, setUserList] = useState<UserDTO[]>([])
-    const navigate = useNavigate();
-    const { xsrfToken , setDirty , role} = useAuth();
     const [userId, setUserId] = useState("")
+    const navigate = useNavigate();
+    const { xsrfToken , setDirty , role,user} = useAuth();
+
 
     useEffect(() => {
         const fetchUsers = async () => {
             if(role == "ADMIN"){
                 const users = await getUsers()
-                setUserList(users)
+                if(users.map(e => e.userId).includes(user.userId))
+                    setUserList(users)
+                else
+                    setUserList([user, ...users])
             }
         }
         fetchUsers()
@@ -94,7 +98,7 @@ const CreateNodePage = () => {
                                 onChange={e => setUserId(e.target.value)}
                                 required
                             >
-                                <option value="" disabled>Seleziona un utente...</option> {/* Opzione placeholder */}
+                                <option value="" disabled>Select an user...</option> {/* Opzione placeholder */}
                                 <>
                                 {
                                     userList.map((user) => (
