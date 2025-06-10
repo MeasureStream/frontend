@@ -51,10 +51,10 @@ function App() {
                         console.log("this is my role:   ", role)
                         setRole(role)
 
-                        const name = me_.principal.userInfo.claims.name.given_name
-                        const surname = me_.principal.userInfo.claims.name.family_name
-                        const email = me_.principal.userInfo.claims.name.email
-                        const userId = me_.principal.userInfo.claims.name.sub
+                        const name = me_.principal.userInfo.claims.given_name
+                        const surname = me_.principal.userInfo.claims.family_name
+                        const email = me_.principal.userInfo.claims.email
+                        const userId = me_.principal.userInfo.claims.sub
                         const actual_user:UserDTO = {
                             name:name,
                             surname: surname,
