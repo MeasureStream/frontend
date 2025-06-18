@@ -19,7 +19,7 @@ import redMarker from "/src/assets/marker-red.svg";
 import bluMarkerShadow from '/src/assets/marker-shadow.svg';
 import ShowChart from "../components/ShowChart";
 import {AddCuSettings} from "../components/CuSettingModal";
-import {CuAreAlive } from "../API/SettingsAPI";
+import {CuAreAlive, getMUStartId, getMUStopId} from "../API/SettingsAPI";
 import {AddMuSettings} from "../components/AddMuSettings";
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
@@ -128,6 +128,17 @@ const NodeInfoPage = ({nodes} : Props) => {
         return "ONLINE  🟢";
     }
 
+    const handleStart = (id:number) => {
+
+        getMUStartId(id)
+
+    }
+
+    const handleStop = (networkId: number) =>{
+
+        getMUStopId(networkId)
+    }
+
 
     return (
         <Container className="mt-5">
@@ -225,6 +236,8 @@ const NodeInfoPage = ({nodes} : Props) => {
                                                         </ListGroup.Item>
                                                         <ListGroup.Item variant="secondary">
                                                             <RemoveMU mu={mu} setDirty={setDirty}/>
+                                                            <Button variant="success" onClick={() => handleStart(mu.networkId)}>Start</Button>
+                                                            <Button variant={"danger"} onClick={() => handleStop(mu.networkId)}>Stop</Button>
                                                             <AddMuSettings muNetworkId={mu.networkId}/>
                                                         </ListGroup.Item>
                                                     </div>

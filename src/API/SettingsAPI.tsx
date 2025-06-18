@@ -98,4 +98,46 @@ async function CuAreAlive(ids: number[], xsrfToken: string | null) {
     return (await response.json()) as CuGw[]
 }
 
-export {getCuSettingId, updateCuSettingId, getMuSettingId, updateMuSettingId, Cuisalive, CuAreAlive}
+
+async function getMUStartId( id: number) {
+
+    const url =`${API_URL}/command/start/${id}/`;
+
+    const response =   await fetch(url, {
+        method: 'GET',
+        headers: {
+            //'X-XSRF-TOKEN': me.xsrfToken,
+            'Content-Type': 'application/json'
+        },
+    })
+
+    if(!response.ok)
+        throw new Error(`Error retrive ${url} `)
+    
+    return (await response.json()) as number
+}
+
+
+
+async function getMUStopId(id: number){
+
+    const url =`${API_URL}/command/stop/${id}/`;
+
+    const response =   await fetch(url, {
+        method: 'GET',
+        headers: {
+            //'X-XSRF-TOKEN': me.xsrfToken,
+            'Content-Type': 'application/json'
+        },
+    })
+
+    if(!response.ok)
+        throw new Error(`Error retrive ${url} `)
+
+    return (await response.json()) as number
+
+
+}
+
+
+export {getCuSettingId, updateCuSettingId, getMuSettingId, updateMuSettingId, Cuisalive, CuAreAlive, getMUStartId, getMUStopId}
