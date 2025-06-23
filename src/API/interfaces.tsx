@@ -1,5 +1,3 @@
-import {string} from "yup";
-
 export interface ControlUnitDTO {
     id: number,
     networkId: number,
@@ -55,6 +53,7 @@ export interface MeInterface {
 }
 
 export interface CuSettingDTO {
+    updateTxPower: number;
     networkId: number;
     gateway?: number;
     bandwidth: number;

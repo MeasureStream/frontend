@@ -8,6 +8,7 @@ import {useAuth} from "../API/AuthContext";
 export function AddCuSettings({ cuNetworkId }: { cuNetworkId:number }) {
     const [showModal, setShowModal] = useState(false);
     const [form, setForm] = useState<CuSettingDTO>({
+        updateTxPower: 0,
         networkId: cuNetworkId,
         gateway: undefined,
         bandwidth: 125,
@@ -122,6 +123,16 @@ export function AddCuSettings({ cuNetworkId }: { cuNetworkId:number }) {
                                 type="number"
                                 name="updateInterval"
                                 value={form.updateInterval}
+                                onChange={handleChange}
+                            />
+                        </Form.Group>
+
+                        <Form.Group>
+                            <Form.Label>Transmitting power</Form.Label>
+                            <Form.Control
+                                type="number"
+                                name="TxPower"
+                                value={form.updateTxPower}
                                 onChange={handleChange}
                             />
                         </Form.Group>
