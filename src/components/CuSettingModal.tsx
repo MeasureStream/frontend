@@ -36,7 +36,7 @@ export function AddCuSettings({ cuNetworkId }: { cuNetworkId:number }) {
     const handleClose = () => setShowModal(false);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
+        const { name, value } = e.target;    // name and value's "name" must be equal
         setForm(prev => ({ ...prev, [name]: Number(value) }));
     };
 
@@ -131,7 +131,7 @@ export function AddCuSettings({ cuNetworkId }: { cuNetworkId:number }) {
                             <Form.Label>Transmitting power</Form.Label>
                             <Form.Control
                                 type="number"
-                                name="TxPower"
+                                name="updateTxPower"
                                 value={form.updateTxPower}
                                 onChange={handleChange}
                             />
