@@ -140,6 +140,11 @@ function App() {
                           {
                               //<Route path="/create-user" element={<CreateUserPage/>}/>
                                }
+                          { role == "ADMIN" ?
+                              <Route path="/nodes" element={  <Nodes nodes={ nodes}/> } />
+                              :
+                              <></>
+                          }
                           <Route path="/mus" element={<MeasurementUnitPage /> }/>
                           <Route path="/cus" element={<ControlUnitsPage />}/>
 

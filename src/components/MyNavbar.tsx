@@ -2,12 +2,13 @@ import {Button, Container, Nav, Navbar, NavbarText, NavDropdown} from "react-boo
 import { BsArrowsAngleContract } from "react-icons/bs";
 import { Link } from "react-router";
 import {MeInterface} from "../API/interfaces";
+import {useAuth} from "../API/AuthContext";
 interface NavbarProps {
     me :  MeInterface
 }
 
 function MyNavbar( {me} : NavbarProps ) {
-
+    const {role} = useAuth();
     return (
         
         <Navbar expand="sm" className="bg-body-tertiary">
@@ -24,6 +25,12 @@ function MyNavbar( {me} : NavbarProps ) {
                                     <Nav.Link  as = {Link} to="/measures" >Measures</Nav.Link>
                                     <Nav.Link  as = {Link} to="/dcc" >DCC</Nav.Link>
                                     <Nav.Link  as = {Link} to="/create-node" >Create Node</Nav.Link>
+                                    {
+                                        role == "ADMIN"?
+                                            <Nav.Link  as = {Link} to="/nodes" >Nodes</Nav.Link>
+                                            :
+                                            <></>
+                                    }
                                     <NavDropdown title="Other Actions" id="basic-nav-dropdown">
                                         <NavDropdown.Item  as = {Link} to="/create-mu" >Create MU</NavDropdown.Item>
                                         <NavDropdown.Item  as = {Link} to="/create-cu" >Create CU</NavDropdown.Item>
