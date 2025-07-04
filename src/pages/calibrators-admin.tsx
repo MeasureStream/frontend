@@ -17,7 +17,7 @@ interface  calibratorsProps {
 function Calibrators({calibrators} : calibratorsProps) {
     const [reduce, setReduce] = useState<boolean>(false)
     const [selected, setSelected] =useState<number>(0)
-    const
+
     return (
         <>
             {/*<Row style={{ display: "flex", flexDirection: "row",  justifyContent: "space-between", alignItems: "center", padding: "10px" }}>
