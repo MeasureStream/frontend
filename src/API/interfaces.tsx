@@ -82,3 +82,19 @@ export interface UserDTO {
     surname: string;
 }
 
+export interface CalibratorDTO {
+    networkId: number;
+    networkIdMu: number;
+    name: string;
+    calibrationUnitsId: number[];
+    location: Point;
+}
+
+export interface CalibrationUnitDTO {
+    networkId: number;
+    testPoint: number;
+    measuresUnit: string;
+    type: string;
+    calibratorId?: number | null;
+}
+

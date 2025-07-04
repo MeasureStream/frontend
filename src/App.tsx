@@ -5,7 +5,7 @@ import Nodes from "./pages/Nodes";
 import {BrowserRouter as Router, Route, Routes} from "react-router";
 import AddNode from "./pages/AddNode";
 import {useEffect, useState} from "react";
-import {MeInterface, NodeDTO, UserDTO} from "./API/interfaces";
+import {CalibratorDTO, MeInterface, NodeDTO, UserDTO} from "./API/interfaces";
 import {getAllNodes} from "./API/NodeAPI";
 import {getMe} from "./API/MeAPI";
 import LandingPageENG from "./pages/LandingPageENG";
@@ -20,10 +20,13 @@ import CreateControlUnitPage from "./pages/CreateControlUnitPage";
 import CreateUserPage from "./pages/CreateUserPage";
 import MeasurementUnitPage from "./pages/MeasurementUnitPage";
 import ControlUnitsPage from "./pages/ControlUnitsPage";
+import Calibrators from "./pages/calibrators-admin";
+import {getAllCalibrators} from "./API/CalibratorAPI";
 
 function App() {
     const { xsrfToken, setXsrfToken, dirty, setDirty , role, setRole, setUser} = useAuth(); // Usa il contesto
     const [nodes, setNodes] = useState<NodeDTO[]>([])
+    const [calibrators, setCalibrators] = useState<CalibratorDTO[]>([])
     //const [dirty, setDirty] = useState(true)
     const [me , setMe] = useState<MeInterface>({
         name:"",
@@ -63,6 +66,10 @@ function App() {
                         }
                         console.log("userDTO: ", actual_user)
                         setUser(actual_user)
+
+                        if(role == "ADMIN") {
+                            setCalibrators(await getAllCalibrators() )
+                        }
 
                     }else{
                         setRole("ANONYMOUS")
@@ -111,11 +118,18 @@ function App() {
       <>
 
 
-              <Router basename={"/ui"}>
+              <Router basename={"/ui"} >
                   <MyNavbar   me={me} />
                   <Container fluid>
                       <Routes>
-                          <Route path="/" element={ me.name?   <Nodes nodes={ nodes}/> : <LandingPageENG/> } />
+                          <Route path="/" element={
+                              me.name?
+                                  role == "ADMIN"?
+                                        <Calibrators calibrators={calibrators}/>
+                                      :
+                                        <Nodes nodes={ nodes}/>
+                                  :
+                                  <LandingPageENG/> } />
                           <Route path="/add" element={<AddNode/> } />
                           <Route path="/nodes/:nodeId" element={  <NodeInfoPage  nodes = { nodes} />  } />
                           <Route path="/measures" element={  <Measures/> } />
@@ -128,6 +142,7 @@ function App() {
                                }
                           <Route path="/mus" element={<MeasurementUnitPage /> }/>
                           <Route path="/cus" element={<ControlUnitsPage />}/>
+
 
                           {/* Add more routes here as needed */}
                       </Routes>
