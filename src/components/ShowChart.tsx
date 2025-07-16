@@ -4,6 +4,67 @@ import {deleteMEasures, downloadMeasures} from "../API/measuresAPI";
 import {useAuth} from "../API/AuthContext";
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
+const unitToTypeMap: Record<string, string> = {
+    // Temperature
+    "°C": "Temperature",
+    "Celsius": "Temperature",
+    "K": "Temperature",          // Kelvin
+    "°F": "Temperature",         // Fahrenheit
+
+    // Pressure
+    "Pa": "Pressure",
+    "Pascal": "Pressure",  // Pascal
+    "kPa": "Pressure",           // Kilopascal
+    "hPa": "Pressure",           // Hectopascal
+    "bar": "Pressure",
+    "atm": "Pressure",
+    "mmHg": "Pressure",
+
+    // Humidity
+    "%": "Humidity",
+    "RH": "Humidity",            // Relative Humidity
+
+    // Distance / Length
+    "m": "Distance",
+    "cm": "Distance",
+    "mm": "Distance",
+    "km": "Distance",
+    "in": "Distance",
+    "ft": "Distance",
+
+    // Speed
+    "m/s": "Speed",
+    "km/h": "Speed",
+    "mph": "Speed",
+
+    // Acceleration
+    "m/s²": "Acceleration",
+    "g": "Acceleration",
+
+    // Voltage
+    "V": "Voltage",
+    "mV": "Voltage",
+
+    // Current
+    "A": "Current",
+    "mA": "Current",
+
+    // Power
+    "W": "Power",
+    "kW": "Power",
+
+    // Energy
+    "J": "Energy",
+    "kJ": "Energy",
+    "Wh": "Energy",
+    "kWh": "Energy",
+
+    // Frequency
+    "Hz": "Frequency",
+    "kHz": "Frequency",
+    "MHz": "Frequency",
+};
+
 function ShowChart({nodeId, unit, setDirty }: { nodeId: number, unit: string, setDirty : () => void }) {
     const [show, setShow] = useState(false);
 
@@ -14,6 +75,10 @@ function ShowChart({nodeId, unit, setDirty }: { nodeId: number, unit: string, se
     const [from, setFrom] = useState("");
     const [to, setTo] = useState("");
     const {xsrfToken} = useAuth()
+
+    function getTypeFromUnit(unit: string): string {
+        return unitToTypeMap[unit] || "Unknown";
+    }
 
 
     const handleDownload = async () => {
@@ -61,7 +126,7 @@ function ShowChart({nodeId, unit, setDirty }: { nodeId: number, unit: string, se
         <>
             {/* Bottone che apre il modal */}
             <Button variant="primary" onClick={handleShow}>
-                Show {unit}
+                Show {getTypeFromUnit(unit)}
             </Button>
 
 

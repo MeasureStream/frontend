@@ -30,65 +30,7 @@ interface  Props {
 }
 
 
-const unitToTypeMap: Record<string, string> = {
-    // Temperature
-    "°C": "Temperature",
-    "Celsius": "Temperature",
-    "K": "Temperature",          // Kelvin
-    "°F": "Temperature",         // Fahrenheit
 
-    // Pressure
-    "Pa": "Pressure",            // Pascal
-    "kPa": "Pressure",           // Kilopascal
-    "hPa": "Pressure",           // Hectopascal
-    "bar": "Pressure",
-    "atm": "Pressure",
-    "mmHg": "Pressure",
-
-    // Humidity
-    "%": "Humidity",
-    "RH": "Humidity",            // Relative Humidity
-
-    // Distance / Length
-    "m": "Distance",
-    "cm": "Distance",
-    "mm": "Distance",
-    "km": "Distance",
-    "in": "Distance",
-    "ft": "Distance",
-
-    // Speed
-    "m/s": "Speed",
-    "km/h": "Speed",
-    "mph": "Speed",
-
-    // Acceleration
-    "m/s²": "Acceleration",
-    "g": "Acceleration",
-
-    // Voltage
-    "V": "Voltage",
-    "mV": "Voltage",
-
-    // Current
-    "A": "Current",
-    "mA": "Current",
-
-    // Power
-    "W": "Power",
-    "kW": "Power",
-
-    // Energy
-    "J": "Energy",
-    "kJ": "Energy",
-    "Wh": "Energy",
-    "kWh": "Energy",
-
-    // Frequency
-    "Hz": "Frequency",
-    "kHz": "Frequency",
-    "MHz": "Frequency",
-};
 
 const NodeInfoPage = ({nodes} : Props) => {
     const { nodeId } = useParams<{ nodeId: string }>();
@@ -104,9 +46,6 @@ const NodeInfoPage = ({nodes} : Props) => {
     const {xsrfToken} = useAuth();
 
 
-    function getTypeFromUnit(unit: string): string {
-        return unitToTypeMap[unit] || "Unknown";
-    }
 
     useEffect(() => {
         const iframe = document.createElement("iframe");
@@ -234,7 +173,7 @@ const NodeInfoPage = ({nodes} : Props) => {
                             {
                                nodeUnits.map((unit, index) => (
                                     <Card.Text key={index}>
-                                        <ShowChart nodeId={node.id} unit={getTypeFromUnit(unit)} setDirty={() => setDirty(true)}></ShowChart>
+                                        <ShowChart nodeId={node.id} unit={unit} setDirty={() => setDirty(true)}></ShowChart>
                                     </Card.Text>
                                 ))
                             }
