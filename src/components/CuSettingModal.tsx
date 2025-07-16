@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import { Button, Modal, Form } from 'react-bootstrap';
+import {Button, Modal, Form, InputGroup} from 'react-bootstrap';
 import {CuSettingDTO} from "../API/interfaces";
 import {getCuSettingId, updateCuSettingId} from "../API/SettingsAPI";
 import {useAuth} from "../API/AuthContext";
@@ -89,12 +89,15 @@ export function AddCuSettings({ cuNetworkId }: { cuNetworkId:number }) {
 
                         <Form.Group>
                             <Form.Label>Bandwidth</Form.Label>
+                            <InputGroup>
                             <Form.Control
                                 type="number"
                                 name="bandwidth"
                                 value={form.bandwidth}
                                 onChange={handleChange}
                             />
+                                <InputGroup.Text>Hz</InputGroup.Text>
+                            </InputGroup>
                         </Form.Group>
 
                         <Form.Group>
@@ -128,7 +131,7 @@ export function AddCuSettings({ cuNetworkId }: { cuNetworkId:number }) {
                         </Form.Group>
 
                         <Form.Group>
-                            <Form.Label>Transmitting power</Form.Label>
+                            <Form.Label>Transmitting power dBm</Form.Label>
                             <Form.Control
                                 type="number"
                                 name="updateTxPower"
