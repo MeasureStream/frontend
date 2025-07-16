@@ -125,8 +125,8 @@ const ControlUnitsPage: React.FC = () => {
                         <td>{cu.id}</td>
                         <td>{cu.networkId}</td>
                         <td>{cu.name}</td>
-                        <td>{cu.remainingBattery}%</td>
-                        <td>{cu.rssi}</td>
+                        <td>{Math.round(cu.remainingBattery)}%</td>
+                        <td>{Math.round(cu.rssi)}</td>
                         <td>{cu.nodeId ? cu.nodeId : "Not Associated"}</td>
                         <td>
                             {
