@@ -1,0 +1,45 @@
+name: Build & Push Frontend Docker Image
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout repo
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Estrai versione da package.json
+      - name: Extract version from package.json
+        id: version
+        run: |
+          echo "VERSION=$(jq -r .version package.json)" >> $GITHUB_OUTPUT
+
+      # Setup Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Login Docker Hub
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Build e push multi-arch
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: DockerfileFrontendNew
+          push: true
+          platforms: linux/amd64,linux/arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/frontend-react:latest
+            ${{ secrets.DOCKER_USERNAME }}/frontend-react:${{ steps.version.outputs.VERSION }}
