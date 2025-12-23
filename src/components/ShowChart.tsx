@@ -99,8 +99,8 @@ function ShowChart({ nodeId, unit, setDirty }: { nodeId: number, unit: string, s
   const handleDownload = async () => {
     // encodeURIComponent per i parametri speciali
     const encodedUnit = encodeURIComponent(unit);
-    const encodedFrom = from ? encodeURIComponent(from) : '';
-    const encodedTo = to ? encodeURIComponent(to) : '';
+    const encodedFrom = from ? encodeURIComponent(new Date(from).toISOString()) : '';
+    const encodedTo = to ? encodeURIComponent(new Date(to).toISOString()) : '';
 
     const blob = await downloadMeasures(nodeId, encodedUnit, encodedFrom, encodedTo);
     const url = window.URL.createObjectURL(blob);
