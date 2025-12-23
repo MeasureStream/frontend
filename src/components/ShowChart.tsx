@@ -77,7 +77,7 @@ function ShowChart({ nodeId, unit, setDirty }: { nodeId: number, unit: string, s
   const { xsrfToken } = useAuth()
 
   function getTypeFromUnit(unit: string): string {
-    return unitToTypeMap[unit] || "Unknown";
+    return unitToTypeMap[unit] || unit;
   }
 
 
