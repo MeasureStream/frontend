@@ -44,7 +44,7 @@ jobs:
             ${{ secrets.DOCKER_USERNAME }}/frontend-react:latest
             ${{ secrets.DOCKER_USERNAME }}/frontend-react:${{ steps.version.outputs.VERSION }}
 
-            # --- Build e push DEV ---
+      # Build e push DEV
       - name: Build and push DEV Docker image
         uses: docker/build-push-action@v5
         with:
