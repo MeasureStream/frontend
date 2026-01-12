@@ -54,6 +54,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          build-args: |
+            VITE_API_URL=https://dev.christiandellisanti.uk
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/frontend-react:latest-dev
             ${{ secrets.DOCKER_USERNAME }}/frontend-react:${{ steps.version.outputs.VERSION }}-dev
