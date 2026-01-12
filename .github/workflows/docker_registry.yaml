@@ -43,3 +43,17 @@ jobs:
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/frontend-react:latest
             ${{ secrets.DOCKER_USERNAME }}/frontend-react:${{ steps.version.outputs.VERSION }}
+
+            # --- Build e push DEV ---
+      - name: Build and push DEV Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: DockerfileFrontendDEV
+          push: true
+          platforms: linux/amd64,linux/arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/frontend-react:latest-dev
+            ${{ secrets.DOCKER_USERNAME }}/frontend-react:${{ steps.version.outputs.VERSION }}-dev
