@@ -2,7 +2,7 @@ name: Build & Push Frontend Docker Image
 
 on:
   push:
-    branches: ["main"]
+    branches: ["mario"]
 
 jobs:
   build:
@@ -30,19 +30,6 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Build e push multi-arch
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: DockerfileFrontendNew
-          push: true
-          platforms: linux/amd64,linux/arm64
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          tags: |
-            ${{ secrets.DOCKER_USERNAME }}/frontend-react:latest
-            ${{ secrets.DOCKER_USERNAME }}/frontend-react:${{ steps.version.outputs.VERSION }}
 
       # Build e push DEV
       - name: Build and push DEV Docker image
@@ -57,5 +44,5 @@ jobs:
           build-args: |
             VITE_API_URL=https://dev.christiandellisanti.uk
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/frontend-react:latest-dev
-            ${{ secrets.DOCKER_USERNAME }}/frontend-react:${{ steps.version.outputs.VERSION }}-dev
+            ${{ secrets.DOCKER_USERNAME }}/frontend-react:latest-dev-mario
+            ${{ secrets.DOCKER_USERNAME }}/frontend-react:${{ steps.version.outputs.VERSION }}-dev-mario
