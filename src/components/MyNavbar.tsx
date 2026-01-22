@@ -23,7 +23,7 @@ function MyNavbar( {me} : NavbarProps ) {
                             me.name ?
                                 <>
                                     <Nav.Link  as = {Link} to="/measures" >Measures</Nav.Link>
-                                    <Nav.Link  as = {Link} to="/dcc" >DCC_mario</Nav.Link>
+                                    <Nav.Link  as = {Link} to="/dcc" >DCC</Nav.Link>
                                     <Nav.Link  as = {Link} to="/create-node" >Create Node</Nav.Link>
                                     {
                                         role == "ADMIN"?
