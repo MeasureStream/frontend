@@ -13,7 +13,13 @@ import NodeInfoPage from "./pages/NodeModify"
 
 import { useAuth } from "./API/AuthContext";
 import Measures from "./pages/Measures";
-import Dcc from "./pages/Dcc";
+import DccCertificates from "./pages/DccCertificates";
+import DccTemplates from "./pages/DccTemplates";
+import DccMus from "./pages/DccMus";
+import DccDetail from "./pages/DccDetail";
+import DccPublic from "./pages/DccPublic";
+import DccPublicDetail from "./pages/DccPublicDetail";
+import DccValidate from "./pages/DccValidate";
 import CreateNodePage from "./pages/CreateNode";
 import CreateMeasurementUnitPage from "./pages/CreateMeasurementUnitPage";
 import CreateControlUnitPage from "./pages/CreateControlUnitPage";
@@ -133,7 +139,15 @@ function App() {
                           <Route path="/add" element={<AddNode/> } />
                           <Route path="/nodes/:nodeId" element={  <NodeInfoPage  nodes = { nodes} />  } />
                           <Route path="/measures" element={  <Measures/> } />
-                          <Route path="/dcc" element={  <Dcc/> } />
+                          <Route path="/dcc" element={ <DccCertificates /> } />
+                          <Route path="/dcc/certificates" element={ <DccCertificates /> } />
+                          <Route path="/dcc/templates" element={ <DccTemplates /> } />
+                          <Route path="/dcc/mus" element={ <DccMus /> } />
+                          <Route path="/dcc/public-mus" element={ <DccPublic /> } />
+                          <Route path="/dcc/validate" element={ <DccValidate /> } />
+                          <Route path="/dcc/:dccId" element={  <DccDetail/> } />
+                          <Route path="/public/mus" element={ <DccPublic /> } />
+                          <Route path="/public/dcc/:muId" element={ <DccPublicDetail /> } />
                           <Route path="/create-node" element={  <CreateNodePage/> } />
                           <Route path="/create-mu" element={  <CreateMeasurementUnitPage/> } />
                           <Route path="/create-cu" element={  <CreateControlUnitPage/> } />

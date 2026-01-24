@@ -82,6 +82,33 @@ export interface UserDTO {
     surname: string;
 }
 
+export interface DccDTO {
+    id: number;
+    muId?: string;
+    name: string;
+    createdBy: string;
+    createdAt: string;
+    updatedAt: string;
+    status: 'WHITE' | 'GREEN' | 'YELLOW' | 'RED';
+    pdfValid: boolean;
+    xmlValid: boolean;
+    pdfUrl?: string;
+    xmlUrl?: string;
+    dccJson: string;
+    publishedAt?: string;
+}
+
+export interface DccCreateRequest {
+    muId?: string;
+    name: string;
+    dccJson?: string;
+}
+
+export interface DccUpdateRequest {
+    name: string;
+    dccJson?: string;
+}
+
 export interface CalibratorDTO {
     networkId: number;
     networkIdMu: number;
