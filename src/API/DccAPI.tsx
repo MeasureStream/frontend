@@ -1,4 +1,4 @@
-import { DccCreateRequest, DccDTO, DccUpdateRequest, MeasurementUnitDTO } from "./interfaces";
+import { DccCreateRequest, DccDTO, DccUpdateRequest, MeasurementUnitDTO, DccValidationResultDTO } from "./interfaces";
 
 const BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8080';
 const API_URL = `${BASE_URL}/api/dcc`;
@@ -67,9 +67,9 @@ export async function updateDcc(xsrfToken: string, id: number, request: DccUpdat
     return (await response.json()) as DccDTO;
 }
 
-export async function validateDcc(xsrfToken: string, id: number, file: File, fileType: 'PDF' | 'XML') {
+export async function validateDcc(xsrfToken: string, id: number, fileType: 'PDF' | 'XML', file?: File) {
     const formData = new FormData();
-    formData.append('file', file);
+    if (file) formData.append('file', file);
     formData.append('fileType', fileType);
 
     const response = await fetch(`${API_URL}/${id}/validate`, {
@@ -171,4 +171,62 @@ export async function getPublicDcc(muId: number) {
         throw new Error("Error getting public DCC");
 
     return (await response.json()) as DccDTO;
+}
+
+export async function externalValidateXml(xsrfToken: string, file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(`${API_URL}/external/validate-xml`, {
+        method: 'POST',
+        headers: {
+            'X-XSRF-TOKEN': xsrfToken,
+        },
+        body: formData
+    });
+
+    if (!response.ok)
+        throw new Error("Error validating external XML");
+
+    return (await response.json()) as DccValidationResultDTO;
+}
+
+export async function externalValidatePdf(xsrfToken: string, file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(`${API_URL}/external/validate-pdf`, {
+        method: 'POST',
+        headers: {
+            'X-XSRF-TOKEN': xsrfToken,
+        },
+        body: formData
+    });
+
+    if (!response.ok)
+        throw new Error("Error validating external PDF");
+
+    return (await response.json()) as DccValidationResultDTO;
+}
+
+export async function downloadSignedXml(id: number) {
+    const response = await fetch(`${API_URL}/${id}/download/signed-xml`, {
+        method: 'GET',
+    });
+
+    if (!response.ok)
+        throw new Error("Error downloading signed XML");
+
+    return await response.blob();
+}
+
+export async function downloadSignedPdf(id: number) {
+    const response = await fetch(`${API_URL}/${id}/download/signed-pdf`, {
+        method: 'GET',
+    });
+
+    if (!response.ok)
+        throw new Error("Error downloading signed PDF");
+
+    return await response.blob();
 }

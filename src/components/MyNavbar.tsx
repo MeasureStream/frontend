@@ -24,7 +24,7 @@ function MyNavbar({ me }: NavbarProps) {
                                     <>
                                         <Nav.Link as={Link} to="/measures" >Measures</Nav.Link>
                                         <Nav.Link as={Link} to="/dcc/certificates" >DCC</Nav.Link>
-                                        <Nav.Link as={Link} to="/public/mus" >Public Certificates</Nav.Link>
+                                        {/* <Nav.Link as={Link} to="/public/mus" >Public Certificates</Nav.Link> */}
                                         <Nav.Link as={Link} to="/create-node" >Create Node</Nav.Link>
                                         {
                                             role == "ADMIN" ?

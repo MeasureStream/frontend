@@ -132,7 +132,7 @@ function DccActions({ dcc, setDirty }: { dcc: DccDTO, setDirty: (dirty: boolean)
 
     const handleUpload = async (file: File) => {
         try {
-            await validateDcc(xsrfToken || '', dcc.id, file, uploadType);
+            await validateDcc(xsrfToken || '', dcc.id, uploadType, file);
             alert(`${uploadType} uploaded and validated!`);
             setShowUploadModal(false);
             setDirty(true);

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import { Container, Card, Row, Col, Button, Badge, ListGroup } from "react-bootstrap";
 import { DccDTO } from "../API/interfaces";
-import { getPublicDcc } from "../API/DccAPI";
+import { getPublicDcc, downloadSignedPdf, downloadSignedXml } from "../API/DccAPI";
 
 const BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8080';
 
@@ -31,8 +31,25 @@ function DccPublicDetail() {
     if (loading) return <Container className="mt-4"><h3>Loading...</h3></Container>;
     if (!dcc) return <Container className="mt-4"><h3>Published certificate not found for this MU</h3></Container>;
 
-    const downloadUrl = (type: 'PDF' | 'XML') => 
-        `${BASE_URL}/api/dcc/${dcc.id}/download?fileType=${type}`;
+    const handleDownload = async (type: 'PDF' | 'XML') => {
+        try {
+            const blob = type === 'PDF' 
+                ? await downloadSignedPdf(dcc.id) 
+                : await downloadSignedXml(dcc.id);
+            
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `dcc-${dcc.id}-signed.${type.toLowerCase()}`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (error) {
+            console.error(`Error downloading signed ${type}:`, error);
+            alert(`Failed to download signed ${type}.`);
+        }
+    };
 
     return (
         <Container className="mt-4">
@@ -75,7 +92,7 @@ function DccPublicDetail() {
                             <Button 
                                 variant="primary" 
                                 size="lg"
-                                onClick={() => window.open(downloadUrl('PDF'), '_blank')}
+                                onClick={() => handleDownload('PDF')}
                                 disabled={!dcc.pdfValid}
                             >
                                 Download PDF
@@ -83,7 +100,7 @@ function DccPublicDetail() {
                             <Button 
                                 variant="outline-primary" 
                                 size="lg"
-                                onClick={() => window.open(downloadUrl('XML'), '_blank')}
+                                onClick={() => handleDownload('XML')}
                                 disabled={!dcc.xmlValid}
                             >
                                 Download XML

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { DccDTO, DccCreateRequest } from "../API/interfaces";
-import { getDccs, createDcc, validateDcc, publishDcc, deleteDcc, updateDccJson } from "../API/DccAPI";
+import { getDccs, createDcc, validateDcc, publishDcc, deleteDcc, updateDccJson, downloadSignedPdf, downloadSignedXml } from "../API/DccAPI";
 import Table from 'react-bootstrap/Table';
 import { Button, Col, Container, Form, Modal, Row, Badge, Alert } from "react-bootstrap";
 import { useAuth } from "../API/AuthContext";
@@ -150,7 +150,7 @@ function DccActions({ dcc, setDirty }: { dcc: DccDTO, setDirty: (dirty: boolean)
 
     const handleUpload = async (file: File) => {
         try {
-            await validateDcc(xsrfToken || '', dcc.id, file, uploadType);
+            await validateDcc(xsrfToken || '', dcc.id, uploadType, file);
             alert(`${uploadType} uploaded and validated!`);
             setShowUploadModal(false);
             setDirty(true);
@@ -234,7 +234,25 @@ function DccActions({ dcc, setDirty }: { dcc: DccDTO, setDirty: (dirty: boolean)
         }
     };
 
-    const downloadUrl = (type: 'PDF' | 'XML') => `${BASE_URL}/api/dcc/${dcc.id}/download?fileType=${type}`;
+    const handleDownload = async (type: 'PDF' | 'XML') => {
+        try {
+            const blob = type === 'PDF' 
+                ? await downloadSignedPdf(dcc.id) 
+                : await downloadSignedXml(dcc.id);
+            
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `dcc-${dcc.id}-signed.${type.toLowerCase()}`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (error) {
+            console.error(`Error downloading signed ${type}:`, error);
+            alert(`Failed to download signed ${type}.`);
+        }
+    };
 
     return (
         <div className="d-flex gap-2 justify-content-center">
@@ -246,8 +264,8 @@ function DccActions({ dcc, setDirty }: { dcc: DccDTO, setDirty: (dirty: boolean)
             <Button size="sm" variant="success" onClick={handlePublish} disabled={dcc.status === 'GREEN'}>Publish</Button>
             <Button size="sm" variant="danger" onClick={handleDelete}>Delete</Button>
             <div className="btn-group">
-                <Button size="sm" variant="light" onClick={() => window.open(downloadUrl('PDF'), '_blank')}>⬇️ PDF</Button>
-                <Button size="sm" variant="light" onClick={() => window.open(downloadUrl('XML'), '_blank')}>⬇️ XML</Button>
+                <Button size="sm" variant="light" onClick={() => handleDownload('PDF')}>⬇️ PDF</Button>
+                <Button size="sm" variant="light" onClick={() => handleDownload('XML')}>⬇️ XML</Button>
             </div>
 
             <Modal show={showUploadModal} onHide={() => setShowUploadModal(false)}>

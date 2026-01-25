@@ -1,29 +1,24 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useContext } from "react";
 import { Container, Card, Row, Col, Button, Form, Alert, Badge, ListGroup, Table, InputGroup } from "react-bootstrap";
 import DccNav from "../components/DccNav";
 import { useNavigate } from "react-router";
-import { DccDTO } from "../API/interfaces";
+import { DccDTO, DccValidationResultDTO } from "../API/interfaces";
 import { FiTrash2 } from "react-icons/fi";
+import { useAuth } from "../API/AuthContext";
+import { externalValidatePdf, externalValidateXml } from "../API/DccAPI";
 
 function DccValidate() {
     const navigate = useNavigate();
+    const { xsrfToken } = useAuth();
     const [xmlFile, setXmlFile] = useState<File | null>(null);
     const [pdfFile, setPdfFile] = useState<File | null>(null);
     const xmlInputRef = useRef<HTMLInputElement>(null);
     const pdfInputRef = useRef<HTMLInputElement>(null);
     const [validating, setValidating] = useState(false);
-    const [xmlResult, setXmlResult] = useState<{
-        isValid: boolean;
-        signatureDetails: any;
-        matchingDccs: DccDTO[];
-    } | null>(null);
-    const [pdfResult, setPdfResult] = useState<{
-        isValid: boolean;
-        signatureDetails: any;
-        matchingDccs: DccDTO[];
-    } | null>(null);
+    const [xmlResult, setXmlResult] = useState<DccValidationResultDTO | null>(null);
+    const [pdfResult, setPdfResult] = useState<DccValidationResultDTO | null>(null);
 
-    const handleValidate = () => {
+    const handleValidate = async () => {
         if (!xmlFile && !pdfFile) {
             alert("Please select at least one file to validate.");
             return;
@@ -33,63 +28,22 @@ function DccValidate() {
         setXmlResult(null);
         setPdfResult(null);
 
-        // Mocking the validation process
-        setTimeout(() => {
+        try {
             if (xmlFile) {
-                setXmlResult({
-                    isValid: true,
-                    signatureDetails: {
-                        algorithm: "SHA256withRSA",
-                        signer: "Measure Stream CA",
-                        publicKeyMatch: true,
-                        timestamp: new Date().toISOString(),
-                        hash: "xml_e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-                    },
-                    matchingDccs: [
-                        {
-                            id: 1,
-                            name: "Mock DCC Certificate 1 (XML Match)",
-                            muId: "MU-101",
-                            status: "GREEN" as const,
-                            createdBy: "system",
-                            createdAt: new Date().toISOString(),
-                            updatedAt: new Date().toISOString(),
-                            pdfValid: true,
-                            xmlValid: true,
-                            dccJson: "{}"
-                        }
-                    ]
-                });
+                const result = await externalValidateXml(xsrfToken || '', xmlFile);
+                setXmlResult(result);
             }
 
             if (pdfFile) {
-                setPdfResult({
-                    isValid: true,
-                    signatureDetails: {
-                        algorithm: "SHA256withRSA",
-                        signer: "Measure Stream CA",
-                        publicKeyMatch: true,
-                        timestamp: new Date().toISOString(),
-                        hash: "pdf_7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069"
-                    },
-                    matchingDccs: [
-                        {
-                            id: 5,
-                            name: "Standard Calibration Template (PDF Match)",
-                            muId: "MU-202",
-                            status: "YELLOW" as const,
-                            createdBy: "admin",
-                            createdAt: new Date().toISOString(),
-                            updatedAt: new Date().toISOString(),
-                            pdfValid: true,
-                            xmlValid: true,
-                            dccJson: "{}"
-                        }
-                    ]
-                });
+                const result = await externalValidatePdf(xsrfToken || '', pdfFile);
+                setPdfResult(result);
             }
+        } catch (error) {
+            console.error("Validation error:", error);
+            alert("An error occurred during validation.");
+        } finally {
             setValidating(false);
-        }, 1500);
+        }
     };
 
     const clearFile = (type: 'xml' | 'pdf') => {
@@ -104,17 +58,17 @@ function DccValidate() {
         }
     };
 
-    const renderValidationSection = (title: string, result: any) => (
+    const renderValidationSection = (title: string, result: DccValidationResultDTO) => (
         <div className="fade-in mb-5">
             <h5 className="mb-3 text-uppercase fw-bold border-bottom pb-2">{title}</h5>
             <Row>
                 <Col md={12} className="mb-4">
-                    <Card className={`border-0 shadow-sm ${result.isValid ? 'border-start border-success border-5' : 'border-start border-danger border-5'}`}>
+                    <Card className={`border-0 shadow-sm ${result.valid ? 'border-start border-success border-5' : 'border-start border-danger border-5'}`}>
                         <Card.Header className="bg-white">
                             <div className="d-flex justify-content-between align-items-center">
                                 <h5 className="mb-0">Validation Result</h5>
-                                <Badge bg={result.isValid ? "success" : "danger"} size="lg">
-                                    {result.isValid ? "VALID SIGNATURE" : "INVALID SIGNATURE"}
+                                <Badge bg={result.valid ? "success" : "danger"}>
+                                    {result.valid ? "VALID SIGNATURE" : "INVALID SIGNATURE"}
                                 </Badge>
                             </div>
                         </Card.Header>
@@ -125,11 +79,11 @@ function DccValidate() {
                                     <ListGroup variant="flush">
                                         <ListGroup.Item className="d-flex justify-content-between px-0">
                                             <span>Algorithm:</span>
-                                            <span className="fw-bold">{result.signatureDetails.algorithm}</span>
+                                            <span className="fw-bold text-break">{result.signatureDetails.algorithm}</span>
                                         </ListGroup.Item>
-                                        <ListGroup.Item className="d-flex justify-content-between px-0">
-                                            <span>Signer:</span>
-                                            <span className="fw-bold">{result.signatureDetails.signer}</span>
+                                        <ListGroup.Item className="px-0">
+                                            <div>Signer:</div>
+                                            <span className="fw-bold text-break">{result.signatureDetails.signer}</span>
                                         </ListGroup.Item>
                                         <ListGroup.Item className="d-flex justify-content-between px-0">
                                             <span>Public Key Match:</span>
@@ -146,9 +100,13 @@ function DccValidate() {
                                             <div>Hash (SHA-256):</div>
                                             <code className="text-break">{result.signatureDetails.hash}</code>
                                         </ListGroup.Item>
+                                        <ListGroup.Item className="px-0">
+                                            <div>Public Key Hash:</div>
+                                            <code className="text-break">{result.signatureDetails.publicKeyHash}</code>
+                                        </ListGroup.Item>
                                         <ListGroup.Item className="d-flex justify-content-between px-0">
                                             <span>Timestamp:</span>
-                                            <span>{new Date(result.signatureDetails.timestamp).toLocaleString()}</span>
+                                            <span>{result.signatureDetails.timestamp}</span>
                                         </ListGroup.Item>
                                     </ListGroup>
                                 </Col>

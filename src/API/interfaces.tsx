@@ -125,3 +125,18 @@ export interface CalibrationUnitDTO {
     calibratorId?: number | null;
 }
 
+export interface DccValidationResultDTO {
+    valid: boolean;
+    signatureDetails: SignatureDetailsDTO;
+    matchingDccs: DccDTO[];
+}
+
+export interface SignatureDetailsDTO {
+    algorithm: string;
+    signer: string;
+    publicKeyMatch: boolean;
+    timestamp: string;
+    hash: string;
+    publicKeyHash: string;
+}
+
