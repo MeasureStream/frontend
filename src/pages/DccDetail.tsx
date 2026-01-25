@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import { Container, Card, Row, Col, Button, Badge, ListGroup, Spinner } from "react-bootstrap";
 import { DccDTO } from "../API/interfaces";
-import { getDcc, validateDcc, downloadSignedPdf, downloadSignedXml } from "../API/DccAPI";
+import { getDcc, validateDcc, downloadSignedPdf, downloadSignedXml, publishDcc, unpublishDcc } from "../API/DccAPI";
 import { useAuth } from "../API/AuthContext";
 
 function DccDetail() {
@@ -66,6 +66,32 @@ function DccDetail() {
         }
     };
 
+    const handlePublish = async () => {
+        if (!dcc) return;
+        if (!window.confirm('Are you sure you want to publish this DCC?')) return;
+        try {
+            const updatedDcc = await publishDcc(xsrfToken || '', dcc.id);
+            setDcc(updatedDcc);
+            alert('DCC published!');
+        } catch (error) {
+            console.error('Publish error:', error);
+            alert('Publish failed');
+        }
+    };
+
+    const handleUnpublish = async () => {
+        if (!dcc) return;
+        if (!window.confirm('Are you sure you want to unpublish this DCC?')) return;
+        try {
+            const updatedDcc = await unpublishDcc(xsrfToken || '', dcc.id);
+            setDcc(updatedDcc);
+            alert('DCC unpublished!');
+        } catch (error) {
+            console.error('Unpublish error:', error);
+            alert('Unpublish failed');
+        }
+    };
+
     if (loading) return <Container className="mt-4"><h3>Loading...</h3></Container>;
     if (!dcc) return <Container className="mt-4"><h3>DCC not found</h3></Container>;
 
@@ -80,7 +106,14 @@ function DccDetail() {
             <Card>
                 <Card.Header as="h4" className="d-flex justify-content-between align-items-center">
                     DCC Details: {dcc.name}
-                    <Badge bg={statusVariant}>{dcc.status}</Badge>
+                    <div className="d-flex gap-2">
+                        {dcc.publishedAt ? (
+                            <Button size="sm" variant="warning" onClick={handleUnpublish}>Unpublish</Button>
+                        ) : (
+                            <Button size="sm" variant="success" onClick={handlePublish} disabled={dcc.status === 'RED'}>Publish</Button>
+                        )}
+                        <Badge bg={statusVariant}>{dcc.status}</Badge>
+                    </div>
                 </Card.Header>
                 <Card.Body>
                     <Row className="mb-3">

@@ -117,6 +117,21 @@ export async function publishDcc(xsrfToken: string, id: number) {
     return (await response.json()) as DccDTO;
 }
 
+export async function unpublishDcc(xsrfToken: string, id: number) {
+    const response = await fetch(`${API_URL}/${id}/unpublish`, {
+        method: 'POST',
+        headers: {
+            'X-XSRF-TOKEN': xsrfToken,
+            'Content-Type': 'application/json'
+        },
+    });
+
+    if (!response.ok)
+        throw new Error("Error unpublishing DCC");
+
+    return (await response.json()) as DccDTO;
+}
+
 export async function deleteDcc(xsrfToken: string, id: number) {
     const response = await fetch(`${API_URL}/${id}`, {
         method: 'DELETE',

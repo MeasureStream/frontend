@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { DccDTO, DccCreateRequest } from "../API/interfaces";
-import { getDccs, createDcc, validateDcc, publishDcc, deleteDcc, updateDccJson, downloadSignedPdf, downloadSignedXml } from "../API/DccAPI";
+import { getDccs, createDcc, validateDcc, publishDcc, unpublishDcc, deleteDcc, updateDccJson, downloadSignedPdf, downloadSignedXml } from "../API/DccAPI";
 import Table from 'react-bootstrap/Table';
 import { Button, Col, Container, Form, Modal, Row, Badge, Alert } from "react-bootstrap";
 import { useAuth } from "../API/AuthContext";
@@ -222,6 +222,18 @@ function DccActions({ dcc, setDirty }: { dcc: DccDTO, setDirty: (dirty: boolean)
         }
     };
 
+    const handleUnpublish = async () => {
+        if (!window.confirm('Are you sure you want to unpublish this DCC?')) return;
+        try {
+            await unpublishDcc(xsrfToken || '', dcc.id);
+            alert('DCC unpublished!');
+            setDirty(true);
+        } catch (error) {
+            console.error('Unpublish error:', error);
+            alert('Unpublish failed');
+        }
+    };
+
     const handleDelete = async () => {
         if (!window.confirm('Are you sure you want to delete this DCC?')) return;
         try {
@@ -261,7 +273,11 @@ function DccActions({ dcc, setDirty }: { dcc: DccDTO, setDirty: (dirty: boolean)
             <Button size="sm" variant="outline-secondary" onClick={() => setShowJsonModal(true)}>Update JSON</Button>
             <Button size="sm" variant="outline-warning" onClick={openImportModal}>Import Admin Data</Button>
             <Button size="sm" variant="info" onClick={() => window.open(`http://localhost:10000/gemimegdcc/dcc/create?dccId=${dcc.id}`, '_blank')}>GEMIMEG</Button>
-            <Button size="sm" variant="success" onClick={handlePublish} disabled={dcc.status === 'GREEN'}>Publish</Button>
+            {dcc.publishedAt ? (
+                <Button size="sm" variant="warning" onClick={handleUnpublish}>Unpublish</Button>
+            ) : (
+                <Button size="sm" variant="success" onClick={handlePublish} disabled={dcc.status === 'RED'}>Publish</Button>
+            )}
             <Button size="sm" variant="danger" onClick={handleDelete}>Delete</Button>
             <div className="btn-group">
                 <Button size="sm" variant="light" onClick={() => handleDownload('PDF')}>⬇️ PDF</Button>
