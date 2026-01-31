@@ -1,24 +1,60 @@
-# Stage 1: build React app
+# Multi-stage build for React/Vite application
+
+# Stage 1: Build the React application
 FROM node:20-alpine AS builder
+
 WORKDIR /app
-COPY package.json ./
-COPY package-lock.json ./
+
+# Copy package files
+COPY package.json package-lock.json ./
+
+# Install dependencies
 RUN npm ci
+
+# Copy source code
 COPY . .
 
-# Imposta la variabile d'ambiente per Vite (se non già impostata)
+# Build the application with environment variables
 ARG VITE_API_URL
-#ENV VITE_API_URL=${VITE_API_URL:-http://localhost:8080}
-ENV VITE_API_URL=https://www.christiandellisanti.uk
+ARG VITE_BACKEND_URL
+ARG VITE_GATEWAY_URL
+ARG VITE_DCC_SERVICE_URL
+ARG VITE_SENSOR_MANAGER_URL
 
+ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_BACKEND_URL=$VITE_BACKEND_URL
+ENV VITE_GATEWAY_URL=$VITE_GATEWAY_URL
+ENV VITE_DCC_SERVICE_URL=$VITE_DCC_SERVICE_URL
+ENV VITE_SENSOR_MANAGER_URL=$VITE_SENSOR_MANAGER_URL
 
 RUN npm run build
 
-# Stage 2: serve with nginx
+# Stage 2: Serve the application with nginx
 FROM nginx:alpine
+
+# Environment Variables
+ENV NGINX_PORT=80
+ENV BACKEND_HOST=gemimeg-backend
+ENV BACKEND_PORT=10001
+ENV GATEWAY_HOST=gateway-iam
+ENV GATEWAY_PORT=8080
+ENV DCC_SERVICE_HOST=dcc-service
+ENV DCC_SERVICE_PORT=8080
+ENV SENSOR_MANAGER_HOST=sensor-manager
+ENV SENSOR_MANAGER_PORT=8080
+
+# Copy built application from build stage
 COPY --from=builder /app/dist /usr/share/nginx/html/ui
 
-# Copia il tuo file di configurazione Nginx
+# Copy nginx configuration
 COPY default.conf /etc/nginx/conf.d/default.conf
 
-EXPOSE 80
+# Expose port (configurable)
+EXPOSE ${NGINX_PORT}
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:${NGINX_PORT} || exit 1
+
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]

@@ -129,9 +129,7 @@ export interface DccValidationResultDTO {
     valid: boolean;
     signatureDetails: SignatureDetailsDTO;
     matchingDccs: DccDTO[];
-}
-
-export interface SignatureDetailsDTO {
+}export interface SignatureDetailsDTO {
     algorithm: string;
     signer: string;
     publicKeyMatch: boolean;
@@ -139,4 +137,3 @@ export interface SignatureDetailsDTO {
     hash: string;
     publicKeyHash: string;
 }
-

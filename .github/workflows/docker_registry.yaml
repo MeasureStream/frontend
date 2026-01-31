@@ -43,6 +43,10 @@ jobs:
           cache-to: type=gha,mode=max
           build-args: |
             VITE_API_URL=https://dev.christiandellisanti.uk
+            VITE_BACKEND_URL=http://gemimeg-backend:10001
+            VITE_GATEWAY_URL=http://gateway-iam:8080
+            VITE_DCC_SERVICE_URL=http://dcc-service:8080
+            VITE_SENSOR_MANAGER_URL=http://sensor-manager:8080
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/frontend-react:latest-dev-mario
             ${{ secrets.DOCKER_USERNAME }}/frontend-react:${{ steps.version.outputs.VERSION }}-dev-mario
