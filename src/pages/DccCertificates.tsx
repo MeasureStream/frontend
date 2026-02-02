@@ -272,7 +272,7 @@ function DccActions({ dcc, setDirty }: { dcc: DccDTO, setDirty: (dirty: boolean)
             <Button size="sm" variant="outline-info" onClick={() => { setUploadType('XML'); setShowUploadModal(true); }}>Upload XML</Button>
             <Button size="sm" variant="outline-secondary" onClick={() => setShowJsonModal(true)}>Update JSON</Button>
             <Button size="sm" variant="outline-warning" onClick={openImportModal}>Import Admin Data</Button>
-            <Button size="sm" variant="info" onClick={() => window.open(`http://localhost:10000/gemimegdcc/dcc/create?dccId=${dcc.id}`, '_blank')}>GEMIMEG</Button>
+            <Button size="sm" variant="info" onClick={() => window.open(`https://dev.christiandellisanti.uk/gemimegdcc/dcc/create?dccId=${dcc.id}`, '_blank')}>GEMIMEG</Button>
             {dcc.publishedAt ? (
                 <Button size="sm" variant="warning" onClick={handleUnpublish}>Unpublish</Button>
             ) : (

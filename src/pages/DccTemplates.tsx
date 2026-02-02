@@ -173,7 +173,7 @@ function DccActions({ dcc, setDirty }: { dcc: DccDTO, setDirty: (dirty: boolean)
             <Button size="sm" variant="outline-primary" onClick={() => { setUploadType('PDF'); setShowUploadModal(true); }}>Upload PDF</Button>
             <Button size="sm" variant="outline-info" onClick={() => { setUploadType('XML'); setShowUploadModal(true); }}>Upload XML</Button>
             <Button size="sm" variant="outline-secondary" onClick={() => setShowJsonModal(true)}>Update JSON</Button>
-            <Button size="sm" variant="info" onClick={() => window.open(`http://localhost:10000/gemimegdcc/dcc/create?dccId=${dcc.id}`, '_blank')}>GEMIMEG</Button>
+            <Button size="sm" variant="info" onClick={() => window.open(`https://dev.christiandellisanti.uk/gemimegdcc/dcc/create?dccId=${dcc.id}`, '_blank')}>GEMIMEG</Button>
             <Button size="sm" variant="danger" onClick={handleDelete}>Delete</Button>
             <div className="btn-group">
                 <Button size="sm" variant="light" onClick={() => window.open(downloadUrl('PDF'), '_blank')}>⬇️ PDF</Button>
