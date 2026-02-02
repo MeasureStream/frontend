@@ -124,7 +124,7 @@ function App() {
       <>
 
 
-              <Router basename={"/uidev"} >
+              <Router basename={"/ui"} >
                   <MyNavbar   me={me} />
                   <Container fluid>
                       <Routes>
