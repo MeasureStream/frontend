@@ -70,10 +70,9 @@ export async function updateDcc(xsrfToken: string, id: number, request: DccUpdat
 export async function validateDcc(xsrfToken: string, id: number, fileType: 'PDF' | 'XML', file?: File) {
     const formData = new FormData();
     if (file) formData.append('file', file);
-    // Move fileType to query parameter for better compatibility with proxies/gateways
     formData.append('fileType', fileType);
 
-    const response = await fetch(`${API_URL}/${id}/validate?fileType=${fileType}`, {
+    const response = await fetch(`${API_URL}/${id}/validate`, {
         method: 'POST',
         headers: {
             'X-XSRF-TOKEN': xsrfToken,
