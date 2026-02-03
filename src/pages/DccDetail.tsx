@@ -68,11 +68,11 @@ function DccDetail() {
 
     const handlePublish = async () => {
         if (!dcc) return;
-        if (!window.confirm('Are you sure you want to publish this DCC?')) return;
+        if (!window.confirm('Are you sure you want to make this DCC effective?')) return;
         try {
             const updatedDcc = await publishDcc(xsrfToken || '', dcc.id);
             setDcc(updatedDcc);
-            alert('DCC published!');
+            alert('DCC made effective!');
         } catch (error) {
             console.error('Publish error:', error);
             alert('Publish failed');
@@ -81,14 +81,14 @@ function DccDetail() {
 
     const handleUnpublish = async () => {
         if (!dcc) return;
-        if (!window.confirm('Are you sure you want to unpublish this DCC?')) return;
+        if (!window.confirm('Are you sure you want to make this DCC ineffective?')) return;
         try {
             const updatedDcc = await unpublishDcc(xsrfToken || '', dcc.id);
             setDcc(updatedDcc);
-            alert('DCC unpublished!');
+            alert('DCC made ineffective!');
         } catch (error) {
-            console.error('Unpublish error:', error);
-            alert('Unpublish failed');
+            console.error('Make ineffective error:', error);
+            alert('Make ineffective failed');
         }
     };
 
@@ -108,9 +108,9 @@ function DccDetail() {
                     DCC Details: {dcc.name}
                     <div className="d-flex gap-2">
                         {dcc.publishedAt ? (
-                            <Button size="sm" variant="warning" onClick={handleUnpublish}>Unpublish</Button>
+                            <Button size="sm" variant="warning" onClick={handleUnpublish}>Make ineffective</Button>
                         ) : (
-                            <Button size="sm" variant="success" onClick={handlePublish} disabled={dcc.status === 'RED'}>Publish</Button>
+                            <Button size="sm" variant="success" onClick={handlePublish} disabled={dcc.status === 'RED'}>Make effective</Button>
                         )}
                         <Badge bg={statusVariant}>{dcc.status}</Badge>
                     </div>
@@ -142,7 +142,7 @@ function DccDetail() {
                                     <strong>Updated At:</strong> {new Date(dcc.updatedAt).toLocaleString()}
                                 </ListGroup.Item>
                                 <ListGroup.Item>
-                                    <strong>Published At:</strong> {dcc.publishedAt ? new Date(dcc.publishedAt).toLocaleString() : <span className="text-muted">Not published</span>}
+                                    <strong>Effective From:</strong> {dcc.publishedAt ? new Date(dcc.publishedAt).toLocaleString() : <span className="text-muted">Not effective</span>}
                                 </ListGroup.Item>
                             </ListGroup>
                         </Col>

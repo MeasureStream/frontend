@@ -22,11 +22,6 @@ function DccNav() {
                 </Nav.Link>
             </Nav.Item>
             <Nav.Item>
-                <Nav.Link as={Link} to="/dcc/public-mus" eventKey="/dcc/public-mus">
-                    Public DCC MUs
-                </Nav.Link>
-            </Nav.Item>
-            <Nav.Item>
                 <Nav.Link as={Link} to="/dcc/validate" eventKey="/dcc/validate">
                     Validate DCC
                 </Nav.Link>

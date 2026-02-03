@@ -1,8 +1,8 @@
 import {useEffect, useState} from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import {ControlUnitDTO, CuGw,  MeasurementUnitDTO,  NodeDTO} from "../API/interfaces";
+import {ControlUnitDTO, CuGw, DccDTO, MeasurementUnitDTO, NodeDTO} from "../API/interfaces";
 import {useParams} from "react-router";
-import {Button, Card, Col, Container, ListGroup, Row, Spinner} from "react-bootstrap";
+import {Badge, Button, Card, Col, Container, ListGroup, Row, Spinner, Table} from "react-bootstrap";
 import {deleteNode, getNodesId, getNodeUnits} from "../API/NodeAPI";
 import { getMuId} from "../API/MeasurementUnitAPI";
 import {Accordion} from "react-bootstrap";
@@ -21,6 +21,7 @@ import ShowChart from "../components/ShowChart";
 import {AddCuSettings} from "../components/CuSettingModal";
 import {CuAreAlive, getMUStartId, getMUStopId} from "../API/SettingsAPI";
 import {AddMuSettings} from "../components/AddMuSettings";
+import { getDccs, publishDcc, unpublishDcc, downloadSignedPdf, downloadSignedXml } from "../API/DccAPI";
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -38,6 +39,7 @@ const NodeInfoPage = ({nodes} : Props) => {
     const [node, setNode] = useState<NodeDTO | null>(null);
     const [measurementUnits, setMeasurementUnits] = useState<MeasurementUnitDTO[]>([]);
     const [controlUnits, setControlUnits] = useState<ControlUnitDTO[]>([]);
+    const [nodeDccs, setNodeDccs] = useState<DccDTO[]>([]);
     const [cugw, setCugw] = useState<CuGw[]>([])
     //const [cusettings, setCusettings] = useState<CuSettingDTO>()
     const [nodeUnits, setNodeUnits] = useState<string[]>([]);
@@ -75,6 +77,15 @@ const NodeInfoPage = ({nodes} : Props) => {
 
                 const mu = await getMuId( Number(nodeId) )
                 setMeasurementUnits(mu)
+
+                try {
+                    const allDccs = await getDccs(undefined, false);
+                    const muIds = mu.map(m => m.id.toString());
+                    const filteredDccs = allDccs.filter(d => d.muId && muIds.includes(d.muId));
+                    setNodeDccs(filteredDccs);
+                } catch (error) {
+                    console.error("Error fetching node DCCs:", error);
+                }
 
                 const cu = await getCuId((Number(nodeId)))
                 setControlUnits(cu)
@@ -143,6 +154,50 @@ const NodeInfoPage = ({nodes} : Props) => {
 
         getMUStopId(networkId)
     }
+
+    const handlePublish = async (dcc: DccDTO) => {
+        if (!window.confirm('Are you sure you want to make this DCC effective?')) return;
+        try {
+            await publishDcc(xsrfToken || '', dcc.id);
+            alert('DCC made effective!');
+            setDirty(true);
+        } catch (error) {
+            console.error('Make effective error:', error);
+            alert('Make effective failed');
+        }
+    };
+
+    const handleUnpublish = async (dcc: DccDTO) => {
+        if (!window.confirm('Are you sure you want to make this DCC ineffective?')) return;
+        try {
+            await unpublishDcc(xsrfToken || '', dcc.id);
+            alert('DCC made ineffective!');
+            setDirty(true);
+        } catch (error) {
+            console.error('Make ineffective error:', error);
+            alert('Make ineffective failed');
+        }
+    };
+
+    const handleDownload = async (dcc: DccDTO, type: 'PDF' | 'XML') => {
+        try {
+            const blob = type === 'PDF' 
+                ? await downloadSignedPdf(dcc.id) 
+                : await downloadSignedXml(dcc.id);
+            
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `dcc-${dcc.id}-signed.${type.toLowerCase()}`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (error) {
+            console.error(`Error downloading signed ${type}:`, error);
+            alert(`Failed to download signed ${type}.`);
+        }
+    };
 
 
     return (
@@ -316,25 +371,55 @@ const NodeInfoPage = ({nodes} : Props) => {
                     }
                     <Card className="mt-4 shadow">
                         <Card.Body>
-                            <h3>DCCs</h3>
-                            <>
-                                        <ListGroup>
-                                            <>
-                                        {measurementUnits
-                                            //.slice() // per evitare mutazioni se measurementUnits viene da uno state
-                                            .sort((a, b) => a.id - b.id)
-                                            .map((mu,index) => (
-
-                                            <div key = {mu.id}>
-                                                <DccMu mu={mu} expiration={"2025-12-31"} setDirty={setDirty}></DccMu>
-
-                                            </div>
-                                        ))}
-                                            </>
-                                        </ListGroup>
-                                    </>
-
-
+                            <h3>DCC Certificates</h3>
+                            <Table responsive striped hover className="text-center mt-3">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>MU ID</th>
+                                        <th>Status</th>
+                                        <th>Calibration Date</th>
+                                        <th>Expiration Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {nodeDccs.length > 0 ? (
+                                        nodeDccs.map((dcc) => (
+                                            <tr key={dcc.id} style={{ cursor: 'pointer' }} onClick={() => navigate(`/dcc/${dcc.id}`)}>
+                                                <td>{dcc.id}</td>
+                                                <td>{dcc.name}</td>
+                                                <td>{dcc.muId ?? '-'}</td>
+                                                <td>
+                                                    <Badge bg={dcc.status === 'GREEN' ? 'success' : dcc.status === 'YELLOW' ? 'warning' : dcc.status === 'RED' ? 'danger' : 'secondary'}>
+                                                        {dcc.status}
+                                                    </Badge>
+                                                </td>
+                                                <td>{dcc.calibrationDate ? new Date(dcc.calibrationDate).toLocaleDateString() : '-'}</td>
+                                                <td>{dcc.expirationDate ? new Date(dcc.expirationDate).toLocaleDateString() : '-'}</td>
+                                                <td onClick={(e) => e.stopPropagation()}>
+                                                    <div className="d-flex gap-2 justify-content-center">
+                                                        {dcc.publishedAt ? (
+                                                            <Button size="sm" variant="warning" onClick={() => handleUnpublish(dcc)}>Make ineffective</Button>
+                                                        ) : (
+                                                            <Button size="sm" variant="success" onClick={() => handlePublish(dcc)} disabled={dcc.status === 'RED'}>Make effective</Button>
+                                                        )}
+                                                        <div className="btn-group">
+                                                            <Button size="sm" variant="light" onClick={() => handleDownload(dcc, 'PDF')}>⬇️ PDF</Button>
+                                                            <Button size="sm" variant="light" onClick={() => handleDownload(dcc, 'XML')}>⬇️ XML</Button>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan={7} className="text-muted">No DCCs found for this node's measurement units.</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </Table>
                         </Card.Body>
                     </Card>
 

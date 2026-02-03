@@ -113,7 +113,7 @@ export async function publishDcc(xsrfToken: string, id: number) {
     });
 
     if (!response.ok)
-        throw new Error("Error publishing DCC");
+        throw new Error("Error making DCC effective");
 
     return (await response.json()) as DccDTO;
 }
@@ -128,7 +128,7 @@ export async function unpublishDcc(xsrfToken: string, id: number) {
     });
 
     if (!response.ok)
-        throw new Error("Error unpublishing DCC");
+        throw new Error("Error making DCC ineffective");
 
     return (await response.json()) as DccDTO;
 }

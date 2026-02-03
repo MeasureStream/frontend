@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { DccDTO, DccCreateRequest } from "../API/interfaces";
-import { getDccs, createDcc, validateDcc, publishDcc, unpublishDcc, deleteDcc, updateDccJson, downloadSignedPdf, downloadSignedXml } from "../API/DccAPI";
+import { DccDTO, DccCreateRequest, MeasurementUnitDTO, DccUpdateRequest } from "../API/interfaces";
+import { getDccs, createDcc, validateDcc, publishDcc, unpublishDcc, deleteDcc, updateDccJson, downloadSignedPdf, downloadSignedXml, getMus, updateDcc } from "../API/DccAPI";
 import Table from 'react-bootstrap/Table';
 import { Button, Col, Container, Form, Modal, Row, Badge, Alert } from "react-bootstrap";
 import { useAuth } from "../API/AuthContext";
@@ -95,7 +95,9 @@ function DccCertificates() {
                         <th>Status</th>
                         <th>Created By</th>
                         <th>Created At</th>
-                        <th>Published At</th>
+                        <th>Calibration Date</th>
+                        <th>Expiration Date</th>
+                        <th>Effective From</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -108,6 +110,8 @@ function DccCertificates() {
                             <td><Badge bg={dcc.status === 'GREEN' ? 'success' : dcc.status === 'YELLOW' ? 'warning' : dcc.status === 'RED' ? 'danger' : 'secondary'}>{dcc.status}</Badge></td>
                             <td>{dcc.createdBy}</td>
                             <td>{new Date(dcc.createdAt).toLocaleString()}</td>
+                            <td>{dcc.calibrationDate ? new Date(dcc.calibrationDate).toLocaleDateString() : '-'}</td>
+                            <td>{dcc.expirationDate ? new Date(dcc.expirationDate).toLocaleDateString() : '-'}</td>
                             <td>{dcc.publishedAt ? new Date(dcc.publishedAt).toLocaleString() : '-'}</td>
                             <td onClick={(e) => e.stopPropagation()}><DccActions dcc={dcc} setDirty={setDirty} /></td>
                         </tr>
@@ -143,10 +147,19 @@ function DccActions({ dcc, setDirty }: { dcc: DccDTO, setDirty: (dirty: boolean)
     const [showUploadModal, setShowUploadModal] = useState(false);
     const [showJsonModal, setShowJsonModal] = useState(false);
     const [showImportModal, setShowImportModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
     const [templates, setTemplates] = useState<DccDTO[]>([]);
+    const [allMus, setAllMus] = useState<MeasurementUnitDTO[]>([]);
     const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
     const [uploadType, setUploadType] = useState<'PDF' | 'XML'>('PDF');
     const [jsonContent, setJsonContent] = useState(dcc.dccJson);
+    const [editFormData, setEditFormData] = useState<DccUpdateRequest>({
+        name: dcc.name,
+        createdBy: dcc.createdBy,
+        muId: dcc.muId,
+        calibrationDate: dcc.calibrationDate ? new Date(dcc.calibrationDate).toISOString().split('T')[0] : '',
+        expirationDate: dcc.expirationDate ? new Date(dcc.expirationDate).toISOString().split('T')[0] : ''
+    });
 
     const handleUpload = async (file: File) => {
         try {
@@ -169,6 +182,42 @@ function DccActions({ dcc, setDirty }: { dcc: DccDTO, setDirty: (dirty: boolean)
         } catch (error) {
             console.error('JSON update error:', error);
             alert('JSON update failed');
+        }
+    };
+
+    const handleEditSubmit = async () => {
+        try {
+            const request: DccUpdateRequest = {
+                ...editFormData,
+                // Ensure dates are sent in a format the backend expects (ISO strings)
+                calibrationDate: editFormData.calibrationDate ? new Date(editFormData.calibrationDate).toISOString() : undefined,
+                expirationDate: editFormData.expirationDate ? new Date(editFormData.expirationDate).toISOString() : undefined
+            };
+            await updateDcc(xsrfToken || '', dcc.id, request);
+            alert('DCC details updated!');
+            setShowEditModal(false);
+            setDirty(true);
+        } catch (error) {
+            console.error('Edit error:', error);
+            alert('Failed to update DCC details');
+        }
+    };
+
+    const openEditModal = async () => {
+        try {
+            const mus = await getMus(true);
+            setAllMus(mus);
+            setEditFormData({
+                name: dcc.name,
+                createdBy: dcc.createdBy,
+                muId: dcc.muId || '',
+                calibrationDate: dcc.calibrationDate ? new Date(dcc.calibrationDate).toISOString().split('T')[0] : '',
+                expirationDate: dcc.expirationDate ? new Date(dcc.expirationDate).toISOString().split('T')[0] : ''
+            });
+            setShowEditModal(true);
+        } catch (error) {
+            console.error('Error opening edit modal:', error);
+            alert('Failed to load data for edit');
         }
     };
 
@@ -211,26 +260,26 @@ function DccActions({ dcc, setDirty }: { dcc: DccDTO, setDirty: (dirty: boolean)
     };
 
     const handlePublish = async () => {
-        if (!window.confirm('Are you sure you want to publish this DCC?')) return;
+        if (!window.confirm('Are you sure you want to make this DCC effective?')) return;
         try {
             await publishDcc(xsrfToken || '', dcc.id);
-            alert('DCC published!');
+            alert('DCC made effective!');
             setDirty(true);
         } catch (error) {
-            console.error('Publish error:', error);
-            alert('Publish failed');
+            console.error('Make effective error:', error);
+            alert('Make effective failed');
         }
     };
 
     const handleUnpublish = async () => {
-        if (!window.confirm('Are you sure you want to unpublish this DCC?')) return;
+        if (!window.confirm('Are you sure you want to make this DCC ineffective?')) return;
         try {
             await unpublishDcc(xsrfToken || '', dcc.id);
-            alert('DCC unpublished!');
+            alert('DCC made ineffective!');
             setDirty(true);
         } catch (error) {
-            console.error('Unpublish error:', error);
-            alert('Unpublish failed');
+            console.error('Make ineffective error:', error);
+            alert('Make ineffective failed');
         }
     };
 
@@ -268,21 +317,76 @@ function DccActions({ dcc, setDirty }: { dcc: DccDTO, setDirty: (dirty: boolean)
 
     return (
         <div className="d-flex gap-2 justify-content-center">
-            <Button size="sm" variant="outline-primary" onClick={() => { setUploadType('PDF'); setShowUploadModal(true); }}>Upload PDF</Button>
-            <Button size="sm" variant="outline-info" onClick={() => { setUploadType('XML'); setShowUploadModal(true); }}>Upload XML</Button>
+            <Button size="sm" variant="outline-primary" onClick={openEditModal}>Edit Details</Button>
             <Button size="sm" variant="outline-secondary" onClick={() => setShowJsonModal(true)}>Update JSON</Button>
             <Button size="sm" variant="outline-warning" onClick={openImportModal}>Import Admin Data</Button>
             <Button size="sm" variant="info" onClick={() => window.open(`https://dev.christiandellisanti.uk/gemimegdcc/dcc/create?dccId=${dcc.id}`, '_blank')}>GEMIMEG</Button>
             {dcc.publishedAt ? (
-                <Button size="sm" variant="warning" onClick={handleUnpublish}>Unpublish</Button>
+                <Button size="sm" variant="warning" onClick={handleUnpublish}>Make ineffective</Button>
             ) : (
-                <Button size="sm" variant="success" onClick={handlePublish} disabled={dcc.status === 'RED'}>Publish</Button>
+                <Button size="sm" variant="success" onClick={handlePublish} disabled={dcc.status === 'RED'}>Make effective</Button>
             )}
             <Button size="sm" variant="danger" onClick={handleDelete}>Delete</Button>
             <div className="btn-group">
                 <Button size="sm" variant="light" onClick={() => handleDownload('PDF')}>⬇️ PDF</Button>
                 <Button size="sm" variant="light" onClick={() => handleDownload('XML')}>⬇️ XML</Button>
             </div>
+
+            <Modal show={showEditModal} onHide={() => setShowEditModal(false)}>
+                <Modal.Header closeButton><Modal.Title>Edit DCC Details</Modal.Title></Modal.Header>
+                <Modal.Body>
+                    <Form>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Name</Form.Label>
+                            <Form.Control 
+                                type="text" 
+                                value={editFormData.name} 
+                                onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })} 
+                            />
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Author (Created By)</Form.Label>
+                            <Form.Control 
+                                type="text" 
+                                value={editFormData.createdBy} 
+                                onChange={(e) => setEditFormData({ ...editFormData, createdBy: e.target.value })} 
+                            />
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Measurement Unit</Form.Label>
+                            <Form.Select 
+                                value={editFormData.muId || ''} 
+                                onChange={(e) => setEditFormData({ ...editFormData, muId: e.target.value })}
+                            >
+                                <option value="">-- Template (None) --</option>
+                                {allMus.map(mu => (
+                                    <option key={mu.id} value={mu.id}>{mu.type} (ID: {mu.id})</option>
+                                ))}
+                            </Form.Select>
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Calibration Date</Form.Label>
+                            <Form.Control 
+                                type="date" 
+                                value={editFormData.calibrationDate} 
+                                onChange={(e) => setEditFormData({ ...editFormData, calibrationDate: e.target.value })} 
+                            />
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Expiration Date</Form.Label>
+                            <Form.Control 
+                                type="date" 
+                                value={editFormData.expirationDate} 
+                                onChange={(e) => setEditFormData({ ...editFormData, expirationDate: e.target.value })} 
+                            />
+                        </Form.Group>
+                    </Form>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowEditModal(false)}>Cancel</Button>
+                    <Button variant="primary" onClick={handleEditSubmit}>Save Changes</Button>
+                </Modal.Footer>
+            </Modal>
 
             <Modal show={showUploadModal} onHide={() => setShowUploadModal(false)}>
                 <Modal.Header closeButton><Modal.Title>Upload {uploadType}</Modal.Title></Modal.Header>

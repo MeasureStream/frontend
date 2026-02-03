@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { DccDTO, DccCreateRequest } from "../API/interfaces";
-import { getDccs, createDcc, validateDcc, publishDcc, deleteDcc, updateDccJson } from "../API/DccAPI";
+import { DccDTO, DccCreateRequest, MeasurementUnitDTO, DccUpdateRequest } from "../API/interfaces";
+import { getDccs, createDcc, validateDcc, publishDcc, deleteDcc, updateDccJson, updateDcc, getMus } from "../API/DccAPI";
 import Table from 'react-bootstrap/Table';
 import { Button, Col, Container, Form, Modal, Row, Badge } from "react-bootstrap";
 import { useAuth } from "../API/AuthContext";
@@ -85,7 +85,9 @@ function DccTemplates() {
                         <th>Status</th>
                         <th>Created By</th>
                         <th>Created At</th>
-                        <th>Published At</th>
+                        <th>Calibration Date</th>
+                        <th>Expiration Date</th>
+                        <th>Effective From</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -97,6 +99,8 @@ function DccTemplates() {
                             <td><Badge bg={dcc.status === 'GREEN' ? 'success' : dcc.status === 'YELLOW' ? 'warning' : dcc.status === 'RED' ? 'danger' : 'secondary'}>{dcc.status}</Badge></td>
                             <td>{dcc.createdBy}</td>
                             <td>{new Date(dcc.createdAt).toLocaleString()}</td>
+                            <td>{dcc.calibrationDate ? new Date(dcc.calibrationDate).toLocaleDateString() : '-'}</td>
+                            <td>{dcc.expirationDate ? new Date(dcc.expirationDate).toLocaleDateString() : '-'}</td>
                             <td>{dcc.publishedAt ? new Date(dcc.publishedAt).toLocaleString() : '-'}</td>
                             <td onClick={(e) => e.stopPropagation()}><DccActions dcc={dcc} setDirty={setDirty} /></td>
                         </tr>
@@ -127,8 +131,17 @@ function DccActions({ dcc, setDirty }: { dcc: DccDTO, setDirty: (dirty: boolean)
     const { xsrfToken } = useAuth();
     const [showUploadModal, setShowUploadModal] = useState(false);
     const [showJsonModal, setShowJsonModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [allMus, setAllMus] = useState<MeasurementUnitDTO[]>([]);
     const [uploadType, setUploadType] = useState<'PDF' | 'XML'>('PDF');
     const [jsonContent, setJsonContent] = useState(dcc.dccJson);
+    const [editFormData, setEditFormData] = useState<DccUpdateRequest>({
+        name: dcc.name,
+        createdBy: dcc.createdBy,
+        muId: dcc.muId,
+        calibrationDate: dcc.calibrationDate ? new Date(dcc.calibrationDate).toISOString().split('T')[0] : '',
+        expirationDate: dcc.expirationDate ? new Date(dcc.expirationDate).toISOString().split('T')[0] : ''
+    });
 
     const handleUpload = async (file: File) => {
         try {
@@ -154,6 +167,41 @@ function DccActions({ dcc, setDirty }: { dcc: DccDTO, setDirty: (dirty: boolean)
         }
     };
 
+    const handleEditSubmit = async () => {
+        try {
+            const request: DccUpdateRequest = {
+                ...editFormData,
+                calibrationDate: editFormData.calibrationDate ? new Date(editFormData.calibrationDate).toISOString() : undefined,
+                expirationDate: editFormData.expirationDate ? new Date(editFormData.expirationDate).toISOString() : undefined
+            };
+            await updateDcc(xsrfToken || '', dcc.id, request);
+            alert('Template details updated!');
+            setShowEditModal(false);
+            setDirty(true);
+        } catch (error) {
+            console.error('Edit error:', error);
+            alert('Failed to update template details');
+        }
+    };
+
+    const openEditModal = async () => {
+        try {
+            const mus = await getMus(true);
+            setAllMus(mus);
+            setEditFormData({
+                name: dcc.name,
+                createdBy: dcc.createdBy,
+                muId: dcc.muId || '',
+                calibrationDate: dcc.calibrationDate ? new Date(dcc.calibrationDate).toISOString().split('T')[0] : '',
+                expirationDate: dcc.expirationDate ? new Date(dcc.expirationDate).toISOString().split('T')[0] : ''
+            });
+            setShowEditModal(true);
+        } catch (error) {
+            console.error('Error opening edit modal:', error);
+            alert('Failed to load data for edit');
+        }
+    };
+
     const handleDelete = async () => {
         if (!window.confirm('Are you sure you want to delete this template?')) return;
         try {
@@ -170,8 +218,7 @@ function DccActions({ dcc, setDirty }: { dcc: DccDTO, setDirty: (dirty: boolean)
 
     return (
         <div className="d-flex gap-2 justify-content-center">
-            <Button size="sm" variant="outline-primary" onClick={() => { setUploadType('PDF'); setShowUploadModal(true); }}>Upload PDF</Button>
-            <Button size="sm" variant="outline-info" onClick={() => { setUploadType('XML'); setShowUploadModal(true); }}>Upload XML</Button>
+            <Button size="sm" variant="outline-primary" onClick={openEditModal}>Edit Details</Button>
             <Button size="sm" variant="outline-secondary" onClick={() => setShowJsonModal(true)}>Update JSON</Button>
             <Button size="sm" variant="info" onClick={() => window.open(`https://dev.christiandellisanti.uk/gemimegdcc/dcc/create?dccId=${dcc.id}`, '_blank')}>GEMIMEG</Button>
             <Button size="sm" variant="danger" onClick={handleDelete}>Delete</Button>
@@ -179,6 +226,62 @@ function DccActions({ dcc, setDirty }: { dcc: DccDTO, setDirty: (dirty: boolean)
                 <Button size="sm" variant="light" onClick={() => window.open(downloadUrl('PDF'), '_blank')}>⬇️ PDF</Button>
                 <Button size="sm" variant="light" onClick={() => window.open(downloadUrl('XML'), '_blank')}>⬇️ XML</Button>
             </div>
+
+            <Modal show={showEditModal} onHide={() => setShowEditModal(false)}>
+                <Modal.Header closeButton><Modal.Title>Edit Template Details</Modal.Title></Modal.Header>
+                <Modal.Body>
+                    <Form>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Name</Form.Label>
+                            <Form.Control 
+                                type="text" 
+                                value={editFormData.name} 
+                                onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })} 
+                            />
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Author (Created By)</Form.Label>
+                            <Form.Control 
+                                type="text" 
+                                value={editFormData.createdBy} 
+                                onChange={(e) => setEditFormData({ ...editFormData, createdBy: e.target.value })} 
+                            />
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Measurement Unit</Form.Label>
+                            <Form.Select 
+                                value={editFormData.muId || ''} 
+                                onChange={(e) => setEditFormData({ ...editFormData, muId: e.target.value })}
+                            >
+                                <option value="">-- Template (None) --</option>
+                                {allMus.map(mu => (
+                                    <option key={mu.id} value={mu.id}>{mu.type} (ID: {mu.id})</option>
+                                ))}
+                            </Form.Select>
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Calibration Date</Form.Label>
+                            <Form.Control 
+                                type="date" 
+                                value={editFormData.calibrationDate} 
+                                onChange={(e) => setEditFormData({ ...editFormData, calibrationDate: e.target.value })} 
+                            />
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Expiration Date</Form.Label>
+                            <Form.Control 
+                                type="date" 
+                                value={editFormData.expirationDate} 
+                                onChange={(e) => setEditFormData({ ...editFormData, expirationDate: e.target.value })} 
+                            />
+                        </Form.Group>
+                    </Form>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowEditModal(false)}>Cancel</Button>
+                    <Button variant="primary" onClick={handleEditSubmit}>Save Changes</Button>
+                </Modal.Footer>
+            </Modal>
 
             <Modal show={showUploadModal} onHide={() => setShowUploadModal(false)}>
                 <Modal.Header closeButton><Modal.Title>Upload {uploadType}</Modal.Title></Modal.Header>

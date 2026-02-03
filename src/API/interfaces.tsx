@@ -96,6 +96,8 @@ export interface DccDTO {
     xmlUrl?: string;
     dccJson: string;
     publishedAt?: string;
+    calibrationDate?: string;
+    expirationDate?: string;
 }
 
 export interface DccCreateRequest {
@@ -105,7 +107,11 @@ export interface DccCreateRequest {
 }
 
 export interface DccUpdateRequest {
-    name: string;
+    name?: string;
+    createdBy?: string;
+    muId?: string;
+    calibrationDate?: string;
+    expirationDate?: string;
     dccJson?: string;
 }
 
