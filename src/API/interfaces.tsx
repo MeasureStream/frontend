@@ -87,6 +87,7 @@ export interface DccDTO {
     muId?: string;
     name: string;
     createdBy: string;
+    createdByName?: string;
     createdAt: string;
     updatedAt: string;
     status: 'WHITE' | 'GREEN' | 'YELLOW' | 'RED';

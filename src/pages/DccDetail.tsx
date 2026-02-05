@@ -133,7 +133,7 @@ function DccDetail() {
                         <Col md={6}>
                             <ListGroup variant="flush">
                                 <ListGroup.Item>
-                                    <strong>Created By:</strong> {dcc.createdBy}
+                                    <strong>Created By:</strong> {dcc.createdByName || dcc.createdBy}
                                 </ListGroup.Item>
                                 <ListGroup.Item>
                                     <strong>Created At:</strong> {new Date(dcc.createdAt).toLocaleString()}

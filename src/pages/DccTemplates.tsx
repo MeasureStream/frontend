@@ -14,6 +14,7 @@ function DccTemplates() {
     const navigate = useNavigate();
 
     const [dccs, setDccs] = useState<DccDTO[]>([]);
+    const [mus, setMus] = useState<MeasurementUnitDTO[]>([]);
     const [dirty, setDirty] = useState(true);
     const [filterId, setFilterId] = useState<string>('');
     const [filterName, setFilterName] = useState<string>('');
@@ -36,7 +37,16 @@ function DccTemplates() {
                 }
             }
         }
+        const fetchMus = async () => {
+            try {
+                const data = await getMus(true);
+                setMus(data);
+            } catch (error) {
+                console.error("Error fetching MUs:", error);
+            }
+        }
         fetchDccs();
+        fetchMus();
     }, [dirty]);
 
     const handleCreateSubmit = async () => {
@@ -45,7 +55,7 @@ function DccTemplates() {
                 alert('Name is required');
                 return;
             }
-            await createDcc(xsrfToken || '', { ...createFormData, muId: undefined });
+            await createDcc(xsrfToken || '', createFormData);
             setCreateFormData({ name: '', muId: undefined });
             setShowCreateModal(false);
             setDirty(true);
@@ -97,7 +107,7 @@ function DccTemplates() {
                             <td>{dcc.id}</td>
                             <td>{dcc.name}</td>
                             <td><Badge bg={dcc.status === 'GREEN' ? 'success' : dcc.status === 'YELLOW' ? 'warning' : dcc.status === 'RED' ? 'danger' : 'secondary'}>{dcc.status}</Badge></td>
-                            <td>{dcc.createdBy}</td>
+                            <td>{dcc.createdByName || dcc.createdBy}</td>
                             <td>{new Date(dcc.createdAt).toLocaleString()}</td>
                             <td>{dcc.calibrationDate ? new Date(dcc.calibrationDate).toLocaleDateString() : '-'}</td>
                             <td>{dcc.expirationDate ? new Date(dcc.expirationDate).toLocaleDateString() : '-'}</td>
@@ -115,6 +125,18 @@ function DccTemplates() {
                         <Form.Group className="mb-3">
                             <Form.Label>Name</Form.Label>
                             <Form.Control type="text" value={createFormData.name} onChange={(e) => setCreateFormData({ ...createFormData, name: e.target.value })} placeholder="Enter Name" />
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Measurement Unit (MU)</Form.Label>
+                            <Form.Select 
+                                value={createFormData.muId || ''} 
+                                onChange={(e) => setCreateFormData({ ...createFormData, muId: e.target.value })}
+                            >
+                                <option value="">-- Select MU (Optional) --</option>
+                                {mus.map(mu => (
+                                    <option key={mu.id} value={mu.id}>MU: {mu.type} (ID: {mu.id})</option>
+                                ))}
+                            </Form.Select>
                         </Form.Group>
                     </Form>
                 </Modal.Body>
@@ -220,7 +242,7 @@ function DccActions({ dcc, setDirty }: { dcc: DccDTO, setDirty: (dirty: boolean)
         <div className="d-flex gap-2 justify-content-center">
             <Button size="sm" variant="outline-primary" onClick={openEditModal}>Edit Details</Button>
             <Button size="sm" variant="outline-secondary" onClick={() => setShowJsonModal(true)}>Update JSON</Button>
-            <Button size="sm" variant="info" onClick={() => window.open(`https://dev.christiandellisanti.uk/gemimegdcc/dcc/create?dccId=${dcc.id}`, '_blank')}>GEMIMEG</Button>
+            <Button size="sm" variant="info" onClick={() => window.open(`https://dev.christiandellisanti.uk/gemimegdcc/dcc/create?dccId=${dcc.id}`, '_self')}>GEMIMEG</Button>
             <Button size="sm" variant="danger" onClick={handleDelete}>Delete</Button>
             <div className="btn-group">
                 <Button size="sm" variant="light" onClick={() => window.open(downloadUrl('PDF'), '_blank')}>⬇️ PDF</Button>
@@ -243,8 +265,9 @@ function DccActions({ dcc, setDirty }: { dcc: DccDTO, setDirty: (dirty: boolean)
                             <Form.Label>Author (Created By)</Form.Label>
                             <Form.Control 
                                 type="text" 
-                                value={editFormData.createdBy} 
-                                onChange={(e) => setEditFormData({ ...editFormData, createdBy: e.target.value })} 
+                                value={dcc.createdByName || dcc.createdBy} 
+                                readOnly
+                                disabled
                             />
                         </Form.Group>
                         <Form.Group className="mb-3">

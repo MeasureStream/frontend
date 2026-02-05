@@ -16,6 +16,7 @@ function DccCertificates() {
     const muIdParam = searchParams.get("muId");
 
     const [dccs, setDccs] = useState<DccDTO[]>([]);
+    const [mus, setMus] = useState<MeasurementUnitDTO[]>([]);
     const [dirty, setDirty] = useState(true);
     const [filterId, setFilterId] = useState<string>('');
     const [filterName, setFilterName] = useState<string>('');
@@ -38,7 +39,16 @@ function DccCertificates() {
                 }
             }
         }
+        const fetchMus = async () => {
+            try {
+                const data = await getMus(true);
+                setMus(data);
+            } catch (error) {
+                console.error("Error fetching MUs:", error);
+            }
+        }
         fetchDccs();
+        fetchMus();
     }, [dirty, muIdParam]);
 
     const handleCreateSubmit = async () => {
@@ -108,7 +118,7 @@ function DccCertificates() {
                             <td>{dcc.name}</td>
                             <td>{dcc.muId ?? '-'}</td>
                             <td><Badge bg={dcc.status === 'GREEN' ? 'success' : dcc.status === 'YELLOW' ? 'warning' : dcc.status === 'RED' ? 'danger' : 'secondary'}>{dcc.status}</Badge></td>
-                            <td>{dcc.createdBy}</td>
+                            <td>{dcc.createdByName || dcc.createdBy}</td>
                             <td>{new Date(dcc.createdAt).toLocaleString()}</td>
                             <td>{dcc.calibrationDate ? new Date(dcc.calibrationDate).toLocaleDateString() : '-'}</td>
                             <td>{dcc.expirationDate ? new Date(dcc.expirationDate).toLocaleDateString() : '-'}</td>
@@ -128,8 +138,16 @@ function DccCertificates() {
                             <Form.Control type="text" value={createFormData.name} onChange={(e) => setCreateFormData({ ...createFormData, name: e.target.value })} placeholder="Enter Name" />
                         </Form.Group>
                         <Form.Group className="mb-3">
-                            <Form.Label>Measurement Unit ID (Optional)</Form.Label>
-                            <Form.Control type="text" value={createFormData.muId || ''} onChange={(e) => setCreateFormData({ ...createFormData, muId: e.target.value })} placeholder="Enter MU ID" />
+                            <Form.Label>Measurement Unit (MU)</Form.Label>
+                            <Form.Select 
+                                value={createFormData.muId || ''} 
+                                onChange={(e) => setCreateFormData({ ...createFormData, muId: e.target.value })}
+                            >
+                                <option value="">-- Select MU (Optional) --</option>
+                                {mus.map(mu => (
+                                    <option key={mu.id} value={mu.id}>MU: {mu.type} (ID: {mu.id})</option>
+                                ))}
+                            </Form.Select>
                         </Form.Group>
                     </Form>
                 </Modal.Body>
@@ -320,7 +338,7 @@ function DccActions({ dcc, setDirty }: { dcc: DccDTO, setDirty: (dirty: boolean)
             <Button size="sm" variant="outline-primary" onClick={openEditModal}>Edit Details</Button>
             <Button size="sm" variant="outline-secondary" onClick={() => setShowJsonModal(true)}>Update JSON</Button>
             <Button size="sm" variant="outline-warning" onClick={openImportModal}>Import Admin Data</Button>
-            <Button size="sm" variant="info" onClick={() => window.open(`https://dev.christiandellisanti.uk/gemimegdcc/dcc/create?dccId=${dcc.id}`, '_blank')}>GEMIMEG</Button>
+            <Button size="sm" variant="info" onClick={() => window.open(`https://dev.christiandellisanti.uk/gemimegdcc/dcc/create?dccId=${dcc.id}`, '_self')}>GEMIMEG</Button>
             {dcc.publishedAt ? (
                 <Button size="sm" variant="warning" onClick={handleUnpublish}>Make ineffective</Button>
             ) : (
@@ -348,8 +366,9 @@ function DccActions({ dcc, setDirty }: { dcc: DccDTO, setDirty: (dirty: boolean)
                             <Form.Label>Author (Created By)</Form.Label>
                             <Form.Control 
                                 type="text" 
-                                value={editFormData.createdBy} 
-                                onChange={(e) => setEditFormData({ ...editFormData, createdBy: e.target.value })} 
+                                value={dcc.createdByName || dcc.createdBy} 
+                                readOnly
+                                disabled
                             />
                         </Form.Group>
                         <Form.Group className="mb-3">
