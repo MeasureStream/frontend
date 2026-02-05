@@ -74,7 +74,7 @@ function App() {
                         setUser(actual_user)
 
                         if(role == "ADMIN") {
-                            setCalibrators(await getAllCalibrators() )
+                            // setCalibrators(await getAllCalibrators() )
                         }
 
                     }else{
