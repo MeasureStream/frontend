@@ -61,14 +61,16 @@ function DccMus() {
                     <tbody>
                         {mus.map(mu => {
                             const muDccs = dccs.filter(d => d.muId === mu.id.toString());
-                            const hasGreen = muDccs.some(d => d.status === 'GREEN');
-                            const hasYellow = muDccs.some(d => d.status === 'YELLOW');
+                            const now = new Date();
+                            
+                            const validDccs = muDccs.filter(d => d.xmlValid && d.pdfValid);
+                            const hasValidNotExpired = validDccs.some(d => d.expirationDate && new Date(d.expirationDate) >= now);
+                            const hasValid = validDccs.length > 0;
                             
                             let muStatus = 'RED';
-                            if (hasGreen) muStatus = 'GREEN';
-                            else if (hasYellow) muStatus = 'YELLOW';
-
-                            if (mu.expiration && new Date(mu.expiration) < new Date()) {
+                            if (hasValidNotExpired) {
+                                muStatus = 'GREEN';
+                            } else if (hasValid) {
                                 muStatus = 'YELLOW';
                             }
 

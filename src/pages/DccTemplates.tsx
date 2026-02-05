@@ -242,7 +242,7 @@ function DccActions({ dcc, setDirty }: { dcc: DccDTO, setDirty: (dirty: boolean)
         <div className="d-flex gap-2 justify-content-center">
             <Button size="sm" variant="outline-primary" onClick={openEditModal}>Edit Details</Button>
             <Button size="sm" variant="outline-secondary" onClick={() => setShowJsonModal(true)}>Update JSON</Button>
-            <Button size="sm" variant="info" onClick={() => window.open(`https://dev.christiandellisanti.uk/gemimegdcc/dcc/create?dccId=${dcc.id}`, '_self')}>GEMIMEG</Button>
+            <Button size="sm" variant="info" onClick={(e) => window.open(`https://dev.christiandellisanti.uk/gemimegdcc/dcc/create?dccId=${dcc.id}`, e.ctrlKey || e.metaKey ? '_blank' : '_self')}>GEMIMEG</Button>
             <Button size="sm" variant="danger" onClick={handleDelete}>Delete</Button>
             <div className="btn-group">
                 <Button size="sm" variant="light" onClick={() => window.open(downloadUrl('PDF'), '_blank')}>⬇️ PDF</Button>

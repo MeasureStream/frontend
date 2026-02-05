@@ -45,7 +45,7 @@ const NodeInfoPage = ({nodes} : Props) => {
     const [nodeUnits, setNodeUnits] = useState<string[]>([]);
     const [dirty, setDirty] = useState(true)
     const navigate = useNavigate()
-    const {xsrfToken} = useAuth();
+    const {xsrfToken, role} = useAuth();
 
 
 
@@ -400,10 +400,12 @@ const NodeInfoPage = ({nodes} : Props) => {
                                                 <td>{dcc.expirationDate ? new Date(dcc.expirationDate).toLocaleDateString() : '-'}</td>
                                                 <td onClick={(e) => e.stopPropagation()}>
                                                     <div className="d-flex gap-2 justify-content-center">
-                                                        {dcc.publishedAt ? (
-                                                            <Button size="sm" variant="warning" onClick={() => handleUnpublish(dcc)}>Make ineffective</Button>
-                                                        ) : (
-                                                            <Button size="sm" variant="success" onClick={() => handlePublish(dcc)} disabled={dcc.status === 'RED'}>Make effective</Button>
+                                                        {role === 'ADMIN' && (
+                                                            dcc.publishedAt ? (
+                                                                <Button size="sm" variant="warning" onClick={() => handleUnpublish(dcc)}>Make ineffective</Button>
+                                                            ) : (
+                                                                <Button size="sm" variant="success" onClick={() => handlePublish(dcc)} disabled={dcc.status === 'RED'}>Make effective</Button>
+                                                            )
                                                         )}
                                                         <div className="btn-group">
                                                             <Button size="sm" variant="light" onClick={() => handleDownload(dcc, 'PDF')}>⬇️ PDF</Button>

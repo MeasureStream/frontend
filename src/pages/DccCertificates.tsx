@@ -161,7 +161,7 @@ function DccCertificates() {
 }
 
 function DccActions({ dcc, setDirty }: { dcc: DccDTO, setDirty: (dirty: boolean) => void }) {
-    const { xsrfToken } = useAuth();
+    const { xsrfToken, role } = useAuth();
     const [showUploadModal, setShowUploadModal] = useState(false);
     const [showJsonModal, setShowJsonModal] = useState(false);
     const [showImportModal, setShowImportModal] = useState(false);
@@ -338,11 +338,13 @@ function DccActions({ dcc, setDirty }: { dcc: DccDTO, setDirty: (dirty: boolean)
             <Button size="sm" variant="outline-primary" onClick={openEditModal}>Edit Details</Button>
             <Button size="sm" variant="outline-secondary" onClick={() => setShowJsonModal(true)}>Update JSON</Button>
             <Button size="sm" variant="outline-warning" onClick={openImportModal}>Import Admin Data</Button>
-            <Button size="sm" variant="info" onClick={() => window.open(`https://dev.christiandellisanti.uk/gemimegdcc/dcc/create?dccId=${dcc.id}`, '_self')}>GEMIMEG</Button>
-            {dcc.publishedAt ? (
-                <Button size="sm" variant="warning" onClick={handleUnpublish}>Make ineffective</Button>
-            ) : (
-                <Button size="sm" variant="success" onClick={handlePublish} disabled={dcc.status === 'RED'}>Make effective</Button>
+            <Button size="sm" variant="info" onClick={(e) => window.open(`https://dev.christiandellisanti.uk/gemimegdcc/dcc/create?dccId=${dcc.id}`, e.ctrlKey || e.metaKey ? '_blank' : '_self')}>GEMIMEG</Button>
+            {role === 'ADMIN' && (
+                dcc.publishedAt ? (
+                    <Button size="sm" variant="warning" onClick={handleUnpublish}>Make ineffective</Button>
+                ) : (
+                    <Button size="sm" variant="success" onClick={handlePublish} disabled={dcc.status === 'RED'}>Make effective</Button>
+                )
             )}
             <Button size="sm" variant="danger" onClick={handleDelete}>Delete</Button>
             <div className="btn-group">

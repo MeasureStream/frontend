@@ -8,7 +8,7 @@ import { useAuth } from "../API/AuthContext";
 function DccDetail() {
     const { dccId } = useParams<{ dccId: string }>();
     const navigate = useNavigate();
-    const { xsrfToken } = useAuth();
+    const { xsrfToken, role } = useAuth();
     const [dcc, setDcc] = useState<DccDTO | null>(null);
     const [loading, setLoading] = useState(true);
     const [validating, setValidating] = useState(false);
@@ -107,10 +107,12 @@ function DccDetail() {
                 <Card.Header as="h4" className="d-flex justify-content-between align-items-center">
                     DCC Details: {dcc.name}
                     <div className="d-flex gap-2">
-                        {dcc.publishedAt ? (
-                            <Button size="sm" variant="warning" onClick={handleUnpublish}>Make ineffective</Button>
-                        ) : (
-                            <Button size="sm" variant="success" onClick={handlePublish} disabled={dcc.status === 'RED'}>Make effective</Button>
+                        {role === 'ADMIN' && (
+                            dcc.publishedAt ? (
+                                <Button size="sm" variant="warning" onClick={handleUnpublish}>Make ineffective</Button>
+                            ) : (
+                                <Button size="sm" variant="success" onClick={handlePublish} disabled={dcc.status === 'RED'}>Make effective</Button>
+                            )
                         )}
                         <Badge bg={statusVariant}>{dcc.status}</Badge>
                     </div>
