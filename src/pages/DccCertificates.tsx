@@ -315,18 +315,34 @@ function DccActions({ dcc, setDirty }: { dcc: DccDTO, setDirty: (dirty: boolean)
 
     const handleDownload = async (type: 'PDF' | 'XML') => {
         try {
-            const blob = type === 'PDF' 
-                ? await downloadSignedPdf(dcc.id) 
-                : await downloadSignedXml(dcc.id);
+            const url = type === 'PDF' ? dcc.pdfUrl : dcc.xmlUrl;
             
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `dcc-${dcc.id}-signed.${type.toLowerCase()}`;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
+            if (url) {
+                console.log(url);
+                // If we have a direct S3 URL, use it
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `dcc-${dcc.id}-signed.${type.toLowerCase()}`;
+                a.target = "_blank";
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            } else {
+                console.log('fallback to legacy blob download');
+                // Fallback to legacy blob download
+                const blob = type === 'PDF' 
+                    ? await downloadSignedPdf(dcc.id) 
+                    : await downloadSignedXml(dcc.id);
+                
+                const blobUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = `dcc-${dcc.id}-signed.${type.toLowerCase()}`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(blobUrl);
+                document.body.removeChild(a);
+            }
         } catch (error) {
             console.error(`Error downloading signed ${type}:`, error);
             alert(`Failed to download signed ${type}.`);
