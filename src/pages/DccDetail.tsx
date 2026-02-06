@@ -30,16 +30,18 @@ function DccDetail() {
         fetchDcc();
     }, [dccId]);
 
-    const handleAutoValidate = async (type: 'PDF' | 'XML') => {
+    const handleSignAndVerifyBoth = async () => {
         if (!dcc) return;
         setValidating(true);
         try {
-            const updatedDcc = await validateDcc(xsrfToken || '', dcc.id, type);
+            // The backend validate endpoint actually signs and verifies BOTH PDF and XML
+            // in a single operation, regardless of the fileType parameter.
+            const updatedDcc = await validateDcc(xsrfToken || '', dcc.id, 'PDF');
             setDcc(updatedDcc);
-            alert(`${type} signed and validated successfully! Check the console for details.`);
+            alert(`Both PDF and XML signed and validated successfully!`);
         } catch (error) {
-            console.error(`Error validating ${type}:`, error);
-            alert(`Failed to validate ${type}. Ensure the backend services are running.`);
+            console.error(`Error validating DCC:`, error);
+            alert(`Failed to validate DCC. Ensure the backend services are running.`);
         } finally {
             setValidating(false);
         }
@@ -176,36 +178,29 @@ function DccDetail() {
                                         XML {dcc.xmlValid ? "Valid" : "Invalid/Missing"}
                                     </Badge>
                                 </div>
-                                <div className="ms-auto d-flex gap-2">
+                                <div className="ms-auto d-flex gap-2 flex-wrap">
                                     <Button 
                                         size="sm" 
-                                        variant="outline-primary" 
-                                        onClick={() => handleAutoValidate('PDF')}
+                                        variant="outline-success" 
+                                        onClick={handleSignAndVerifyBoth}
                                         disabled={validating}
                                     >
-                                        {validating ? <Spinner as="span" animation="border" size="sm" /> : "Sign & Verify PDF"}
+                                        {validating ? <Spinner as="span" animation="border" size="sm" /> : "Sign & Verify Both (PDF & XML)"}
                                     </Button>
+                                    <div className="vr mx-2"></div>
                                     <Button 
                                         size="sm" 
                                         variant="primary" 
                                         onClick={() => handleDownload('PDF')}
-                                        disabled={validating}
+                                        disabled={validating || !dcc.pdfValid}
                                     >
                                         Download Signed PDF
                                     </Button>
                                     <Button 
                                         size="sm" 
-                                        variant="outline-info" 
-                                        onClick={() => handleAutoValidate('XML')}
-                                        disabled={validating}
-                                    >
-                                        {validating ? <Spinner as="span" animation="border" size="sm" /> : "Sign & Verify XML"}
-                                    </Button>
-                                    <Button 
-                                        size="sm" 
                                         variant="info" 
                                         onClick={() => handleDownload('XML')}
-                                        disabled={validating}
+                                        disabled={validating || !dcc.xmlValid}
                                     >
                                         Download Signed XML
                                     </Button>
