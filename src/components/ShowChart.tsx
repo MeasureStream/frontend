@@ -74,7 +74,7 @@ function ShowChart({ nodeId, unit, setDirty }: { nodeId: number, unit: string, s
 
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
-  const { xsrfToken } = useAuth()
+  const { xsrfToken, role } = useAuth()
 
   function getTypeFromUnit(unit: string): string {
     return unitToTypeMap[unit] || unit;
@@ -171,7 +171,7 @@ function ShowChart({ nodeId, unit, setDirty }: { nodeId: number, unit: string, s
             />
             <Button variant={"secondary"} onClick={() => { setFrom(""); setTo("") }}>Last 5 Minutes</Button>
             <Button variant={"primary"} onClick={() => handleDownload()}> Download Measures</Button>
-            <Button variant={"danger"} onClick={() => handleDelete()}> Delete Selected Measures</Button>
+            {role === 'ADMIN' && <Button variant={"danger"} onClick={() => handleDelete()}> Delete Selected Measures</Button>}
           </div>
 
           <iframe

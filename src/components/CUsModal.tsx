@@ -155,12 +155,14 @@ function DeleteControlUnitModal({
     cu: ControlUnitDTO,
     setDirty: React.Dispatch<React.SetStateAction<boolean>>
 }) {
-    const { xsrfToken } = useAuth();
+    const { xsrfToken, role } = useAuth();
     const [showModal, setShowModal] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
     const handleDelete = () => setShowModal(true);
     const handleClose = () => setShowModal(false);
+
+    if (role !== 'ADMIN') return null;
 
     const handleConfirmDelete = () => {
         setIsLoading(true);

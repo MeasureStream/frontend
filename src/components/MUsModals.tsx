@@ -11,7 +11,7 @@ function DccMu( {mu, expiration, setDirty}: { mu: MeasurementUnitDTO, expiration
     const [file, setFile] = useState<File | null>(null);
     const [newExpiration, setNewExpiration] = useState(expiration); // 👈 Nuova expiration modificabile
 
-    const { xsrfToken, setXsrfToken } = useAuth();  // Recupera il xsrfToken dal contesto
+    const { xsrfToken, setXsrfToken, role } = useAuth();  // Recupera il xsrfToken dal contesto
     const handleUpload = async () => {
 
         if (!file) {
@@ -122,9 +122,11 @@ function DccMu( {mu, expiration, setDirty}: { mu: MeasurementUnitDTO, expiration
                     <Button variant="outline-primary" onClick={handleDownload}>
                         Download
                     </Button>
-                    <Button variant="outline-warning" onClick={handleDelete}>
-                        Delete
-                    </Button>
+                    {role === 'ADMIN' && (
+                        <Button variant="outline-warning" onClick={handleDelete}>
+                            Delete
+                        </Button>
+                    )}
                     <Button variant="outline-secondary" onClick={handleOpen}>
                         Details
                     </Button>
@@ -305,12 +307,14 @@ function RemoveMU({mu, setDirty}:{mu:MeasurementUnitDTO, setDirty: React.Dispatc
 }
 
 function DeleteMUModal({ mu, setDirty }: { mu: MeasurementUnitDTO, setDirty: React.Dispatch<React.SetStateAction<boolean>> }) {
-    const { xsrfToken } = useAuth();
+    const { xsrfToken, role } = useAuth();
     const [showModal, setShowModal] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
     const handleDelete = () => setShowModal(true);
     const handleClose = () => setShowModal(false);
+
+    if (role !== 'ADMIN') return null;
 
     const handleConfirmDelete =  () => {
         setIsLoading(true);

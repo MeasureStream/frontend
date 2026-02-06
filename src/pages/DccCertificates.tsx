@@ -362,7 +362,7 @@ function DccActions({ dcc, setDirty }: { dcc: DccDTO, setDirty: (dirty: boolean)
                     <Button size="sm" variant="success" onClick={handlePublish} disabled={dcc.status === 'RED'}>Make effective</Button>
                 )
             )}
-            <Button size="sm" variant="danger" onClick={handleDelete}>Delete</Button>
+            {role === 'ADMIN' && <Button size="sm" variant="danger" onClick={handleDelete}>Delete</Button>}
             <div className="btn-group">
                 <Button size="sm" variant="light" onClick={() => handleDownload('PDF')}>⬇️ PDF</Button>
                 <Button size="sm" variant="light" onClick={() => handleDownload('XML')}>⬇️ XML</Button>

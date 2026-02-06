@@ -230,7 +230,7 @@ const NodeInfoPage = ({nodes} : Props) => {
                             </Card.Text>
                             <Card.Text>
 
-                                <ConfirmDelete onDelete={handleDelete} id = {node.id}/>
+                                {role === 'ADMIN' && <ConfirmDelete onDelete={handleDelete} id = {node.id}/>}
                             </Card.Text>
                         </Card.Body>
                     </Card>
