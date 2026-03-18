@@ -268,16 +268,18 @@ const NodeInfoPage = ({ nodes }: Props) => {
               </div>
 
               <Accordion>
-
-
-                <>
-                  {measurementUnits.map((mu, index) => (
+                {measurementUnits.map((mu, index) => (
+                  /* AGGIUNTO: Accordion.Item con eventKey obbligatoria */
+                  <Accordion.Item key={`mu-item-${mu.id}`} eventKey={index.toString()}>
+                    <Accordion.Header>
+                      <strong>MU Network ID: {mu.networkId}</strong>
+                      <span className="ms-3 badge bg-info text-dark">Model {mu.model}</span>
+                    </Accordion.Header>
 
                     <Accordion.Body>
                       <ListGroup variant="flush">
                         <ListGroup.Item>
                           <strong>Network ID:</strong> {mu.networkId}
-                          <span className="ms-3 badge bg-info text-dark">Model {mu.model}</span>
                         </ListGroup.Item>
 
                         <ListGroup.Item className="mt-2">
@@ -293,9 +295,8 @@ const NodeInfoPage = ({ nodes }: Props) => {
                                           <span className="fw-bold text-primary">#{sensor.sensorIndex}</span> - {sensor.type}
                                           <small className="text-muted ms-2">({sensor.modelName})</small>
                                         </div>
-                                        {/* Esempio di badge condizionale per l'unità */}
                                         <span className="badge rounded-pill bg-secondary">
-                                          {sensor.type === 'NTC' ? '°C' : 'Raw Data'}
+                                          {getUnitLabel(sensor.unitCode)}
                                         </span>
                                       </div>
                                     </Card.Body>
@@ -316,11 +317,9 @@ const NodeInfoPage = ({ nodes }: Props) => {
                         </ListGroup.Item>
                       </ListGroup>
                     </Accordion.Body>
-
-                  ))}
-                </>
+                  </Accordion.Item>
+                ))}
               </Accordion>
-
             </Card.Body>
           </Card>
 
