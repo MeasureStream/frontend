@@ -186,7 +186,7 @@ const NodeInfoPage = ({ nodes }: Props) => {
                             <span className="fw-bold">{getUnitLabel(sensor.unitCode)}</span>
                           </div>
                           <ShowChart
-                            nodeId={mu.id}
+                            nodeId={mu.networkId}
                             unit={getUnitLabel(sensor.unitCode)}
                             setDirty={() => setDirty(true)}
                           />
@@ -199,12 +199,12 @@ const NodeInfoPage = ({ nodes }: Props) => {
                       {/* Sempre visibile: LoRA RSSI */}
                       <Card.Text className="my-2">
                         <div className="d-flex justify-content-between align-items-center mb-1">
-                          <span className="badge bg-secondary">LoRA RSSI</span>
+                          <span className="badge bg-secondary">LoRa RSSI</span>
                           <span className="fw-bold">dBm</span>
                         </div>
                         <ShowChart
-                          nodeId={mu.id}
-                          unit="LoRArssi"
+                          nodeId={mu.networkId}
+                          unit="LoRa RSSI"
                           setDirty={() => setDirty(true)}
                         />
                       </Card.Text>
@@ -217,8 +217,8 @@ const NodeInfoPage = ({ nodes }: Props) => {
                             <span className="fw-bold">dBm</span>
                           </div>
                           <ShowChart
-                            nodeId={mu.id}
-                            unit="rssi"
+                            nodeId={mu.networkId}
+                            unit="BLE RSSI"
                             setDirty={() => setDirty(true)}
                           />
                         </Card.Text>
