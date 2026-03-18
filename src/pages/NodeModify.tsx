@@ -288,21 +288,7 @@ const NodeInfoPage = ({ nodes }: Props) => {
                           <ListGroup.Item variant="secondary">
                             Name: {cu.name}
                           </ListGroup.Item>
-                          {/*
-<ListGroup.Item variant="secondary">
-                            Remaining Battery: {Math.ceil(Number(cu.remainingBattery))} %
-                          </ListGroup.Item>
-                          <ListGroup.Item variant="secondary">
-                            rssi: {Number(cu.rssi).toFixed(3)} dB
-                          </ListGroup.Item>
-                          <ListGroup.Item variant="secondary">
-                            <RemoveCu cu={cu} setDirty={setDirty} />
-                            <AddCuSettings cuNetworkId={cu.id} />
-                          </ListGroup.Item>
 
-
-
-                          */}
                         </ListGroup>
 
                       </Accordion.Body>
