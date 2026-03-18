@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import { ControlUnitDTO, CuGw, MeasurementUnitDTO, NodeDTO } from "../API/interfaces";
+import { ControlUnitDTO, CuGw, getUnitLabel, MeasurementUnitDTO, NodeDTO } from "../API/interfaces";
 import { useParams } from "react-router";
 import { Button, Card, Col, Container, ListGroup, Row, Spinner } from "react-bootstrap";
 import { deleteNode, getNodesId, getNodeUnits } from "../API/NodeAPI";
@@ -168,19 +168,67 @@ const NodeInfoPage = ({ nodes }: Props) => {
 
           <Card className="shadow">
             <Card.Body>
-              <Card.Title>Real Time Measures</Card.Title>
-              <>
-                {
-                  nodeUnits.map((unit, index) => (
-                    <Card.Text key={index}>
-                      <ShowChart nodeId={node.id} unit={unit} setDirty={() => setDirty(true)}></ShowChart>
-                    </Card.Text>
+              <Card.Title className="mb-4">Real Time Measures</Card.Title>
+              <div className="measures-container">
+                {measurementUnits.length > 0 ? (
+                  measurementUnits.map((mu) => (
+                    <div key={`mu-${mu.id}`} className="mb-5 pb-3 border-bottom">
+                      <h5 className="text-primary">MU NetworkID: {mu.networkId}</h5>
+
+                      {/* 1. Ciclo dei Sensori Fisici (Temp, Accel, ecc.) */}
+                      <h6 className="mt-3 text-muted small uppercase">Environment Sensors</h6>
+                      {mu.sensors && mu.sensors.map((sensor) => (
+                        <Card.Text key={`sensor-${sensor.id}`} className="my-2">
+                          <div className="d-flex justify-content-between align-items-center mb-1">
+                            <span className="badge bg-primary">
+                              {sensor.type} (Idx: {sensor.sensorIndex})
+                            </span>
+                            <span className="fw-bold">{getUnitLabel(sensor.unitCode)}</span>
+                          </div>
+                          <ShowChart
+                            nodeId={mu.id}
+                            unit={getUnitLabel(sensor.unitCode)}
+                            setDirty={() => setDirty(true)}
+                          />
+                        </Card.Text>
+                      ))}
+
+                      {/* 2. Grafici di Diagnostica Radio (System Measures) */}
+                      <h6 className="mt-4 text-muted small uppercase">Network Diagnostics</h6>
+
+                      {/* Sempre visibile: LoRA RSSI */}
+                      <Card.Text className="my-2">
+                        <div className="d-flex justify-content-between align-items-center mb-1">
+                          <span className="badge bg-secondary">LoRA RSSI</span>
+                          <span className="fw-bold">dBm</span>
+                        </div>
+                        <ShowChart
+                          nodeId={mu.id}
+                          unit="LoRArssi"
+                          setDirty={() => setDirty(true)}
+                        />
+                      </Card.Text>
+
+                      {/* Visibile solo se model >= 100: BLE RSSI */}
+                      {mu.model >= 100 && (
+                        <Card.Text className="my-2">
+                          <div className="d-flex justify-content-between align-items-center mb-1">
+                            <span className="badge bg-info text-dark">BLE RSSI</span>
+                            <span className="fw-bold">dBm</span>
+                          </div>
+                          <ShowChart
+                            nodeId={mu.id}
+                            unit="rssi"
+                            setDirty={() => setDirty(true)}
+                          />
+                        </Card.Text>
+                      )}
+                    </div>
                   ))
-                }
-
-              </>
-
-
+                ) : (
+                  <p className="text-muted">No measurements available.</p>
+                )}
+              </div>
             </Card.Body>
           </Card>
 
@@ -225,39 +273,49 @@ const NodeInfoPage = ({ nodes }: Props) => {
                 <>
                   {measurementUnits.map((mu, index) => (
 
-                    <Accordion.Item key={index} eventKey={index.toString()}>
-                      <Accordion.Header> MeasurementUnit id: {mu.id} </Accordion.Header>
-                      <Accordion.Body>
-                        <ListGroup>
-                          <div key={index}>
-                            <ListGroup.Item variant="secondary">
-                              NetworkId:{mu.networkId}
-                            </ListGroup.Item>
-                            <ListGroup.Item variant="secondary">
-                              type: {mu.type}
-                            </ListGroup.Item>
-                            <ListGroup.Item variant="secondary">
-                              Unit: {mu.measuresUnit}
-                            </ListGroup.Item>
-                            {/*
-<ListGroup.Item variant="secondary">
-                                                            <RemoveMU mu={mu} setDirty={setDirty}/>
-                                                            <Button variant="success" onClick={() => handleStart(mu.networkId)}>Start</Button>
-                                                            <Button variant={"danger"} onClick={() => handleStop(mu.networkId)}>Stop</Button>
-                                                            <AddMuSettings muNetworkId={mu.networkId}/>
-                                                        </ListGroup.Item>
+                    <Accordion.Body>
+                      <ListGroup variant="flush">
+                        <ListGroup.Item>
+                          <strong>Network ID:</strong> {mu.networkId}
+                          <span className="ms-3 badge bg-info text-dark">Model {mu.model}</span>
+                        </ListGroup.Item>
 
+                        <ListGroup.Item className="mt-2">
+                          <h6>Sensors associated:</h6>
+                          <Row className="g-2">
+                            {mu.sensors && mu.sensors.length > 0 ? (
+                              mu.sensors.map((sensor) => (
+                                <Col xs={12} key={sensor.id}>
+                                  <Card className="border-light bg-light">
+                                    <Card.Body className="py-2 px-3">
+                                      <div className="d-flex justify-content-between align-items-center">
+                                        <div>
+                                          <span className="fw-bold text-primary">#{sensor.sensorIndex}</span> - {sensor.type}
+                                          <small className="text-muted ms-2">({sensor.modelName})</small>
+                                        </div>
+                                        {/* Esempio di badge condizionale per l'unità */}
+                                        <span className="badge rounded-pill bg-secondary">
+                                          {sensor.type === 'NTC' ? '°C' : 'Raw Data'}
+                                        </span>
+                                      </div>
+                                    </Card.Body>
+                                  </Card>
+                                </Col>
+                              ))
+                            ) : (
+                              <p className="text-muted ps-3">No sensors registered for this unit.</p>
+                            )}
+                          </Row>
+                        </ListGroup.Item>
 
-
-
-                            */}
-                          </div>
-                        </ListGroup>
-
-                      </Accordion.Body>
-
-                    </Accordion.Item>
-
+                        <ListGroup.Item className="d-flex gap-2 mt-3">
+                          <RemoveMU mu={mu} setDirty={setDirty} />
+                          <Button variant="outline-success" size="sm" onClick={() => handleStart(mu.networkId)}>Start</Button>
+                          <Button variant="outline-danger" size="sm" onClick={() => handleStop(mu.networkId)}>Stop</Button>
+                          <AddMuSettings muNetworkId={mu.networkId} />
+                        </ListGroup.Item>
+                      </ListGroup>
+                    </Accordion.Body>
 
                   ))}
                 </>
@@ -284,7 +342,11 @@ const NodeInfoPage = ({ nodes }: Props) => {
                   {controlUnits.map((cu, index) => (
 
                     <Accordion.Item key={index} eventKey={index.toString()}>
-                      <Accordion.Header> {cu.name} id: {cu.id}  {isAlive(cu.networkId)} </Accordion.Header>
+                      <Accordion.Header> {cu.name} id: {cu.id}
+                        {
+                          //isAlive(cu.networkId)
+                        }
+                      </Accordion.Header>
                       <Accordion.Body>
                         <ListGroup>
                           <ListGroup.Item variant="secondary">
