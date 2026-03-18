@@ -19,6 +19,7 @@ import redMarker from "/src/assets/marker-red.svg";
 import bluMarkerShadow from '/src/assets/marker-shadow.svg';
 import ShowChart from "../components/ShowChart";
 import { AddCuSettings } from "../components/CuSettingModal";
+import { ChartPreviewCard } from "../components/ChartPreviewCard";
 import { CuAreAlive, getMUStartId, getMUStopId } from "../API/SettingsAPI";
 import { AddMuSettings } from "../components/AddMuSettings";
 
@@ -255,6 +256,68 @@ const NodeInfoPage = ({ nodes }: Props) => {
             </Card.Body>
           </Card>
 
+
+          {
+            //inizio ControlUnit
+          }
+
+          <Card className="mt-4 shadow">
+            <Card.Body>
+
+              <div className="d-flex justify-content-between align-items-center mb-4">
+                <h3 className="mb-0">Control Units</h3>
+                <AddCu node={node!!} setDirty={setDirty} />
+              </div>
+
+              <Accordion>
+
+                <>
+                  {controlUnits.map((cu, index) => (
+
+                    <Accordion.Item key={index} eventKey={index.toString()}>
+                      <Accordion.Header> {cu.name} id: {cu.id}
+                        {
+                          //isAlive(cu.networkId)
+                        }
+                      </Accordion.Header>
+                      <Accordion.Body>
+                        <ListGroup>
+                          <ListGroup.Item variant="secondary">
+                            NetworkId: {cu.networkId}
+                          </ListGroup.Item>
+                          <ListGroup.Item variant="secondary">
+                            Name: {cu.name}
+                          </ListGroup.Item>
+                          {/*
+<ListGroup.Item variant="secondary">
+                            Remaining Battery: {Math.ceil(Number(cu.remainingBattery))} %
+                          </ListGroup.Item>
+                          <ListGroup.Item variant="secondary">
+                            rssi: {Number(cu.rssi).toFixed(3)} dB
+                          </ListGroup.Item>
+                          <ListGroup.Item variant="secondary">
+                            <RemoveCu cu={cu} setDirty={setDirty} />
+                            <AddCuSettings cuNetworkId={cu.id} />
+                          </ListGroup.Item>
+
+
+
+                          */}
+                        </ListGroup>
+
+                      </Accordion.Body>
+
+                    </Accordion.Item>
+
+
+                  ))}
+                </>
+              </Accordion>
+
+            </Card.Body>
+          </Card>
+
+
           {
             //inizio MeasurementUnit
           }
@@ -323,105 +386,66 @@ const NodeInfoPage = ({ nodes }: Props) => {
             </Card.Body>
           </Card>
 
-          {
-            //inizio ControlUnit
-          }
-
-          <Card className="mt-4 shadow">
-            <Card.Body>
-
-              <div className="d-flex justify-content-between align-items-center mb-4">
-                <h3 className="mb-0">Control Units</h3>
-                <AddCu node={node!!} setDirty={setDirty} />
-              </div>
-
-              <Accordion>
-
-                <>
-                  {controlUnits.map((cu, index) => (
-
-                    <Accordion.Item key={index} eventKey={index.toString()}>
-                      <Accordion.Header> {cu.name} id: {cu.id}
-                        {
-                          //isAlive(cu.networkId)
-                        }
-                      </Accordion.Header>
-                      <Accordion.Body>
-                        <ListGroup>
-                          <ListGroup.Item variant="secondary">
-                            NetworkId: {cu.networkId}
-                          </ListGroup.Item>
-                          <ListGroup.Item variant="secondary">
-                            Name: {cu.name}
-                          </ListGroup.Item>
-                          {/*
-<ListGroup.Item variant="secondary">
-                            Remaining Battery: {Math.ceil(Number(cu.remainingBattery))} %
-                          </ListGroup.Item>
-                          <ListGroup.Item variant="secondary">
-                            rssi: {Number(cu.rssi).toFixed(3)} dB
-                          </ListGroup.Item>
-                          <ListGroup.Item variant="secondary">
-                            <RemoveCu cu={cu} setDirty={setDirty} />
-                            <AddCuSettings cuNetworkId={cu.id} />
-                          </ListGroup.Item>
-
-
-
-                          */}
-                        </ListGroup>
-
-                      </Accordion.Body>
-
-                    </Accordion.Item>
-
-
-                  ))}
-                </>
-              </Accordion>
-
-            </Card.Body>
-          </Card>
-
-          {
-            //inizio DCC
-            /*
-             *
-             *
-            
-
-            <Card className="mt-4 shadow">
-            <Card.Body>
-              <h3>DCCs</h3>
-              <>
-                <ListGroup>
-                  <>
-                    {measurementUnits
-                      //.slice() // per evitare mutazioni se measurementUnits viene da uno state
-                      .sort((a, b) => a.id - b.id)
-                      .map((mu, index) => (
-
-                        <div key={mu.id}>
-                          <DccMu mu={mu} expiration={"2025-12-31"} setDirty={setDirty}></DccMu>
-
-                        </div>
-                      ))}
-                  </>
-                </ListGroup>
-              </>
-
-
-            </Card.Body>
-          </Card>
-
-
-             *
-             * */
-          }
 
 
         </Col>
       </Row>
+
+
+
+      {/* --- NUOVA SEZIONE: DASHBOARD GRAFICI IN FONDO --- */}
+      <Row className="mt-5">
+        <Col xs={12}>
+          <Card className="shadow border-0">
+            <Card.Header className="bg-dark text-white py-3">
+              <h3 className="mb-0">📊 Analytics & Sensor Trends</h3>
+            </Card.Header>
+            <Card.Body className="bg-light">
+              <Row>
+                {measurementUnits.map((mu) => (
+                  <div key={`charts-mu-${mu.id}`} className="w-100">
+                    <h5 className="mt-4 mb-3 border-bottom pb-2">MU Unit: {mu.networkId}</h5>
+                    <Row>
+                      {/* Grafici dei Sensori Ambientali */}
+                      {mu.sensors && mu.sensors.map((sensor) => (
+                        <Col md={4} key={`chart-s-${sensor.id}`} className="mb-4">
+                          <ChartPreviewCard
+                            nodeId={mu.networkId}
+                            unit={getUnitLabel(sensor.unitCode)}
+                            setDirty={() => setDirty(true)}
+                          />
+                        </Col>
+                      ))}
+
+                      {/* Grafici di Diagnostica (RSSI) */}
+                      <Col md={4} className="mb-4">
+                        <ChartPreviewCard
+                          nodeId={mu.networkId}
+                          unit="LoRa RSSI"
+                          setDirty={() => setDirty(true)}
+                        />
+                      </Col>
+
+                      {mu.model >= 100 && (
+                        <Col md={4} className="mb-4">
+                          <ChartPreviewCard
+                            nodeId={mu.networkId}
+                            unit="BLE RSSI"
+                            setDirty={() => setDirty(true)}
+                          />
+                        </Col>
+                      )}
+                    </Row>
+                  </div>
+                ))}
+              </Row>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+
+
+
     </Container>
   );
 };
