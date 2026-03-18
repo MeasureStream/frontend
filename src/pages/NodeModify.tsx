@@ -167,7 +167,11 @@ const NodeInfoPage = ({ nodes }: Props) => {
             </Card.Body>
           </Card>
 
-          <Card className="shadow">
+
+          {// PARTE REAL TIME MEASURES
+            /*
+             
+            <Card className="shadow">
             <Card.Body>
               <Card.Title className="mb-4">Real Time Measures</Card.Title>
               <div className="measures-container">
@@ -176,66 +180,68 @@ const NodeInfoPage = ({ nodes }: Props) => {
                     <div key={`mu-${mu.id}`} className="mb-5 pb-3 border-bottom">
                       <h5 className="text-primary">MU NetworkID: {mu.networkId}</h5>
 
-                      {/* 1. Ciclo dei Sensori Fisici (Temp, Accel, ecc.) */}
-                      <h6 className="mt-3 text-muted small uppercase">Environment Sensors</h6>
-                      {mu.sensors && mu.sensors.map((sensor) => (
-                        <Card.Text key={`sensor-${sensor.id}`} className="my-2">
-                          <div className="d-flex justify-content-between align-items-center mb-1">
-                            <span className="badge bg-primary">
-                              {sensor.type} (Idx: {sensor.sensorIndex})
-                            </span>
-                            <span className="fw-bold">{getUnitLabel(sensor.unitCode)}</span>
-                          </div>
-                          <ShowChart
-                            nodeId={mu.networkId}
-                            unit={getUnitLabel(sensor.unitCode)}
-                            setDirty={() => setDirty(true)}
-                          />
-                        </Card.Text>
-                      ))}
-
-                      {/* 2. Grafici di Diagnostica Radio (System Measures) */}
-                      <h6 className="mt-4 text-muted small uppercase">Network Diagnostics</h6>
-
-                      {/* Sempre visibile: LoRA RSSI */}
-                      <Card.Text className="my-2">
-                        <div className="d-flex justify-content-between align-items-center mb-1">
-                          <span className="badge bg-secondary">LoRa RSSI</span>
-                          <span className="fw-bold">dBm</span>
-                        </div>
-                        <ShowChart
-                          nodeId={mu.networkId}
-                          unit="LoRa RSSI"
-                          setDirty={() => setDirty(true)}
-                        />
-                      </Card.Text>
-
-                      {/* Visibile solo se model >= 100: BLE RSSI */}
-                      {mu.model >= 100 && (
-                        <Card.Text className="my-2">
-                          <div className="d-flex justify-content-between align-items-center mb-1">
-                            <span className="badge bg-info text-dark">BLE RSSI</span>
-                            <span className="fw-bold">dBm</span>
-                          </div>
-                          <ShowChart
-                            nodeId={mu.networkId}
-                            unit="BLE RSSI"
-                            setDirty={() => setDirty(true)}
-                          />
-                        </Card.Text>
-                      )}
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-muted">No measurements available.</p>
-                )}
+          <h6 className="mt-3 text-muted small uppercase">Environment Sensors</h6>
+          {mu.sensors && mu.sensors.map((sensor) => (
+            <Card.Text key={`sensor-${sensor.id}`} className="my-2">
+              <div className="d-flex justify-content-between align-items-center mb-1">
+                <span className="badge bg-primary">
+                  {sensor.type} (Idx: {sensor.sensorIndex})
+                </span>
+                <span className="fw-bold">{getUnitLabel(sensor.unitCode)}</span>
               </div>
-            </Card.Body>
-          </Card>
+              <ShowChart
+                nodeId={mu.networkId}
+                unit={getUnitLabel(sensor.unitCode)}
+                setDirty={() => setDirty(true)}
+              />
+            </Card.Text>
+          ))}
+
+          <h6 className="mt-4 text-muted small uppercase">Network Diagnostics</h6>
+
+          <Card.Text className="my-2">
+            <div className="d-flex justify-content-between align-items-center mb-1">
+              <span className="badge bg-secondary">LoRa RSSI</span>
+              <span className="fw-bold">dBm</span>
+            </div>
+            <ShowChart
+              nodeId={mu.networkId}
+              unit="LoRa RSSI"
+              setDirty={() => setDirty(true)}
+            />
+          </Card.Text>
+
+          {mu.model >= 100 && (
+            <Card.Text className="my-2">
+              <div className="d-flex justify-content-between align-items-center mb-1">
+                <span className="badge bg-info text-dark">BLE RSSI</span>
+                <span className="fw-bold">dBm</span>
+              </div>
+              <ShowChart
+                nodeId={mu.networkId}
+                unit="BLE RSSI"
+                setDirty={() => setDirty(true)}
+              />
+            </Card.Text>
+          )}
+        </div>
+        ))
+        ) : (
+        <p className="text-muted">No measurements available.</p>
+                )}
+      </div>
+    </Card.Body>
+          </Card >
+
+            
+            
+             * */
+
+          }
 
 
 
-        </Col>
+        </Col >
 
         <Col md={8}>
           <Card className="shadow">
@@ -360,9 +366,15 @@ const NodeInfoPage = ({ nodes }: Props) => {
 
                         <ListGroup.Item className="d-flex gap-2 mt-3">
                           <RemoveMU mu={mu} setDirty={setDirty} />
-                          <Button variant="outline-success" size="sm" onClick={() => handleStart(mu.networkId)}>Start</Button>
+                          {
+                            /*
+                             <Button variant="outline-success" size="sm" onClick={() => handleStart(mu.networkId)}>Start</Button>
                           <Button variant="outline-danger" size="sm" onClick={() => handleStop(mu.networkId)}>Stop</Button>
-                          <AddMuSettings muNetworkId={mu.networkId} />
+<AddMuSettings muNetworkId={mu.networkId} />
+
+                             */
+                          }
+
                         </ListGroup.Item>
                       </ListGroup>
                     </Accordion.Body>
@@ -375,7 +387,7 @@ const NodeInfoPage = ({ nodes }: Props) => {
 
 
         </Col>
-      </Row>
+      </Row >
 
 
 
@@ -384,55 +396,65 @@ const NodeInfoPage = ({ nodes }: Props) => {
         <Col xs={12}>
           <Card className="shadow border-0">
             <Card.Header className="bg-dark text-white py-3">
-              <h3 className="mb-0">📊 Analytics & Sensor Trends</h3>
+              <h3 className="mb-0">📊 Analytics & System Health</h3>
             </Card.Header>
             <Card.Body className="bg-light">
+
+
+              {/* --- SEZIONE DIAGNOSTICA (CU) --- */}
+              <h4 className="text-danger mb-3"><i className="bi bi-broadcast"></i> Network Diagnostics (CUs)</h4>
               <Row>
-                {measurementUnits.map((mu) => (
-                  <div key={`charts-mu-${mu.id}`} className="w-100">
-                    <h5 className="mt-4 mb-3 border-bottom pb-2">MU Unit: {mu.networkId}</h5>
-                    <Row>
-                      {/* Grafici dei Sensori Ambientali */}
-                      {mu.sensors && mu.sensors.map((sensor) => (
-                        <Col md={4} key={`chart-s-${sensor.id}`} className="mb-4">
+                {controlUnits.map((cu) => (
+                  <Col md={12} key={`charts-cu-${cu.id}`} className="mb-4">
+                    <div className="p-3 bg-white rounded shadow-sm">
+                      <h5 className="mb-3 border-bottom pb-2 text-secondary">Control Unit: {cu.name} (ID: {cu.networkId})</h5>
+                      <Row>
+                        {/* Il LoRa RSSI ora è qui, agganciato alla CU */}
+                        <Col md={4} className="mb-2">
                           <ChartPreviewCard
-                            nodeId={mu.networkId}
-                            unit={getUnitLabel(sensor.unitCode)}
+                            nodeId={cu.networkId}
+                            unit="LoRa RSSI"
                             setDirty={() => setDirty(true)}
                           />
                         </Col>
-                      ))}
 
-                      {/* Grafici di Diagnostica (RSSI) */}
-                      <Col md={4} className="mb-4">
+                        {/* Se hai bisogno di altri parametri diagnostici specifici per la CU puoi aggiungerli qui */}
+                      </Row>
+                    </div>
+                  </Col>
+                ))}
+              </Row>
+
+              <hr className="my-5" />
+
+
+              {/* --- SEZIONE SENSORI (MU) --- */}
+              <h4 className="text-primary mb-3"><i className="bi bi-thermometer-half"></i> Environment Sensors (MUs)</h4>
+              {measurementUnits.map((mu) => (
+                <div key={`charts-mu-${mu.id}`} className="w-100 mb-5 p-3 bg-white rounded shadow-sm">
+                  <h5 className="mb-3 border-bottom pb-2 text-secondary">MU Unit: {mu.networkId}</h5>
+                  <Row>
+                    {mu.sensors && mu.sensors.map((sensor) => (
+                      <Col md={4} key={`chart-s-${sensor.id}`} className="mb-4">
                         <ChartPreviewCard
                           nodeId={mu.networkId}
-                          unit="LoRa RSSI"
+                          unit={getUnitLabel(sensor.unitCode)}
                           setDirty={() => setDirty(true)}
                         />
                       </Col>
+                    ))}
+                  </Row>
+                </div>
+              ))}
 
-                      {mu.model >= 100 && (
-                        <Col md={4} className="mb-4">
-                          <ChartPreviewCard
-                            nodeId={mu.networkId}
-                            unit="BLE RSSI"
-                            setDirty={() => setDirty(true)}
-                          />
-                        </Col>
-                      )}
-                    </Row>
-                  </div>
-                ))}
-              </Row>
+
+
             </Card.Body>
           </Card>
         </Col>
       </Row>
 
-
-
-    </Container>
+    </Container >
   );
 };
 
@@ -448,7 +470,7 @@ function ConfirmDelete({ onDelete, id }: { onDelete: () => void, id?: number }) 
 
   // Funzione chiamata quando si conferma l'eliminazione
   const handleDelete = () => {
-    deleteNode(xsrfToken, id).then(() => {
+    deleteNode(xsrfToken, id!!).then(() => {
       setDirty(true);
       onDelete()
     }).catch((e) => console.log("nodo non eliminato xsrf:   ", xsrfToken, e))
