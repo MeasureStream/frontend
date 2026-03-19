@@ -16,6 +16,7 @@ import redMarker from "/src/assets/marker-red.svg";
 import bluMarkerShadow from '/src/assets/marker-shadow.svg';
 import { ChartPreviewCard } from "../components/ChartPreviewCard";
 import { CuAreAlive } from "../API/SettingsAPI";
+import { RSSIBadge } from "../components/RSSIBadge";
 
 const NodeInfoPage = () => {
   const { nodeId } = useParams<{ nodeId: string }>();
@@ -146,7 +147,10 @@ const NodeInfoPage = () => {
                     <Accordion.Header>
                       <div className="w-100 d-flex justify-content-between align-items-center pe-3">
                         <span>{cu.name} <small className="text-muted ms-2">({cu.networkId})</small></span>
-                        {getStatusBadge(cu.networkId)}
+                        {
+                          //getStatusBadge(cu.networkId)
+                        }
+                        <RSSIBadge networkId={measurementUnits[0].networkId} fallbackNetworkId={measurementUnits[1].networkId} />
                       </div>
                     </Accordion.Header>
                     <Accordion.Body className="bg-light">
