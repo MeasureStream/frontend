@@ -2,51 +2,30 @@ import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import { ControlUnitDTO, CuGw, getUnitLabel, MeasurementUnitDTO, NodeDTO } from "../API/interfaces";
 import { useParams } from "react-router";
-import { Button, Card, Col, Container, ListGroup, Row, Spinner } from "react-bootstrap";
+import { Button, Card, Col, Container, ListGroup, Row, Spinner, Accordion, Modal } from "react-bootstrap";
 import { deleteNode, getNodesId, getNodeUnits } from "../API/NodeAPI";
 import { getMuId } from "../API/MeasurementUnitAPI";
-import { Accordion } from "react-bootstrap";
 import { getCuId } from "../API/ControlUnitAPI";
-
-import { Modal } from "react-bootstrap";
 
 import { useAuth } from "../API/AuthContext";
 import { useNavigate } from 'react-router';
-import { AddMu, DccMu, RemoveMU } from "../components/MUsModals";
-import { AddCu, RemoveCu } from "../components/CUsModal";
+import { AddMu, RemoveMU } from "../components/MUsModals";
+import { AddCu } from "../components/CUsModal";
 import L from "leaflet";
 import redMarker from "/src/assets/marker-red.svg";
 import bluMarkerShadow from '/src/assets/marker-shadow.svg';
-import ShowChart from "../components/ShowChart";
-import { AddCuSettings } from "../components/CuSettingModal";
 import { ChartPreviewCard } from "../components/ChartPreviewCard";
-import { CuAreAlive, getMUStartId, getMUStopId } from "../API/SettingsAPI";
-import { AddMuSettings } from "../components/AddMuSettings";
+import { CuAreAlive } from "../API/SettingsAPI";
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-
-
-interface Props {
-  nodes: NodeDTO[]
-}
-
-
-
-
-const NodeInfoPage = ({ nodes }: Props) => {
+const NodeInfoPage = () => {
   const { nodeId } = useParams<{ nodeId: string }>();
-  const id = parseInt(nodeId!!, 10);
   const [node, setNode] = useState<NodeDTO | null>(null);
   const [measurementUnits, setMeasurementUnits] = useState<MeasurementUnitDTO[]>([]);
   const [controlUnits, setControlUnits] = useState<ControlUnitDTO[]>([]);
-  const [cugw, setCugw] = useState<CuGw[]>([])
-  //const [cusettings, setCusettings] = useState<CuSettingDTO>()
-  const [nodeUnits, setNodeUnits] = useState<string[]>([]);
-  const [dirty, setDirty] = useState(true)
-  const navigate = useNavigate()
+  const [cugw, setCugw] = useState<CuGw[]>([]);
+  const [dirty, setDirty] = useState(true);
+  const navigate = useNavigate();
   const { xsrfToken } = useAuth();
-
-
 
   useEffect(() => {
     const iframe = document.createElement("iframe");
@@ -56,325 +35,127 @@ const NodeInfoPage = ({ nodes }: Props) => {
   }, []);
 
   useEffect(() => {
+    const fetchData = async () => {
+      if (!nodeId) return;
+      try {
+        const node_res = await getNodesId(Number(nodeId));
+        setNode(node_res);
 
-    console.log("DEBUG node:", node)
-    console.log("DEBUG mu:", measurementUnits)
-    console.log("xsrfToken: ", xsrfToken)
-    console.log(" dirty", dirty)
-  });
+        if (dirty) {
+          const mu = await getMuId(Number(nodeId));
+          setMeasurementUnits(mu);
 
-  useEffect(() => {
+          const cu = await getCuId(Number(nodeId));
+          setControlUnits(cu);
 
-    const fetchNodes = async () => {
-      const node_res = await getNodesId(Number(nodeId))
-      setNode(node_res)
-
-    }
-    const fetchMuCu = async () => {
-
-      if (dirty) {
-
-        const mu = await getMuId(Number(nodeId))
-        setMeasurementUnits(mu)
-
-        const cu = await getCuId((Number(nodeId)))
-        setControlUnits(cu)
-
-        const nu = await getNodeUnits(Number(nodeId))
-        setNodeUnits(nu)
-        if (xsrfToken) {
-          const _cugw = await CuAreAlive(cu.map(e => e.networkId), xsrfToken)
-          setCugw(_cugw)
-          setDirty(false)
+          if (xsrfToken && cu.length > 0) {
+            const _cugw = await CuAreAlive(cu.map(e => e.networkId), xsrfToken);
+            setCugw(_cugw);
+          }
+          setDirty(false);
         }
-
-
-
+      } catch (e) {
+        console.error("ERROR FETCHING DATA: ", e);
       }
-
-    }
-
-    fetchNodes().then(async () => await fetchMuCu()).catch(e => console.log("ERROR: ", e))
-
-  }, [dirty, xsrfToken]);
+    };
+    fetchData();
+  }, [nodeId, dirty, xsrfToken]);
 
   if (!node) {
     return (
       <Container className="text-center my-5">
         <Spinner animation="border" variant="primary" />
-        {/*<p className="mt-3">Nodo non trovato</p>*/}
       </Container>
     );
   }
 
   const redMarkerIcon = L.icon({
-    iconUrl: redMarker, // Percorso dell'icona
-    iconSize: [25, 41], // Dimensione dell'icona (modifica se necessario)
-    iconAnchor: [12, 41], // Punto dell'icona che tocca la mappa
-    popupAnchor: [1, -34], // Posizione del popup rispetto all'icona
-    shadowUrl: bluMarkerShadow,// Percorso della shadow
-    shadowSize: [41, 41], // Dimensioni della shadow
-    shadowAnchor: [12, 41], // Dove ancorare la shadow rispetto all'icona
-
+    iconUrl: redMarker,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowUrl: bluMarkerShadow,
+    shadowSize: [41, 41],
+    shadowAnchor: [12, 41],
   });
 
-  const handleDelete = () => {
-    alert("Elemento eliminato!");  // Implementa la logica di eliminazione qui
-
-    navigate("/")
+  const handleDeleteSuccess = () => {
+    navigate("/");
   };
 
-  const isAlive = (Cuid: number) => {
-    /*const c = cugw.find(e => e.cuNetworkId == Cuid)
-    if(c.gateway == null)
-        return "OFFLINE"
-    else return "ONLINE"*/
-    const c = Array.isArray(cugw) ? cugw.find(e => e.cuNetworkId === Cuid) : null;
-    if (c == null || c.gw == null) return "WARNING THIS CU IS OFFLINE  🔴";
-    return "ONLINE  🟢";
-  }
-
-  const handleStart = (id: number) => {
-
-    getMUStartId(id)
-
-  }
-
-  const handleStop = (networkId: number) => {
-
-    getMUStopId(networkId)
-  }
-
+  const getStatusBadge = (networkId: number) => {
+    const c = Array.isArray(cugw) ? cugw.find(e => e.cuNetworkId === networkId) : null;
+    return (c && c.gw)
+      ? <span className="badge bg-success ms-2">ONLINE 🟢</span>
+      : <span className="badge bg-warning text-dark ms-2">OFFLINE 🔴</span>;
+  };
 
   return (
-    <Container className="mt-5">
-      <h1 className="text-center mb-4">Node Information</h1>
-      <Row>
-        <Col md={4}>
-          <Card className="shadow">
-            <Card.Body>
-              <Card.Title>{node.name}</Card.Title>
-              <Card.Text>
-                <strong>ID:</strong> {node.id}
-              </Card.Text>
-              <Card.Text>
-                <strong>Standard:</strong> {node.standard ? "Yes" : "No"}
-              </Card.Text>
-              <Card.Text>
+    <Container fluid className="px-4 py-4 bg-light min-vh-100">
 
-                <ConfirmDelete onDelete={handleDelete} id={node.id} />
-              </Card.Text>
-            </Card.Body>
-          </Card>
-
-
-          {// PARTE REAL TIME MEASURES
-            /*
-             
-            <Card className="shadow">
-            <Card.Body>
-              <Card.Title className="mb-4">Real Time Measures</Card.Title>
-              <div className="measures-container">
-                {measurementUnits.length > 0 ? (
-                  measurementUnits.map((mu) => (
-                    <div key={`mu-${mu.id}`} className="mb-5 pb-3 border-bottom">
-                      <h5 className="text-primary">MU NetworkID: {mu.networkId}</h5>
-
-          <h6 className="mt-3 text-muted small uppercase">Environment Sensors</h6>
-          {mu.sensors && mu.sensors.map((sensor) => (
-            <Card.Text key={`sensor-${sensor.id}`} className="my-2">
-              <div className="d-flex justify-content-between align-items-center mb-1">
-                <span className="badge bg-primary">
-                  {sensor.type} (Idx: {sensor.sensorIndex})
-                </span>
-                <span className="fw-bold">{getUnitLabel(sensor.unitCode)}</span>
-              </div>
-              <ShowChart
-                nodeId={mu.networkId}
-                unit={getUnitLabel(sensor.unitCode)}
-                setDirty={() => setDirty(true)}
-              />
-            </Card.Text>
-          ))}
-
-          <h6 className="mt-4 text-muted small uppercase">Network Diagnostics</h6>
-
-          <Card.Text className="my-2">
-            <div className="d-flex justify-content-between align-items-center mb-1">
-              <span className="badge bg-secondary">LoRa RSSI</span>
-              <span className="fw-bold">dBm</span>
+      {/* --- HEADER: INFO NODO ORIZZONTALE --- */}
+      <Card className="shadow-sm border-0 mb-4 bg-white">
+        <Card.Body className="d-flex justify-content-between align-items-center py-3 px-4">
+          <div>
+            <h1 className="h3 mb-1 text-dark fw-bold">{node.name}</h1>
+            <div className="d-flex align-items-center gap-3 text-muted">
+              <span><strong>ID:</strong> {node.id}</span>
+              <span><strong>Standard:</strong> {node.standard ? "✅ Yes" : "❌ No"}</span>
+              <span className="text-primary"><i className="bi bi-geo-alt"></i> {node.location.x.toFixed(4)}, {node.location.y.toFixed(4)}</span>
             </div>
-            <ShowChart
-              nodeId={mu.networkId}
-              unit="LoRa RSSI"
-              setDirty={() => setDirty(true)}
-            />
-          </Card.Text>
+          </div>
+          <div className="d-flex gap-2">
+            <ConfirmDelete onDelete={handleDeleteSuccess} id={node.id} />
+          </div>
+        </Card.Body>
+      </Card>
 
-          {mu.model >= 100 && (
-            <Card.Text className="my-2">
-              <div className="d-flex justify-content-between align-items-center mb-1">
-                <span className="badge bg-info text-dark">BLE RSSI</span>
-                <span className="fw-bold">dBm</span>
-              </div>
-              <ShowChart
-                nodeId={mu.networkId}
-                unit="BLE RSSI"
-                setDirty={() => setDirty(true)}
-              />
-            </Card.Text>
-          )}
-        </div>
-        ))
-        ) : (
-        <p className="text-muted">No measurements available.</p>
-                )}
-      </div>
-    </Card.Body>
-          </Card >
-
-            
-            
-             * */
-
-          }
-
-
-
-        </Col >
-
-        <Col md={8}>
-          <Card className="shadow">
-            <Card.Body>
-              <h3>Map</h3>
-              <div style={{ height: "300px", width: "100%" }}>
-                <MapContainer
-                  center={[node.location.x, node.location.y]}
-                  zoom={13}
-                  style={{ height: "100%", width: "100%" }}
-                >
-                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                  <Marker position={[node.location.x, node.location.y]} icon={redMarkerIcon}>
-                    <Popup>{node.name}</Popup>
-                  </Marker>
-                </MapContainer>
-              </div>
-            </Card.Body>
+      <Row className="g-4">
+        {/* --- MAPPA: FULL WIDTH --- */}
+        <Col lg={12}>
+          <Card className="shadow-sm border-0 overflow-hidden">
+            <Card.Header className="bg-white py-3 border-0">
+              <h5 className="mb-0 text-secondary"><i className="bi bi-map me-2"></i>Geospatial Position</h5>
+            </Card.Header>
+            <div style={{ height: "350px", width: "100%" }}>
+              <MapContainer
+                center={[node.location.x, node.location.y]}
+                zoom={14}
+                style={{ height: "100%", width: "100%" }}
+              >
+                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                <Marker position={[node.location.x, node.location.y]} icon={redMarkerIcon}>
+                  <Popup>{node.name}</Popup>
+                </Marker>
+              </MapContainer>
+            </div>
           </Card>
+        </Col>
 
-
-          {
-            //inizio ControlUnit
-          }
-
-          <Card className="mt-4 shadow">
+        {/* --- COLONNA SINISTRA: CONTROL UNITS --- */}
+        <Col lg={6}>
+          <Card className="shadow-sm border-0 h-100">
+            <Card.Header className="bg-white py-3 d-flex justify-content-between align-items-center border-0">
+              <h5 className="mb-0 text-dark"><i className="bi bi-cpu me-2"></i>Control Units</h5>
+              <AddCu node={node} setDirty={setDirty} />
+            </Card.Header>
             <Card.Body>
-
-              <div className="d-flex justify-content-between align-items-center mb-4">
-                <h3 className="mb-0">Control Units</h3>
-                <AddCu node={node!!} setDirty={setDirty} />
-              </div>
-
-              <Accordion>
-
-                <>
-                  {controlUnits.map((cu, index) => (
-
-                    <Accordion.Item key={index} eventKey={index.toString()}>
-                      <Accordion.Header> {cu.name} id: {cu.id}
-                        {
-                          //isAlive(cu.networkId)
-                        }
-                      </Accordion.Header>
-                      <Accordion.Body>
-                        <ListGroup>
-                          <ListGroup.Item variant="secondary">
-                            NetworkId: {cu.networkId}
-                          </ListGroup.Item>
-                          <ListGroup.Item variant="secondary">
-                            Name: {cu.name}
-                          </ListGroup.Item>
-
-                        </ListGroup>
-
-                      </Accordion.Body>
-
-                    </Accordion.Item>
-
-
-                  ))}
-                </>
-              </Accordion>
-
-            </Card.Body>
-          </Card>
-
-
-          {
-            //inizio MeasurementUnit
-          }
-
-          <Card className="mt-4 shadow">
-            <Card.Body className="px-4" >
-              <div className="d-flex justify-content-between align-items-center mb-4">
-                <h3 className="mb-0">Measurement Units</h3>
-                <AddMu node={node!!} setDirty={setDirty} />
-
-              </div>
-
-              <Accordion>
-                {measurementUnits.map((mu, index) => (
-                  /* AGGIUNTO: Accordion.Item con eventKey obbligatoria */
-                  <Accordion.Item key={`mu-item-${mu.id}`} eventKey={index.toString()}>
+              <Accordion flush>
+                {controlUnits.map((cu, index) => (
+                  <Accordion.Item key={`cu-${cu.id}`} eventKey={index.toString()} className="border rounded mb-2 overflow-hidden">
                     <Accordion.Header>
-                      <strong>MU Network ID: {mu.networkId}</strong>
-                      <span className="ms-3 badge bg-info text-dark">Model {mu.model}</span>
+                      <div className="w-100 d-flex justify-content-between align-items-center pe-3">
+                        <span>{cu.name} <small className="text-muted ms-2">({cu.networkId})</small></span>
+                        {getStatusBadge(cu.networkId)}
+                      </div>
                     </Accordion.Header>
-
-                    <Accordion.Body>
-                      <ListGroup variant="flush">
-                        <ListGroup.Item>
-                          <strong>Network ID:</strong> {mu.networkId}
+                    <Accordion.Body className="bg-light">
+                      <ListGroup variant="flush" className="rounded shadow-sm">
+                        <ListGroup.Item className="d-flex justify-content-between">
+                          <strong>Network ID</strong> <span>{cu.networkId}</span>
                         </ListGroup.Item>
-
-                        <ListGroup.Item className="mt-2">
-                          <h6>Sensors associated:</h6>
-                          <Row className="g-2">
-                            {mu.sensors && mu.sensors.length > 0 ? (
-                              mu.sensors.map((sensor) => (
-                                <Col xs={12} key={sensor.id}>
-                                  <Card className="border-light bg-light">
-                                    <Card.Body className="py-2 px-3">
-                                      <div className="d-flex justify-content-between align-items-center">
-                                        <div>
-                                          <span className="fw-bold text-primary">#{sensor.sensorIndex}</span> - {sensor.type}
-                                          <small className="text-muted ms-2">({sensor.modelName})</small>
-                                        </div>
-                                        <span className="badge rounded-pill bg-secondary">
-                                          {getUnitLabel(sensor.unitCode)}
-                                        </span>
-                                      </div>
-                                    </Card.Body>
-                                  </Card>
-                                </Col>
-                              ))
-                            ) : (
-                              <p className="text-muted ps-3">No sensors registered for this unit.</p>
-                            )}
-                          </Row>
-                        </ListGroup.Item>
-
-                        <ListGroup.Item className="d-flex gap-2 mt-3">
-                          <RemoveMU mu={mu} setDirty={setDirty} />
-                          {
-                            /*
-                             <Button variant="outline-success" size="sm" onClick={() => handleStart(mu.networkId)}>Start</Button>
-                          <Button variant="outline-danger" size="sm" onClick={() => handleStop(mu.networkId)}>Stop</Button>
-<AddMuSettings muNetworkId={mu.networkId} />
-
-                             */
-                          }
-
+                        <ListGroup.Item className="d-flex justify-content-between">
+                          <strong>Database ID</strong> <span>{cu.id}</span>
                         </ListGroup.Item>
                       </ListGroup>
                     </Accordion.Body>
@@ -383,41 +164,74 @@ const NodeInfoPage = ({ nodes }: Props) => {
               </Accordion>
             </Card.Body>
           </Card>
-
-
-
         </Col>
-      </Row >
 
-
-
-      {/* --- NUOVA SEZIONE: DASHBOARD GRAFICI IN FONDO --- */}
-      <Row className="mt-5">
-        <Col xs={12}>
-          <Card className="shadow border-0">
-            <Card.Header className="bg-dark text-white py-3">
-              <h3 className="mb-0"> Analytics & System Health</h3>
+        {/* --- COLONNA DESTRA: MEASUREMENT UNITS --- */}
+        <Col lg={6}>
+          <Card className="shadow-sm border-0 h-100">
+            <Card.Header className="bg-white py-3 d-flex justify-content-between align-items-center border-0">
+              <h5 className="mb-0 text-dark"><i className="bi bi-thermometer-half me-2"></i>Measurement Units</h5>
+              <AddMu node={node} setDirty={setDirty} />
             </Card.Header>
-            <Card.Body className="bg-light">
+            <Card.Body>
+              <Accordion flush>
+                {measurementUnits.map((mu, index) => (
+                  <Accordion.Item key={`mu-${mu.id}`} eventKey={index.toString()} className="border rounded mb-2 overflow-hidden">
+                    <Accordion.Header>
+                      <div className="w-100 d-flex justify-content-between align-items-center pe-3">
+                        <span><strong>MU {mu.networkId}</strong></span>
+                        <span className="badge bg-info text-dark">Model {mu.model}</span>
+                      </div>
+                    </Accordion.Header>
+                    <Accordion.Body className="bg-light">
+                      <h6 className="small text-muted text-uppercase fw-bold mb-3">Sensors Associated</h6>
+                      <Row className="g-2 mb-3">
+                        {mu.sensors?.map((sensor) => (
+                          <Col xs={12} key={sensor.id}>
+                            <div className="d-flex justify-content-between align-items-center bg-white p-2 border rounded shadow-sm">
+                              <div>
+                                <span className="text-primary fw-bold me-2">#{sensor.sensorIndex}</span>
+                                <span className="text-dark">{sensor.type}</span>
+                              </div>
+                              <span className="badge rounded-pill bg-secondary">{getUnitLabel(sensor.unitCode)}</span>
+                            </div>
+                          </Col>
+                        ))}
+                      </Row>
+                      <div className="border-top pt-3 d-flex justify-content-end">
+                        <RemoveMU mu={mu} setDirty={setDirty} />
+                      </div>
+                    </Accordion.Body>
+                  </Accordion.Item>
+                ))}
+              </Accordion>
+            </Card.Body>
+          </Card>
+        </Col>
 
+        {/* --- DASHBOARD ANALYTICS IN FONDO --- */}
+        <Col xs={12}>
+          <Card className="shadow-sm border-0 mt-2 overflow-hidden">
+            <Card.Header className="bg-dark text-white py-3">
+              <h4 className="mb-0"><i className="bi bi-graph-up me-2"></i>Analytics & System Health</h4>
+            </Card.Header>
+            <Card.Body className="bg-light p-4">
 
-              {/* --- SEZIONE DIAGNOSTICA (CU) --- */}
-              <h4 className="text-danger mb-3"><i className="bi bi-broadcast"></i>Network Diagnostics (CUs)</h4>
-              <Row>
+              {/* --- DIAGNOSTICA CU --- */}
+              <h5 className="text-danger mb-4"><i className="bi bi-broadcast me-2"></i>Network Diagnostics (CUs)</h5>
+              <Row className="mb-5">
                 {controlUnits.map((cu) => (
                   <Col md={12} key={`charts-cu-${cu.id}`} className="mb-4">
-                    <div className="p-3 bg-white rounded shadow-sm">
-                      <h5 className="mb-3 border-bottom pb-2 text-secondary">Control Unit: {cu.name} (ID: {cu.networkId})</h5>
+                    <div className="p-4 bg-white rounded shadow-sm border-start border-danger border-4">
+                      <h6 className="mb-4 text-secondary fw-bold">Control Unit: {cu.name} (ID: {cu.networkId})</h6>
                       <Row>
-                        {/* Il LoRa RSSI ora è qui, agganciato alla CU */}
-                        <Col md={4} className="mb-2">
+                        <Col md={4}>
                           <ChartPreviewCard
-                            nodeId={measurementUnits[0].networkId}
+                            nodeId={measurementUnits.length > 0 ? measurementUnits[0].networkId : 0}
                             unit="LoRa RSSI"
                             setDirty={() => setDirty(true)}
                           />
                         </Col>
-
                       </Row>
                     </div>
                   </Col>
@@ -426,94 +240,76 @@ const NodeInfoPage = ({ nodes }: Props) => {
 
               <hr className="my-5" />
 
-
-              {/* --- SEZIONE SENSORI (MU) --- */}
-              <h4 className="text-primary mb-3"><i className="bi bi-thermometer-half"></i> MUs</h4>
+              {/* --- SENSORI MU --- */}
+              <h5 className="text-primary mb-4"><i className="bi bi-moisture me-2"></i>Environmental Data (MUs)</h5>
               {measurementUnits.map((mu) => (
-                <div key={`charts-mu-${mu.id}`} className="w-100 mb-5 p-3 bg-white rounded shadow-sm">
-                  <h5 className="mb-3 border-bottom pb-2 text-secondary">MU Unit: {mu.networkId}</h5>
-                  <Row>
-                    {mu.sensors && mu.sensors.map((sensor) => (
-                      <Col md={4} key={`chart-s-${sensor.id}`} className="mb-4">
+                <div key={`charts-mu-${mu.id}`} className="mb-5 p-4 bg-white rounded shadow-sm border-start border-primary border-4">
+                  <h6 className="mb-4 text-secondary fw-bold">MU Unit: {mu.networkId}</h6>
+                  <Row className="g-4">
+                    {mu.sensors?.map((sensor) => (
+                      <Col md={4} key={`chart-s-${sensor.id}`}>
                         <ChartPreviewCard
                           nodeId={mu.networkId}
                           unit={getUnitLabel(sensor.unitCode)}
                           setDirty={() => setDirty(true)}
                         />
-
                       </Col>
                     ))}
-
-                    <Col md={4} className="mb-4">
+                    <Col md={4}>
                       <ChartPreviewCard
                         nodeId={mu.networkId}
-                        unit={"BLE RSSI"}
+                        unit="BLE RSSI"
                         setDirty={() => setDirty(true)}
                       />
                     </Col>
-
                   </Row>
                 </div>
               ))}
-
-
-
             </Card.Body>
           </Card>
         </Col>
       </Row>
-
-    </Container >
+    </Container>
   );
 };
 
-
-
-// Funzione ConfirmDelete
+// --- Componente ConfirmDelete ---
 function ConfirmDelete({ onDelete, id }: { onDelete: () => void, id?: number }) {
   const [show, setShow] = useState(false);
-  const { xsrfToken, setDirty } = useAuth();  // Recupera il xsrfToken dal contesto
-  // Funzioni per mostrare/nascondere il modal
+  const { xsrfToken, setDirty } = useAuth();
+
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
 
-  // Funzione chiamata quando si conferma l'eliminazione
   const handleDelete = () => {
-    deleteNode(xsrfToken, id!!).then(() => {
+    if (!id) return;
+    deleteNode(xsrfToken, id).then(() => {
       setDirty(true);
-      onDelete()
-    }).catch((e) => console.log("nodo non eliminato xsrf:   ", xsrfToken, e))
-
+      onDelete();
+    }).catch((e) => console.log("Error deleting node: ", e));
     setShow(false);
   };
 
   return (
     <>
-      {/* Bottone che apre il modal */}
-      <Button variant="danger" onClick={handleShow}>
-        DELETE
+      <Button variant="outline-danger" className="d-flex align-items-center gap-2" onClick={handleShow}>
+        <i className="bi bi-trash"></i> DELETE NODE
       </Button>
 
-      {/* Modal di conferma */}
-      <Modal show={show} onHide={handleClose}>
-        <Modal.Header closeButton>
-          <Modal.Title>⚠️ Confirm Deletion</Modal.Title>
+      <Modal show={show} onHide={handleClose} centered>
+        <Modal.Header closeButton className="border-0">
+          <Modal.Title className="text-danger">⚠️ Confirm Deletion</Modal.Title>
         </Modal.Header>
-        <Modal.Body>Are you sure you want to delete this item?</Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleClose}>
-            ❌ Cancel
-          </Button>
-          <Button variant="danger" onClick={handleDelete}>
-            ✅ Delete
-          </Button>
+        <Modal.Body className="py-4 text-center">
+          <p className="fs-5 mb-0">Are you sure you want to delete <strong>permanently</strong> this node and all its associations?</p>
+        </Modal.Body>
+        <Modal.Footer className="border-0 pb-3">
+          <Button variant="light" onClick={handleClose}>Cancel</Button>
+          <Button variant="danger" onClick={handleDelete} className="px-4">Confirm Delete</Button>
         </Modal.Footer>
       </Modal>
     </>
   );
 }
 
-
-
 export default NodeInfoPage;
-
