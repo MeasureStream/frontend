@@ -396,13 +396,13 @@ const NodeInfoPage = ({ nodes }: Props) => {
         <Col xs={12}>
           <Card className="shadow border-0">
             <Card.Header className="bg-dark text-white py-3">
-              <h3 className="mb-0">📊 Analytics & System Health</h3>
+              <h3 className="mb-0"> Analytics & System Health</h3>
             </Card.Header>
             <Card.Body className="bg-light">
 
 
               {/* --- SEZIONE DIAGNOSTICA (CU) --- */}
-              <h4 className="text-danger mb-3"><i className="bi bi-broadcast"></i> Network Diagnostics (CUs)</h4>
+              <h4 className="text-danger mb-3"><i className="bi bi-broadcast"></i>Network Diagnostics (CUs)</h4>
               <Row>
                 {controlUnits.map((cu) => (
                   <Col md={12} key={`charts-cu-${cu.id}`} className="mb-4">
@@ -412,13 +412,12 @@ const NodeInfoPage = ({ nodes }: Props) => {
                         {/* Il LoRa RSSI ora è qui, agganciato alla CU */}
                         <Col md={4} className="mb-2">
                           <ChartPreviewCard
-                            nodeId={cu.networkId}
+                            nodeId={measurementUnits[0].networkId}
                             unit="LoRa RSSI"
                             setDirty={() => setDirty(true)}
                           />
                         </Col>
 
-                        {/* Se hai bisogno di altri parametri diagnostici specifici per la CU puoi aggiungerli qui */}
                       </Row>
                     </div>
                   </Col>
@@ -429,7 +428,7 @@ const NodeInfoPage = ({ nodes }: Props) => {
 
 
               {/* --- SEZIONE SENSORI (MU) --- */}
-              <h4 className="text-primary mb-3"><i className="bi bi-thermometer-half"></i> Environment Sensors (MUs)</h4>
+              <h4 className="text-primary mb-3"><i className="bi bi-thermometer-half"></i> MUs</h4>
               {measurementUnits.map((mu) => (
                 <div key={`charts-mu-${mu.id}`} className="w-100 mb-5 p-3 bg-white rounded shadow-sm">
                   <h5 className="mb-3 border-bottom pb-2 text-secondary">MU Unit: {mu.networkId}</h5>
@@ -441,8 +440,18 @@ const NodeInfoPage = ({ nodes }: Props) => {
                           unit={getUnitLabel(sensor.unitCode)}
                           setDirty={() => setDirty(true)}
                         />
+
                       </Col>
                     ))}
+
+                    <Col md={4} className="mb-4">
+                      <ChartPreviewCard
+                        nodeId={mu.networkId}
+                        unit={"BLE RSSI"}
+                        setDirty={() => setDirty(true)}
+                      />
+                    </Col>
+
                   </Row>
                 </div>
               ))}
