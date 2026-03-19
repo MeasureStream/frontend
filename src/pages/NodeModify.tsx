@@ -224,14 +224,15 @@ const NodeInfoPage = () => {
               {/* --- DIAGNOSTICA CU --- */}
               <h5 className="text-danger mb-4"><i className="bi bi-broadcast me-2"></i>Network Diagnostics (CUs)</h5>
               <Row className="mb-5">
-                {controlUnits.map((cu) => (
+                {measurementUnits.map((cu) => (
                   <Col md={12} key={`charts-cu-${cu.id}`} className="mb-4">
                     <div className="p-4 bg-white rounded shadow-sm border-start border-danger border-4">
-                      <h6 className="mb-4 text-secondary fw-bold">Control Unit: {cu.name} (ID: {cu.networkId})</h6>
+                      <h6 className="mb-4 text-secondary fw-bold">Control Unit: {controlUnits[0].name} (ID: {controlUnits[0].networkId})</h6>
                       <Row>
                         <Col md={4}>
                           <ChartPreviewCard
-                            nodeId={measurementUnits.length > 0 ? measurementUnits[0].networkId : 0}
+                            nodeId={cu.networkId}
+                            //nodeId={measurementUnits.length > 0 ? measurementUnits[0].networkId : 0}
                             unit="LoRa RSSI"
                             setDirty={() => setDirty(true)}
                           />
