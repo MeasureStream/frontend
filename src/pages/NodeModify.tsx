@@ -151,7 +151,7 @@ const NodeInfoPage = () => {
                           //getStatusBadge(cu.networkId)
                           measurementUnits.length > 0 ?
 
-                            <RSSIBadge networkId={measurementUnits[0].networkId} fallbackNetworkId={measurementUnits[1].networkId} />
+                            <RSSIBadge networkId={measurementUnits[0].networkId} fallbackNetworkId={measurementUnits.length > 1 ? measurementUnits[1].networkId : undefined} />
                             :
                             <></>
                         }
