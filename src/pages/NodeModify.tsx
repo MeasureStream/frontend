@@ -149,8 +149,12 @@ const NodeInfoPage = () => {
                         <span>{cu.name} <small className="text-muted ms-2">({cu.networkId})</small></span>
                         {
                           //getStatusBadge(cu.networkId)
+                          measurementUnits.length > 0 ?
+
+                            <RSSIBadge networkId={measurementUnits[0].networkId} fallbackNetworkId={measurementUnits[1].networkId} />
+                            :
+                            <></>
                         }
-                        <RSSIBadge networkId={measurementUnits[0].networkId} fallbackNetworkId={measurementUnits[1].networkId} />
                       </div>
                     </Accordion.Header>
                     <Accordion.Body className="bg-light">
