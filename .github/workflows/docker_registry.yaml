@@ -2,7 +2,7 @@ name: Build & Push Frontend Docker Image
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "feature/remove-nodes"]
 
 jobs:
   build:
@@ -41,8 +41,10 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/frontend-react:latest
-            ${{ secrets.DOCKER_USERNAME }}/frontend-react:${{ steps.version.outputs.VERSION }}
+            ${{ github.ref_name == 'main' && format('christiand9699/frontend-react:latest,christiand9699/frontend-react:main,christiand9699/frontend-react:{0}', steps.version.outputs.VERSION) || '' }}
+            ${{ github.ref_name == 'feature/remove-nodes' && format('christiand9699/frontend-react:latest-nonodes,christiand9699/frontend-react:nonodes,christiand9699/frontend-react-nonodes:{0}', steps.version.outputs.VERSION) || '' }}
+      # ${{ secrets.DOCKER_USERNAME }}/frontend-react:latest
+      # ${{ secrets.DOCKER_USERNAME }}/frontend-react:${{ steps.version.outputs.VERSION }}
 
       # Build e push DEV
       - name: Build and push DEV Docker image
@@ -57,5 +59,7 @@ jobs:
           build-args: |
             VITE_API_URL=https://dev.christiandellisanti.uk
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/frontend-react:latest-dev
-            ${{ secrets.DOCKER_USERNAME }}/frontend-react:${{ steps.version.outputs.VERSION }}-dev
+            ${{ github.ref_name == 'main' && format('christiand9699/frontend-react:latest-dev,christiand9699/frontend-react:dev,christiand9699/frontend-react:{0}-dev', steps.version.outputs.VERSION) || '' }}
+
+          #  ${{ secrets.DOCKER_USERNAME }}/frontend-react:latest-dev
+          #  ${{ secrets.DOCKER_USERNAME }}/frontend-react:${{ steps.version.outputs.VERSION }}-dev
