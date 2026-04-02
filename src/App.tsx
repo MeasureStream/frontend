@@ -109,7 +109,8 @@ function App() {
                 <ControlUnitsPage controlUnits={controlUnits} /> :
                 <LandingPageENG />} />
 
-            <Route path="/cus/:cuid" element={<ControlUnitDetail allControlUnits={controlUnits} />} />
+            <Route path="/cus/:id" element={<ControlUnitDetail allControlUnits={controlUnits} />} />
+
           </Routes>
         </Container>
 
