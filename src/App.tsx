@@ -1,160 +1,127 @@
 import MyNavbar from "./components/MyNavbar";
-import Map from "./components/Map";
-import {Col, Container} from "react-bootstrap";
-import Nodes from "./pages/Nodes";
-import {BrowserRouter as Router, Route, Routes} from "react-router";
-import AddNode from "./pages/AddNode";
-import {useEffect, useState} from "react";
-import {CalibratorDTO, MeInterface, NodeDTO, UserDTO} from "./API/interfaces";
-import {getAllNodes} from "./API/NodeAPI";
-import {getMe} from "./API/MeAPI";
+import { Container } from "react-bootstrap";
+import { BrowserRouter as Router, Route, Routes } from "react-router";
+import { useEffect, useState } from "react";
+import { ControlUnitDTO, MeInterface, UserDTO } from "./API/interfaces";
+import { getMe } from "./API/MeAPI";
 import LandingPageENG from "./pages/LandingPageENG";
-import NodeInfoPage from "./pages/NodeModify"
+import { getAllCu } from "./API/ControlUnitAPI";
 
 import { useAuth } from "./API/AuthContext";
 import Measures from "./pages/Measures";
-import Dcc from "./pages/Dcc";
-import CreateNodePage from "./pages/CreateNode";
-import CreateMeasurementUnitPage from "./pages/CreateMeasurementUnitPage";
-import CreateControlUnitPage from "./pages/CreateControlUnitPage";
-import CreateUserPage from "./pages/CreateUserPage";
 import MeasurementUnitPage from "./pages/MeasurementUnitPage";
-import ControlUnitsPage from "./pages/ControlUnitsPage";
-import Calibrators from "./pages/calibrators-admin";
-import {getAllCalibrators} from "./API/CalibratorAPI";
+import { ControlUnitsPage } from "./pages/ContolUnitsPage/ControlUnitsPage";
 
 function App() {
-    const { xsrfToken, setXsrfToken, dirty, setDirty , role, setRole, setUser} = useAuth(); // Usa il contesto
-    const [nodes, setNodes] = useState<NodeDTO[]>([])
-    const [calibrators, setCalibrators] = useState<CalibratorDTO[]>([])
-    //const [dirty, setDirty] = useState(true)
-    const [me , setMe] = useState<MeInterface>({
-        name:"",
-        loginUrl: "",
-        principal: "",
-        xsrfToken: "",
-        logoutUrl:""
-    })
+  const { xsrfToken, setXsrfToken, dirty, setDirty, role, setRole, setUser } = useAuth(); // Usa il contesto
+  const [controlUnits, setControlUnits] = useState<ControlUnitDTO[]>([])
 
-    useEffect(() => {
-        console.log("DEBUG me: ",me)
-        console.log("DEBUG nodes:", nodes)
-    });
+  //const [dirty, setDirty] = useState(true)
+  const [me, setMe] = useState<MeInterface>({
+    name: "",
+    loginUrl: "",
+    principal: "",
+    xsrfToken: "",
+    logoutUrl: ""
+  })
 
-    useEffect( () => {
-        const fetchNodes = async () => {
-            if(dirty){
+  useEffect(() => {
+    console.log("DEBUG me: ", me)
+  });
 
-                try {
-                    const resMe = await getMe()
-                    const me_ = await resMe.json() as MeInterface
+  useEffect(() => {
+    const fetch = async () => {
+      if (dirty) {
 
-                    if(me_.principal != null ){
-                        const role = me_.principal.claims.realm_access.roles.includes("app-admin") ? "ADMIN" : "USER"
-                        console.log("this is my role:   ", role)
-                        setRole(role)
+        try {
+          const resMe = await getMe()
+          const me_ = await resMe.json() as MeInterface
 
-                        const name = me_.principal.userInfo.claims.given_name
-                        const surname = me_.principal.userInfo.claims.family_name
-                        const email = me_.principal.userInfo.claims.email
-                        const userId = me_.principal.userInfo.claims.sub
-                        const actual_user:UserDTO = {
-                            name:name,
-                            surname: surname,
-                            email:email,
-                            userId:userId
-                        }
-                        console.log("userDTO: ", actual_user)
-                        setUser(actual_user)
+          if (me_.principal != null) {
+            const role = me_.principal.claims.realm_access.roles.includes("app-admin") ? "ADMIN" : "USER"
+            console.log("this is my role:   ", role)
+            setRole(role)
 
-                        if(role == "ADMIN") {
-                            setCalibrators(await getAllCalibrators() )
-                        }
+            const name = me_.principal.userInfo.claims.given_name
+            const surname = me_.principal.userInfo.claims.family_name
+            const email = me_.principal.userInfo.claims.email
+            const userId = me_.principal.userInfo.claims.sub
+            const actual_user: UserDTO = {
+              name: name,
+              surname: surname,
+              email: email,
+              userId: userId
+            }
+            console.log("userDTO: ", actual_user)
+            setUser(actual_user)
 
-                    }else{
-                        setRole("ANONYMOUS")
-                    }
-
-
-                    setMe( {... me_} )
-                    //console.log("me_:", me_)
-                    if (me_.xsrfToken) {
-                        setXsrfToken(me_.xsrfToken);
-                    }
-
-
-                    if(me_.name != "") {
-                        const res = await getAllNodes()
-
-                        if (!res.ok) {
-                            throw new Error(`Errore HTTP: ${res.status} ${res.statusText}`);
-                        }
-
-
-                        const nodes_fetch = await res.json() as NodeDTO[]
-                        setNodes( nodes_fetch )
-                        setDirty(false)
-
-                        //const idToken = me_.principal.idToken.tokenValue;
-                        //localStorage.setItem('idToken', idToken);
-                    }
-
-
-
-
-
-                } catch (error) {
-                    console.error("Errore nel fetching dei nodi:", (error as Error).message);
-                    setNodes([])
-                }
-
+            if (role == "ADMIN") {
+              //setCalibrators(await getAllCalibrators())
             }
 
+          } else {
+            setRole("ANONYMOUS")
+          }
+
+
+          setMe({ ...me_ })
+          //console.log("me_:", me_)
+          if (me_.xsrfToken) {
+            setXsrfToken(me_.xsrfToken);
+          }
+
+
+          if (me_.name !== "") {
+            try {
+              const cu_fetch = await getAllCu();
+
+              setControlUnits(cu_fetch);
+              setDirty(false);
+            } catch (err) {
+              console.error("Errore durante il caricamento delle CU:", err);
+              setControlUnits([]);
+            }
+          }
+
+
+
+
+        } catch (error) {
+          console.error("Errore nel fetching :", (error as Error).message);
+
         }
-        fetchNodes()
-    }, [dirty])
+
+      }
+
+    }
+    fetch()
+  }, [dirty])
 
   return (
-      <>
+    <>
 
 
-              <Router basename={"/ui"} >
-                  <MyNavbar   me={me} />
-                  <Container fluid>
-                      <Routes>
-                          <Route path="/" element={
-                              me.name?
-                                  role == "ADMIN"?
-                                        <Calibrators calibrators={calibrators}/>
-                                      :
-                                        <Nodes nodes={ nodes}/>
-                                  :
-                                  <LandingPageENG/> } />
-                          <Route path="/add" element={<AddNode/> } />
-                          <Route path="/nodes/:nodeId" element={  <NodeInfoPage  nodes = { nodes} />  } />
-                          <Route path="/measures" element={  <Measures/> } />
-                          <Route path="/dcc" element={  <Dcc/> } />
-                          <Route path="/create-node" element={  <CreateNodePage/> } />
-                          <Route path="/create-mu" element={  <CreateMeasurementUnitPage/> } />
-                          <Route path="/create-cu" element={  <CreateControlUnitPage/> } />
-                          {
-                              //<Route path="/create-user" element={<CreateUserPage/>}/>
-                               }
-                          { role == "ADMIN" ?
-                              <Route path="/nodes" element={  <Nodes nodes={ nodes}/> } />
-                              :
-                              <></>
-                          }
-                          <Route path="/mus" element={<MeasurementUnitPage /> }/>
-                          <Route path="/cus" element={<ControlUnitsPage />}/>
+      <Router basename={"/ui"} >
+        <MyNavbar me={me} />
+        <Container fluid>
+          <Routes>
+            <Route path="/" element={
+              me.name ?
+
+                <ControlUnitsPage controlUnits={controlUnits} /> :
+
+                <LandingPageENG />} />
+
+            <Route path="/measures" element={<Measures />} />
+            <Route path="/mus" element={<MeasurementUnitPage />} />
 
 
-                          {/* Add more routes here as needed */}
-                      </Routes>
-                  </Container>
-              </Router>
+            {/* Add more routes here as needed */}
+          </Routes>
+        </Container>
+      </Router>
 
-      </>
+    </>
 
   )
 }
