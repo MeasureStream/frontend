@@ -9,6 +9,7 @@ export interface ControlUnitDTO {
   dataRate: number;
   usedDC: number;
   hasGPS: boolean;
+  location: Point | null;
   maxMU: number;
   // Parametri di configurazione
   setting1: number;
