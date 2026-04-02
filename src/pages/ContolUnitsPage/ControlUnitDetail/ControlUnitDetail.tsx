@@ -1,11 +1,12 @@
-import { Container, Row, Col, Card, Badge, ListGroup, Table, ProgressBar } from "react-bootstrap";
+import { Container, Row, Col, Card, Badge, ListGroup, ProgressBar } from "react-bootstrap";
 import { BsCpu, BsGear, BsThermometerHalf, BsDroplet, BsSpeedometer, BsToggles } from "react-icons/bs";
 import { ControlUnitDTO, formatDevEui } from "../../../API/interfaces";
-import { useParams, } from "react-router";
+import { useParams } from "react-router";
 import { useMemo } from "react";
+import ChartPreviewCard from "../../../components/ChartPreviewCard";
+
 
 export function ControlUnitDetail({ allControlUnits }: { allControlUnits: ControlUnitDTO[] }) {
-
   const { id } = useParams<{ id: string }>();
 
   const cu = useMemo(() =>
@@ -13,7 +14,11 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
     [allControlUnits, id]
   );
 
-  // Helper per icona sensore in base al tipo
+  // Stub per la funzione setDirty richiesta dalla card
+  const handleSetDirty = () => {
+    console.log("Data marked as dirty");
+  };
+
   const getSensorIcon = (type: string) => {
     switch (type) {
       case 'temperature': return <BsThermometerHalf className="text-danger" />;
@@ -24,13 +29,11 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
     }
   };
 
-  if (cu == undefined) {
-    return (<h1>CU non trovata</h1>)
-  }
+  if (!cu) return <Container className="py-5"><h1>CU non trovata</h1></Container>;
 
   return (
     <Container className="py-4">
-      {/* Header: Stato Generale CU */}
+      {/* --- HEADER CU --- */}
       <Card className="mb-4 border-0 shadow-sm">
         <Card.Body className="bg-light">
           <Row className="align-items-center">
@@ -58,8 +61,8 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
         </Card.Body>
       </Card>
 
-      {/* Dettagli Tecnici LoRaWAN */}
-      <Row className="mb-4">
+      {/* --- PARAMETRI RADIO & CONFIG --- */}
+      <Row className="mb-4 g-3">
         <Col md={4}>
           <Card className="h-100 border-0 shadow-sm">
             <Card.Header className="bg-white fw-bold">Parametri Radio</Card.Header>
@@ -68,7 +71,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
                 <span>RSSI</span> <strong>{cu.rssi} dBm</strong>
               </ListGroup.Item>
               <ListGroup.Item className="d-flex justify-content-between">
-                <span>Spreading Factor</span> <strong>SF{cu.spreadingFactor || 7}</strong>
+                <span>SF</span> <strong>SF{cu.spreadingFactor || 7}</strong>
               </ListGroup.Item>
               <ListGroup.Item className="d-flex justify-content-between">
                 <span>Bandwidth</span> <strong>{cu.bandwidth} kHz</strong>
@@ -80,20 +83,22 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
           <Card className="h-100 border-0 shadow-sm">
             <Card.Header className="bg-white fw-bold">Configurazione</Card.Header>
             <Card.Body>
-              <Row>
-                <Col xs={6} mb={2}>
-                  <small className="text-muted d-block">Polling Interval</small>
+              <Row className="text-center h-100 align-items-center">
+                <Col xs={6} md={3}>
+                  <small className="text-muted d-block">Polling</small>
                   <strong>{cu.pollingInterval}s</strong>
                 </Col>
-                <Col xs={6} mb={2}>
-                  <small className="text-muted d-block">Transmission Power</small>
+                <Col xs={6} md={3}>
+                  <small className="text-muted d-block">TX Power</small>
                   <strong>{cu.transmissionPower} dBm</strong>
                 </Col>
-                <Col xs={6}>
+                <Col xs={6} md={3}>
                   <small className="text-muted d-block">GPS</small>
-                  <strong>{cu.hasGPS ? "Attivo" : "No"}</strong>
+                  <Badge bg={cu.hasGPS ? "info" : "light"} className={cu.hasGPS ? "" : "text-muted border"}>
+                    {cu.hasGPS ? "ON" : "OFF"}
+                  </Badge>
                 </Col>
-                <Col xs={6}>
+                <Col xs={6} md={3}>
                   <small className="text-muted d-block">Data Rate</small>
                   <strong>DR{cu.dataRate}</strong>
                 </Col>
@@ -103,49 +108,63 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
         </Col>
       </Row>
 
-      {/* Measurement Units e Sensori */}
-      <h4 className="mb-3 mt-5 d-flex align-items-center gap-2">
-        <BsToggles /> Unità di Misura Associate
+      <h4 className="mb-4 mt-5 d-flex align-items-center gap-2">
+        <BsToggles className="text-primary" /> Measurement Units
       </h4>
 
+      {/* --- CICLO MEASUREMENT UNITS --- */}
       {cu.measurementUnits.map((mu: any) => (
-        <div key={mu.id} className="mb-5">
-          <div className="d-flex align-items-center gap-2 mb-3 bg-dark text-white p-2 rounded">
-            <BsCpu /> <strong>MU ExtendedID: {mu.extendedId} (Modello: {mu.model})</strong>
+        <div key={mu.id} className="mb-5 p-3 rounded shadow-sm border bg-white">
+          <div className="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom">
+            <div className="d-flex align-items-center gap-2">
+              <BsCpu className="text-primary" />
+              <h5 className="mb-0 font-monospace">MU ExtendedID: {mu.extendedId}</h5>
+            </div>
+            <Badge bg="dark">Modello: {mu.model}</Badge>
           </div>
 
-          <Row>
+          <Row className="g-4">
             {mu.sensors.map((sensor: any) => (
-              <Col key={sensor.id} lg={6} className="mb-3">
-                <Card className="border-0 shadow-sm hover-shadow transition">
+              <Col key={sensor.id} lg={6}>
+                <Card className="border-0 bg-light h-100 shadow-sm">
                   <Card.Body>
-                    <div className="d-flex justify-content-between border-bottom pb-2 mb-3">
+                    <div className="d-flex justify-content-between align-items-center mb-3">
                       <div className="d-flex align-items-center gap-2">
                         {getSensorIcon(sensor.sensorTemplate.type)}
                         <span className="fw-bold">{sensor.modelName}</span>
                       </div>
-                      <Badge bg="outline-primary" className="text-primary border border-primary">
-                        Index: {sensor.sensorIndex}
+                      <Badge pill bg="white" className="text-primary border border-primary">
+                        Ch: {sensor.sensorIndex}
                       </Badge>
                     </div>
 
-                    <Row className="text-center">
+                    <Row className="text-center mb-4 py-2 bg-white rounded mx-0 shadow-xs">
                       <Col>
-                        <div className="display-6 fw-bold text-primary">
+                        <div className="h2 mb-0 fw-bold text-primary">
                           {sensor.physVal.toFixed(2)}
                         </div>
-                        <small className="text-muted text-uppercase">{sensor.sensorTemplate.unit}</small>
+                        <small className="text-muted text-uppercase fw-bold">
+                          {sensor.sensorTemplate.unit}
+                        </small>
                       </Col>
                       <Col className="border-start">
-                        <div className="h4 mb-0">{sensor.elecVal.toFixed(2)}</div>
-                        <small className="text-muted">Valore Elettrico</small>
+                        <div className="h4 mb-0 text-dark">{sensor.elecVal.toFixed(2)}</div>
+                        <small className="text-muted">Elettrico (V)</small>
                       </Col>
                     </Row>
 
-                    <div className="mt-3 pt-3 border-top">
-                      <small className="text-muted">
-                        Frequenza Campionamento: <strong>{sensor.samplingF} Hz</strong>
-                      </small>
+                    {/* --- GRAFICO ASSOCIATO ALL'EXTENDED ID DELLA MU --- */}
+                    <div className="mt-2">
+                      <ChartPreviewCard
+                        nodeId={mu.extendedId} // <-- Qui usiamo l'ID della Measurement Unit
+                        unit={sensor.sensorTemplate.unit}
+                        setDirty={handleSetDirty}
+                      />
+                    </div>
+
+                    <div className="mt-3 pt-2 border-top d-flex justify-content-between small text-muted">
+                      <span>Freq. Campionamento: <strong>{sensor.samplingF} Hz</strong></span>
+                      <span>Tipo: {sensor.sensorTemplate.type}</span>
                     </div>
                   </Card.Body>
                 </Card>
