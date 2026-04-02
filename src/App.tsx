@@ -9,6 +9,7 @@ import { getAllCu } from "./API/ControlUnitAPI";
 
 import { useAuth } from "./API/AuthContext";
 import { ControlUnitsPage } from "./pages/ContolUnitsPage/ControlUnitsPage";
+import { ControlUnitDetail } from "./pages/ContolUnitsPage/ControlUnitDetail/ControlUnitDetail";
 
 function App() {
   const { xsrfToken, setXsrfToken, dirty, setDirty, role, setRole, setUser } = useAuth(); // Usa il contesto
@@ -105,16 +106,13 @@ function App() {
           <Routes>
             <Route path="/" element={
               me.name ?
-
                 <ControlUnitsPage controlUnits={controlUnits} /> :
-
                 <LandingPageENG />} />
 
-
-
-            {/* Add more routes here as needed */}
+            <Route path="/cus/:cuid" element={<ControlUnitDetail allControlUnits={controlUnits} />} />
           </Routes>
         </Container>
+
       </Router>
 
     </>
