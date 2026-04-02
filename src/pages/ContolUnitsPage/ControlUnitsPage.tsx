@@ -1,26 +1,28 @@
 import { Container, Row, Col, Card, Badge, ProgressBar } from "react-bootstrap";
 import { BsSignal, BsBatteryFull, BsCpu, BsArrowRight } from "react-icons/bs";
 import { Link } from "react-router";
-import { ControlUnitDTO } from "../../API/interfaces";
+import { ControlUnitDTO, formatDevEui } from "../../API/interfaces";
 
 export function ControlUnitsPage({ controlUnits }: { controlUnits: ControlUnitDTO[] }) {
   return (
     <Container className="py-4">
       <header className="mb-4">
-        <h1>Benvenuto, ecco le tue Centraline</h1>
+        <h1>Benvenuto, ecco le tue Control Units</h1>
         <p className="text-muted">Monitoraggio in tempo reale del network LoRaWAN</p>
       </header>
 
       <Row>
         {controlUnits.map((cu) => (
           <Col key={cu.id} xs={12} lg={6} xl={4} className="mb-4">
-            <Card className="shadow-sm border-0 hover-shadow transition">
+            <Card className="shadow-sm border-0 hover-ggVGshadow transition">
               <Card.Body>
                 <div className="d-flex justify-content-between align-items-start mb-3">
                   <div>
                     <Card.Title className="h5 mb-0">{cu.name}</Card.Title>
-                    <small className="text-muted">EUI: {cu.devEui}</small>
-                  </div>
+                    {/* Visualizzazione HEX formattata */}
+                    <code className="text-primary small" style={{ fontSize: '0.85rem' }}>
+                      {formatDevEui(cu.devEui)}
+                    </code>                  </div>
                   <Badge pill bg={cu.status === 1 ? "success" : "secondary"}>
                     {cu.status === 1 ? "Online" : "Offline"}
                   </Badge>

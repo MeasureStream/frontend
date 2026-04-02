@@ -139,3 +139,11 @@ export const getUnitLabel = (unitCode: number | undefined): string => {
       return `Unit(${unitCode})`; // Fallback per codici sconosciuti
   }
 };
+
+export const formatDevEui = (eui: number | string): string => {
+  // Converte in Hex e assicura che sia lungo 16 caratteri (padding con zeri)
+  let hex = BigInt(eui).toString(16).toUpperCase().padStart(16, '0');
+
+  // Aggiunge i due punti ogni 2 caratteri: 00:04:A3...
+  return hex.match(/.{1,2}/g)?.join(':') || hex;
+};
