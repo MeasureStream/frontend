@@ -8,8 +8,6 @@ import LandingPageENG from "./pages/LandingPageENG";
 import { getAllCu } from "./API/ControlUnitAPI";
 
 import { useAuth } from "./API/AuthContext";
-import Measures from "./pages/Measures";
-import MeasurementUnitPage from "./pages/MeasurementUnitPage";
 import { ControlUnitsPage } from "./pages/ContolUnitsPage/ControlUnitsPage";
 
 function App() {
@@ -112,8 +110,6 @@ function App() {
 
                 <LandingPageENG />} />
 
-            <Route path="/measures" element={<Measures />} />
-            <Route path="/mus" element={<MeasurementUnitPage />} />
 
 
             {/* Add more routes here as needed */}
