@@ -1,5 +1,5 @@
 import { Container, Row, Col, Card, Badge, ListGroup, ProgressBar } from "react-bootstrap";
-import { BsCpu, BsGear, BsThermometerHalf, BsDroplet, BsSpeedometer, BsToggles } from "react-icons/bs";
+import { BsCpu, BsGear, BsThermometerHalf, BsDroplet, BsSpeedometer, BsToggles, BsActivity } from "react-icons/bs";
 import { ControlUnitDTO, formatDevEui } from "../../../API/interfaces";
 import { useParams } from "react-router";
 import { useMemo } from "react";
@@ -31,6 +31,9 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
 
   if (!cu) return <Container className="py-5"><h1>CU non trovata</h1></Container>;
 
+  const airtimeLimit = 30000;
+  const airtimePercentage = Math.min((cu.usedDailyAirtime / airtimeLimit) * 100, 100);
+
   return (
     <Container className="py-4">
       {/* --- HEADER CU --- */}
@@ -40,12 +43,13 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
             <Col md={8}>
               <div className="d-flex align-items-center gap-3">
                 <h2 className="mb-0">{cu.name}</h2>
-                <Badge bg={cu.status === 1 ? "success" : "secondary"}>
-                  {cu.status === 1 ? "ONLINE" : "OFFLINE"}
-                </Badge>
-              </div>
+                {/* Badge Stato Dinamico */}
+                <Badge bg={cu.lastSeen ? "success" : "secondary"}>
+                  {cu.lastSeen ? "ATTIVA" : "NOT ACTIVATED"}
+                </Badge>              </div>
               <p className="text-muted mb-0 mt-1">
                 EUI: <code className="fw-bold">{formatDevEui(cu.devEui)}</code> |
+                Ultimo contatto: <strong>{cu.lastSeen ? new Date(cu.lastSeen).toLocaleString() : "N/D"}</strong> |
                 Location: {cu.semanticLocation || "Non definita"}
               </p>
             </Col>
@@ -61,8 +65,37 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
         </Card.Body>
       </Card>
 
-      {/* --- PARAMETRI RADIO & CONFIG --- */}
+
+
+
       <Row className="mb-4 g-3">
+        {/* NETWORK HEALTH */}
+        <Col md={4}>
+          <Card className="h-100 border-0 shadow-sm">
+            <Card.Header className="bg-white fw-bold d-flex align-items-center gap-2">
+              <BsActivity className="text-primary" /> Network Health
+            </Card.Header>
+            <Card.Body>
+              <div className="mb-3">
+                <div className="d-flex justify-content-between small mb-1">
+                  <span>Daily Airtime (TTN Limit)</span>
+                  <span className="fw-bold">{(cu.usedDailyAirtime / 1000).toFixed(2)}s / 30s</span>
+                </div>
+                <ProgressBar
+                  now={airtimePercentage}
+                  variant={airtimePercentage > 80 ? "danger" : airtimePercentage > 50 ? "warning" : "info"}
+                  style={{ height: '10px' }}
+                />
+              </div>
+              <div className="d-flex justify-content-between border-top pt-2">
+                <small className="text-muted">Last Airtime</small>
+                <strong className="small">{(cu.lastAirtime * 1000).toFixed(0)} ms</strong>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+        {/* --- PARAMETRI RADIO & CONFIG --- */}
+
         <Col md={4}>
           <Card className="h-100 border-0 shadow-sm">
             <Card.Header className="bg-white fw-bold">Parametri Radio</Card.Header>

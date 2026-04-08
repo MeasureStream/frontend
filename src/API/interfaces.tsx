@@ -21,7 +21,13 @@ export interface ControlUnitDTO {
   spreadingFactor: number;
   codingRate: string;
   frequency: number;
-  // Relazioni
+  lastSeen: string | null;
+
+  // Airtime totale giornaliero in ms (Soglia TTN: 30000)
+  usedDailyAirtime: number;
+
+  // Airtime dell'ultimo pacchetto in secondi (es: 0.051456)
+  lastAirtime: number;  // Relazioni
   measurementUnits: MeasurementUnitDTO[];
 }
 
