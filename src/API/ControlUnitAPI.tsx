@@ -31,12 +31,14 @@ async function getAllCu(page?: number, size?: number) {
 }
 
 
-
 export const getControlUnitById = async (id: number): Promise<ControlUnitDTO> => {
   const response = await fetch(`${API_URL}?id=${id}`);
-  if (!response.ok) throw new Error("Errore nel recupero della CU");
-  return await response.json();
+  const data = await response.json();
+  // Se l'API restituisce un array [ {...} ], prendi il primo elemento
+  return Array.isArray(data) ? data[0] : data;
 };
+
+
 async function getAllAvailableCuList() {
 
   const url = `${API_URL}/available`;
