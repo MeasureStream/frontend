@@ -104,15 +104,26 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
                 <span>RSSI</span> <strong>{cu.rssi} dBm</strong>
               </ListGroup.Item>
               <ListGroup.Item className="d-flex justify-content-between">
+                <span>TX Power</span>  <strong>{cu.transmissionPower} dBm</strong>
+
+              </ListGroup.Item>
+              <ListGroup.Item className="d-flex justify-content-between">
+                <span>Data Rate</span> <strong>DR{cu.dataRate}</strong>
+
+              </ListGroup.Item>
+              {
+                /*
+                 <ListGroup.Item className="d-flex justify-content-between">
                 <span>SF</span> <strong>SF{cu.spreadingFactor || 7}</strong>
               </ListGroup.Item>
               <ListGroup.Item className="d-flex justify-content-between">
                 <span>Bandwidth</span> <strong>{cu.bandwidth} kHz</strong>
               </ListGroup.Item>
-            </ListGroup>
+                 * */
+              }            </ListGroup>
           </Card>
         </Col>
-        <Col md={8}>
+        <Col md={3}>
           <Card className="h-100 border-0 shadow-sm">
             <Card.Header className="bg-white fw-bold">Configurazione</Card.Header>
             <Card.Body>
@@ -122,18 +133,10 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
                   <strong>{cu.pollingInterval}s</strong>
                 </Col>
                 <Col xs={6} md={3}>
-                  <small className="text-muted d-block">TX Power</small>
-                  <strong>{cu.transmissionPower} dBm</strong>
-                </Col>
-                <Col xs={6} md={3}>
                   <small className="text-muted d-block">GPS</small>
                   <Badge bg={cu.hasGPS ? "info" : "light"} className={cu.hasGPS ? "" : "text-muted border"}>
                     {cu.hasGPS ? "ON" : "OFF"}
                   </Badge>
-                </Col>
-                <Col xs={6} md={3}>
-                  <small className="text-muted d-block">Data Rate</small>
-                  <strong>DR{cu.dataRate}</strong>
                 </Col>
               </Row>
             </Card.Body>
