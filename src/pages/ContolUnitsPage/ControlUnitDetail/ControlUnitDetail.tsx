@@ -1,5 +1,5 @@
 import { Container, Row, Col, Card, Badge, ListGroup, ProgressBar } from "react-bootstrap";
-import { BsCpu, BsGear, BsThermometerHalf, BsDroplet, BsSpeedometer, BsToggles, BsActivity } from "react-icons/bs";
+import { BsCpu, BsGear, BsThermometerHalf, BsDroplet, BsSpeedometer, BsToggles, BsActivity, BsBroadcast } from "react-icons/bs";
 import { ControlUnitDTO, formatDevEui } from "../../../API/interfaces";
 import { useParams } from "react-router";
 import { useEffect, useState } from "react";
@@ -61,110 +61,93 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
   return (
     <Container className="py-4">
       {/* --- HEADER CU --- */}
-      <Card className="mb-4 border-0 shadow-sm">
-        <Card.Body className="bg-light">
-          <Row className="align-items-center">
-            <Col md={8}>
-              <div className="d-flex align-items-center gap-3">
-                <h2 className="mb-0">{cu.name}</h2>
-                {/* Badge Stato Dinamico */}
-                <Badge bg={cu.lastSeen ? "success" : "secondary"}>
-                  {cu.lastSeen ? "ATTIVA" : "NOT ACTIVATED"}
-                </Badge>              </div>
-              <p className="text-muted mb-0 mt-1">
-                EUI: <code className="fw-bold">{formatDevEui(cu.devEui)}</code> |
-                Ultimo contatto: <strong>{cu.lastSeen ? new Date(cu.lastSeen).toLocaleString() : "N/D"}</strong> |
-                Location: {cu.semanticLocation || "Non definita"}
-              </p>
-            </Col>
-            <Col md={4} className="text-md-end mt-3 mt-md-0">
-              <div className="small text-muted mb-1">Batteria: {cu.remainingBattery}%</div>
-              <ProgressBar
-                now={cu.remainingBattery}
-                variant={cu.remainingBattery < 20 ? "danger" : "success"}
-                style={{ height: '8px' }}
-              />
-            </Col>
-          </Row>
-        </Card.Body>
-      </Card>
+      {/* --- HEADER MINIMAL --- */}
+      <div className="d-flex justify-content-between align-items-end mb-4 px-2">
+        <div>
+          <div className="d-flex align-items-center gap-2 mb-1">
+            <h2 className="fw-bold mb-0" style={{ letterSpacing: '-0.5px' }}>{cu.name}</h2>
+            <Badge pill bg={cu.lastSeen ? "success" : "secondary"} style={{ fontSize: '0.65rem', verticalAlign: 'middle' }}>
+              {cu.lastSeen ? "ACTIVE" : "INACTIVE"}
+            </Badge>
+          </div>
+          <small className="text-muted font-monospace">
+            EUI: {cu.devEui ? formatDevEui(cu.devEui) : "N/D"} • {cu.semanticLocation || "No Location"}
+          </small>
+        </div>
+        <div className="text-end" style={{ minWidth: '150px' }}>
+          <div className="d-flex justify-content-between mb-1">
+            <small className="fw-bold text-muted" style={{ fontSize: '0.75rem' }}>BATTERY</small>
+            <small className="fw-bold" style={{ fontSize: '0.75rem' }}>{cu.remainingBattery}%</small>
+          </div>
+          <ProgressBar now={cu.remainingBattery} variant={cu.remainingBattery < 20 ? "danger" : "success"} style={{ height: '4px' }} className="bg-light border" />
+        </div>
+      </div>
 
-
-
-
-      <Row className="mb-4 g-3">
-        {/* NETWORK HEALTH */}
+      {/* --- METRICS GRID (PIÙ PULITA) --- */}
+      <Row className="g-3 mb-5">
+        {/* Network Health */}
         <Col md={4}>
-          <Card className="h-100 border-0 shadow-sm">
-            <Card.Header className="bg-white fw-bold d-flex align-items-center gap-2">
-              <BsActivity className="text-primary" /> Network Health
-            </Card.Header>
-            <Card.Body>
-              <div className="mb-3">
-                <div className="d-flex justify-content-between small mb-1">
-                  <span>Daily Airtime (TTN Limit)</span>
-                  <span className="fw-bold">{(cu.usedDailyAirtime / 1000).toFixed(2)}s / 30s</span>
-                </div>
-                <ProgressBar
-                  now={airtimePercentage}
-                  variant={airtimePercentage > 80 ? "danger" : airtimePercentage > 50 ? "warning" : "info"}
-                  style={{ height: '10px' }}
-                />
+          <div className="p-3 bg-white rounded shadow-sm border-0 h-100">
+            <div className="d-flex align-items-center gap-2 mb-3 text-primary">
+              <BsActivity size={18} />
+              <span className="fw-bold small text-uppercase">Network Health</span>
+            </div>
+            <div className="mb-3">
+              <div className="d-flex justify-content-between mb-1" style={{ fontSize: '0.85rem' }}>
+                <span className="text-muted">Airtime Limit</span>
+                <span className="fw-bold">{(cu.usedDailyAirtime / 1000).toFixed(2)}s / 30s</span>
               </div>
-              <div className="d-flex justify-content-between border-top pt-2">
-                <small className="text-muted">Last Airtime</small>
-                <strong className="small">{(cu.lastAirtime * 1000).toFixed(0)} ms</strong>
-              </div>
-            </Card.Body>
-          </Card>
+              <ProgressBar now={airtimePercentage} variant={airtimePercentage > 80 ? "danger" : "info"} style={{ height: '6px' }} rounded-pill />
+            </div>
+            <div className="d-flex justify-content-between small opacity-75">
+              <span>Last contact:</span>
+              <span className="fw-bold">{cu.lastSeen ? new Date(cu.lastSeen.endsWith('Z') ? cu.lastSeen : cu.lastSeen + 'Z').toLocaleString('it-IT', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "N/D"}</span>
+            </div>
+          </div>
         </Col>
-        {/* --- PARAMETRI RADIO & CONFIG --- */}
 
+        {/* Radio Params */}
         <Col md={4}>
-          <Card className="h-100 border-0 shadow-sm">
-            <Card.Header className="bg-white fw-bold">Parametri Radio</Card.Header>
-            <ListGroup variant="flush">
-              <ListGroup.Item className="d-flex justify-content-between">
-                <span>RSSI</span> <strong>{cu.rssi} dBm</strong>
-              </ListGroup.Item>
-              <ListGroup.Item className="d-flex justify-content-between">
-                <span>TX Power</span>  <strong>{cu.transmissionPower} dBm</strong>
-
-              </ListGroup.Item>
-              <ListGroup.Item className="d-flex justify-content-between">
-                <span>Data Rate</span> <strong>DR{cu.dataRate}</strong>
-
-              </ListGroup.Item>
-              {
-                /*
-                 <ListGroup.Item className="d-flex justify-content-between">
-                <span>SF</span> <strong>SF{cu.spreadingFactor || 7}</strong>
-              </ListGroup.Item>
-              <ListGroup.Item className="d-flex justify-content-between">
-                <span>Bandwidth</span> <strong>{cu.bandwidth} kHz</strong>
-              </ListGroup.Item>
-                 * */
-              }            </ListGroup>
-          </Card>
+          <div className="p-3 bg-white rounded shadow-sm border-0 h-100">
+            <div className="d-flex align-items-center gap-2 mb-3 text-success">
+              <BsBroadcast size={18} />
+              <span className="fw-bold small text-uppercase">Radio Signals</span>
+            </div>
+            <Row className="g-2 text-center">
+              <Col xs={4}>
+                <div className="text-muted tiny text-uppercase" style={{ fontSize: '0.65rem' }}>RSSI</div>
+                <div className="fw-bold">{cu.rssi} <small>dBm</small></div>
+              </Col>
+              <Col xs={4} className="border-start border-end">
+                <div className="text-muted tiny text-uppercase" style={{ fontSize: '0.65rem' }}>DR</div>
+                <div className="fw-bold">DR{cu.dataRate}</div>
+              </Col>
+              <Col xs={4}>
+                <div className="text-muted tiny text-uppercase" style={{ fontSize: '0.65rem' }}>Power</div>
+                <div className="fw-bold">{cu.transmissionPower} <small>dBm</small></div>
+              </Col>
+            </Row>
+          </div>
         </Col>
+
+        {/* Config Summary */}
         <Col md={4}>
-          <Card className="h-100 border-0 shadow-sm">
-            <Card.Header className="bg-white fw-bold">Configurazione</Card.Header>
-            <Card.Body>
-              <Row className="text-center h-100 align-items-center">
-                <Col xs={6} md={2}>
-                  <small className="text-muted d-block">Polling</small>
-                  <strong>{cu.pollingInterval}s</strong>
-                </Col>
-                <Col xs={6} md={2}>
-                  <small className="text-muted d-block">GPS</small>
-                  <Badge bg={cu.hasGPS ? "info" : "light"} className={cu.hasGPS ? "" : "text-muted border"}>
-                    {cu.hasGPS ? "ON" : "OFF"}
-                  </Badge>
-                </Col>
-              </Row>
-            </Card.Body>
-          </Card>
+          <div className="p-3 bg-white rounded shadow-sm border-0 h-100">
+            <div className="d-flex align-items-center gap-2 mb-3 text-secondary">
+              <BsGear size={18} />
+              <span className="fw-bold small text-uppercase">Configuration</span>
+            </div>
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <span className="small text-muted">Polling Rate:</span>
+              <Badge bg="light" className="text-dark border font-monospace">{cu.pollingInterval}s</Badge>
+            </div>
+            <div className="d-flex justify-content-between align-items-center">
+              <span className="small text-muted">GPS Module:</span>
+              <Badge bg={cu.hasGPS ? "info" : "light"} className={cu.hasGPS ? "text-white" : "text-muted border"}>
+                {cu.hasGPS ? "ENABLED" : "DISABLED"}
+              </Badge>
+            </div>
+          </div>
         </Col>
       </Row>
 
