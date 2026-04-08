@@ -1,4 +1,4 @@
-import { ControlUnitDTO, MeasurementUnitDTO } from "./interfaces";
+import { ControlUnitDTO, } from "./interfaces";
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 const API_URL = `${BASE_URL}/API/controlunits`;
 
@@ -32,23 +32,11 @@ async function getAllCu(page?: number, size?: number) {
 
 
 
-async function getCuId(id: number) {
-
-  const url = `${API_URL}/nodeid/?nodeId=${id}`;
-
-  const response = await fetch(url, {
-    method: 'GET',
-    headers: {
-      //'X-XSRF-TOKEN': me.xsrfToken,
-      'Content-Type': 'application/json'
-    },
-  })
-  if (!response.ok) {
-    throw new Error(`Error get CU id: ${id}  ${response.status} ${response.statusText}`);
-  }
-
-  return await response.json() as ControlUnitDTO[]
-}
+export const getControlUnitById = async (id: number): Promise<ControlUnitDTO> => {
+  const response = await fetch(`${API_URL}?id=${id}`);
+  if (!response.ok) throw new Error("Errore nel recupero della CU");
+  return await response.json();
+};
 async function getAllAvailableCuList() {
 
   const url = `${API_URL}/available`;
@@ -156,7 +144,6 @@ async function DeleteCu(xsrfToken: string | null, cu: ControlUnitDTO) {
 
 }
 
-
 async function getfirstavailableCU() {
   const response = await fetch(API_URL + "/firstavailable", {
     method: 'GET',
@@ -208,4 +195,4 @@ export const getLatestLoraRSSIValue = async (nodeId: number): Promise<number | n
   }
 };
 
-export { getCuId, CreateCu, EditCu, getAllAvailableCuList, getAllCu, DeleteCu, getfirstavailableCU, CreateCuAdmin }
+export { CreateCu, EditCu, getAllAvailableCuList, getAllCu, DeleteCu, getfirstavailableCU, CreateCuAdmin }

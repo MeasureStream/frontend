@@ -2,18 +2,40 @@ import { Container, Row, Col, Card, Badge, ListGroup, ProgressBar } from "react-
 import { BsCpu, BsGear, BsThermometerHalf, BsDroplet, BsSpeedometer, BsToggles, BsActivity } from "react-icons/bs";
 import { ControlUnitDTO, formatDevEui } from "../../../API/interfaces";
 import { useParams } from "react-router";
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
 import ChartPreviewCard from "../../../components/ChartPreviewCard";
+import { getControlUnitById } from "../../../API/ControlUnitAPI";
 
 
 export function ControlUnitDetail({ allControlUnits }: { allControlUnits: ControlUnitDTO[] }) {
   const { id } = useParams<{ id: string }>();
+  const cuId = Number(id);
 
-  const cu = useMemo(() =>
-    allControlUnits.find(unit => unit.id === Number(id)),
-    [allControlUnits, id]
-  );
+  // Stato locale per gestire l'aggiornamento della singola CU
+  const [currentCU, setCurrentCU] = useState<ControlUnitDTO | null>(null);
 
+  // Inizializzazione: se allControlUnits cambia o l'ID cambia, cerchiamo la CU
+  useEffect(() => {
+    const found = allControlUnits.find(unit => unit.id === cuId);
+    if (found) setCurrentCU(found);
+  }, [allControlUnits, cuId]);
+
+  // Funzione di refresh specifica per QUESTA unità
+  const refreshSingleCU = async () => {
+    try {
+      const updatedCU = await getControlUnitById(cuId);
+      setCurrentCU(updatedCU);
+      console.log(`Dati aggiornati per CU ${cuId} alle ${new Date().toLocaleTimeString()}`);
+    } catch (err) {
+      console.error("Refresh fallito:", err);
+    }
+  };
+
+  // Polling ogni minuto
+  useEffect(() => {
+    const interval = setInterval(refreshSingleCU, 60000);
+    return () => clearInterval(interval);
+  }, [cuId]);
   // Stub per la funzione setDirty richiesta dalla card
   const handleSetDirty = () => {
     console.log("Data marked as dirty");
@@ -28,6 +50,8 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
       default: return <BsCpu />;
     }
   };
+
+  const cu = currentCU;
 
   if (!cu) return <Container className="py-5"><h1>CU non trovata</h1></Container>;
 
@@ -123,16 +147,16 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
               }            </ListGroup>
           </Card>
         </Col>
-        <Col md={3}>
+        <Col md={4}>
           <Card className="h-100 border-0 shadow-sm">
             <Card.Header className="bg-white fw-bold">Configurazione</Card.Header>
             <Card.Body>
               <Row className="text-center h-100 align-items-center">
-                <Col xs={6} md={3}>
+                <Col xs={6} md={2}>
                   <small className="text-muted d-block">Polling</small>
                   <strong>{cu.pollingInterval}s</strong>
                 </Col>
-                <Col xs={6} md={3}>
+                <Col xs={6} md={2}>
                   <small className="text-muted d-block">GPS</small>
                   <Badge bg={cu.hasGPS ? "info" : "light"} className={cu.hasGPS ? "" : "text-muted border"}>
                     {cu.hasGPS ? "ON" : "OFF"}
