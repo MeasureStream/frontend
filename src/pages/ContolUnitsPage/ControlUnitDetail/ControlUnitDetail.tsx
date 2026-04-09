@@ -162,8 +162,8 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
               />
             </div>
             <div className="d-flex justify-content-between align-items-center mb-2">
-              <span className="small text-muted">Polling Rate:</span>
-              <Badge bg="light" className="text-dark border font-monospace">{cu.pollingInterval}s</Badge>
+              <span className="small text-muted">Polling Interval:</span>
+              <Badge bg="light" className="text-dark border font-monospace">{cu.pollingInterval} h</Badge>
             </div>
             <div className="d-flex justify-content-between align-items-center">
               <span className="small text-muted">GPS Module:</span>

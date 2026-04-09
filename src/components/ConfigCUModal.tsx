@@ -1,28 +1,26 @@
 import { useState } from "react";
 import { Modal, Badge } from "react-bootstrap";
-import { BsGearFill, BsCpu } from "react-icons/bs";
-
-
-
+import { BsGearFill, BsCpu, BsClockHistory } from "react-icons/bs";
+import { ControlUnitDTO } from "../API/interfaces";
 
 interface ConfigProps {
-  cu: any; // Qui usa il tuo tipo ControlUnitDTO
+  cu: ControlUnitDTO;
   show: boolean;
   onHide: () => void;
   handleSetDirty: () => void;
 }
 
 export function ConfigCUModal({ cu, show, onHide, handleSetDirty }: ConfigProps) {
-  // Inizializziamo lo stato con i valori attuali della CU
-  const [pollingRate, setPollingRate] = useState(cu.pollingRate || 1);
+  // Inizializziamo lo stato con il valore in ore (default 1h se non presente)
+  const [pollingInterval, setPollingInterval] = useState(cu.pollingInterval || 1);
   const [loading, setLoading] = useState(false);
 
   const handleSave = async () => {
     setLoading(true);
     try {
-      // Esempio di invio: usiamo cu.id per l'endpoint
-      // await updateCU(cu.id, { pollingRate });
-      console.log(`Salvataggio CU ID ${cu.id}: Polling Rate ${pollingRate}Hz`);
+      // Endpoint ipotetico usando l'intervallo in ore
+      // await updateCU(cu.id, { pollingInterval: pollingInterval });
+      console.log(`Salvataggio CU ID ${cu.id}: Polling Interval impostato a ${pollingInterval} ore`);
 
       handleSetDirty();
       onHide();
@@ -49,17 +47,19 @@ export function ConfigCUModal({ cu, show, onHide, handleSetDirty }: ConfigProps)
             <BsCpu size={20} />
           </div>
           <div className="small">
-            <div className="fw-bold">ID: {cu.extendedId}</div>
-            <div className="text-muted">Model: {cu.modelName}</div>
+            <div className="fw-bold">ID: {cu.devEui}</div>
+            <div className="text-muted">Model: {cu.model}</div>
           </div>
         </div>
 
-        {/* SEZIONE POLLING RATE */}
+        {/* SEZIONE POLLING INTERVAL (ORE) */}
         <div className="mb-4">
           <div className="d-flex justify-content-between align-items-center mb-2">
-            <label className="fw-bold text-dark small text-uppercase">Polling Rate</label>
-            <Badge bg="primary-subtle" className="text-primary px-2 py-1">
-              {pollingRate} Hz
+            <label className="fw-bold text-dark small text-uppercase d-flex align-items-center gap-2">
+              <BsClockHistory /> Polling Interval
+            </label>
+            <Badge bg="primary" className="px-2 py-1">
+              {pollingInterval} {pollingInterval === 1 ? 'ora' : 'ore'}
             </Badge>
           </div>
 
@@ -67,24 +67,24 @@ export function ConfigCUModal({ cu, show, onHide, handleSetDirty }: ConfigProps)
             type="range"
             className="form-range custom-range"
             min="1"
-            max="120"
+            max="256"
             step="1"
-            value={pollingRate}
-            onChange={(e) => setPollingRate(parseInt(e.target.value))}
+            value={pollingInterval}
+            onChange={(e) => setPollingInterval(parseInt(e.target.value))}
           />
 
           <div className="d-flex justify-content-between mt-1 text-muted px-1" style={{ fontSize: '0.7rem' }}>
-            <span>1 Hz (Lento)</span>
-            <span>120 Hz (Veloce)</span>
+            <span>1h (Frequente)</span>
+            <span>256h (Risparmio)</span>
           </div>
         </div>
 
-        {/* ALTRE INFO DI SOLA LETTURA (Esempio di utilità del passare tutto l'oggetto) */}
+        {/* STATO E NOTA TECNICA */}
         <div className="p-3 bg-primary bg-opacity-10 rounded-4 border border-primary-subtle">
-          <h6 className="small fw-bold text-primary mb-2 text-uppercase">Stato Attuale</h6>
-          <div className="d-flex justify-content-between small">
-            <span className="text-muted">Firmware Version:</span>
-            <span className="fw-bold">{cu.fwVersion || "v1.0.4"}</span>
+          <h6 className="small fw-bold text-primary mb-2 text-uppercase">Info Trasmissione</h6>
+
+          <div className="text-primary" style={{ fontSize: '0.75rem' }}>
+            * L'unità si risveglierà ogni <strong>{pollingInterval} {pollingInterval === 1 ? 'ora' : 'ore'}</strong> per trasmettere i dati campionati.
           </div>
         </div>
       </Modal.Body>
