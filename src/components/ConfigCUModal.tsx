@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Modal, Badge } from "react-bootstrap";
-import { BsGearFill, BsCpu, BsClockHistory } from "react-icons/bs";
+import { BsGearFill, BsCpu, BsClockHistory, BsBroadcast } from "react-icons/bs";
 import { ControlUnitDTO } from "../API/interfaces";
 
 interface ConfigProps {
@@ -84,9 +84,19 @@ export function ConfigCUModal({ cu, show, onHide, handleSetDirty }: ConfigProps)
           <h6 className="small fw-bold text-primary mb-2 text-uppercase">Info Trasmissione</h6>
 
           <div className="text-primary" style={{ fontSize: '0.75rem' }}>
-            * L'unità si risveglierà ogni <strong>{pollingInterval} {pollingInterval === 1 ? 'ora' : 'ore'}</strong> per trasmettere i dati campionati.
+            * L'unità si risveglierà ogni <strong>{pollingInterval} {pollingInterval === 1 ? 'ora' : 'ore'}</strong> per trasmettere il suo stato.
           </div>
         </div>
+
+        <div className="p-3 bg-warning bg-opacity-10 rounded-4 border border-warning-subtle">
+          <div className="d-flex gap-2">
+            <BsBroadcast className="text-warning mt-1" size={14} />
+            <div className="text-warning-emphasis" style={{ fontSize: '0.75rem', lineHeight: '1.2' }}>
+              <strong>Sincronizzazione remota:</strong> Il comando è stato messo in coda. L'unità caricherà i nuovi parametri durante la <strong>prossima connessione utile</strong>; la configurazione sarà pienamente operativa entro le 24 ore successive.
+            </div>
+          </div>
+        </div>
+
       </Modal.Body>
 
       <Modal.Footer className="border-0 p-4 pt-0">
