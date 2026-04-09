@@ -4,6 +4,7 @@ import { ControlUnitDTO, formatDevEui } from "../../../API/interfaces";
 import { useParams } from "react-router";
 import { useEffect, useState } from "react";
 import ChartPreviewCard from "../../../components/ChartPreviewCard";
+import { ChartModalButton } from "../../../components/ChartModalButton";
 import { getControlUnitById } from "../../../API/ControlUnitAPI";
 
 
@@ -101,7 +102,14 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
             </div>
             <div className="d-flex justify-content-between small opacity-75">
               <span>Last contact:</span>
-              <span className="fw-bold">{cu.lastSeen ? new Date(cu.lastSeen.endsWith('Z') ? cu.lastSeen : cu.lastSeen + 'Z').toLocaleString('it-IT', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "N/D"}</span>
+              <span className="fw-bold">{cu.lastSeen ? new Date(cu.lastSeen.endsWith('Z') ? cu.lastSeen : cu.lastSeen + 'Z').toLocaleString('it-IT', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+              }) : "N/D"}</span>
             </div>
           </div>
         </Col>
@@ -161,9 +169,9 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
           <div className="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom">
             <div className="d-flex align-items-center gap-2">
               <BsCpu className="text-primary" />
-              <h5 className="mb-0 font-monospace">MU ExtendedID: {mu.extendedId}</h5>
+              <h5 className="mb-0 font-monospace">MU: {mu.extendedId}</h5>
             </div>
-            <Badge bg="dark">Modello: {mu.model}</Badge>
+            <Badge bg="dark" className="fw-normal">Model: {mu.model}</Badge>
           </div>
 
           <Row className="g-4">
@@ -176,38 +184,38 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
                         {getSensorIcon(sensor.sensorTemplate.type)}
                         <span className="fw-bold">{sensor.modelName}</span>
                       </div>
-                      <Badge pill bg="white" className="text-primary border border-primary">
-                        Ch: {sensor.sensorIndex}
-                      </Badge>
+
+                      <div className="d-flex align-items-center gap-2">
+                        {/* IL NUOVO BOTTONE MINIMALISTA */}
+                        <ChartModalButton
+                          nodeId={mu.extendedId}
+                          unit={sensor.sensorTemplate.unit}
+                          setDirty={handleSetDirty}
+                        />
+                        <Badge pill bg="white" className="text-primary border border-primary px-2">
+                          Ch: {sensor.sensorIndex}
+                        </Badge>
+                      </div>
                     </div>
 
-                    <Row className="text-center mb-4 py-2 bg-white rounded mx-0 shadow-xs">
+                    <Row className="text-center mb-1 py-2 bg-white rounded mx-0 border shadow-sm">
                       <Col>
                         <div className="h2 mb-0 fw-bold text-primary">
                           {sensor.physVal.toFixed(2)}
                         </div>
-                        <small className="text-muted text-uppercase fw-bold">
+                        <small className="text-muted text-uppercase fw-bold" style={{ fontSize: '0.7rem' }}>
                           {sensor.sensorTemplate.unit}
                         </small>
                       </Col>
                       <Col className="border-start">
                         <div className="h4 mb-0 text-dark">{sensor.elecVal.toFixed(2)}</div>
-                        <small className="text-muted">Elettrico (V)</small>
+                        <small className="text-muted" style={{ fontSize: '0.7rem' }}>Elec. (V)</small>
                       </Col>
                     </Row>
 
-                    {/* --- GRAFICO ASSOCIATO ALL'EXTENDED ID DELLA MU --- */}
-                    <div className="mt-2">
-                      <ChartPreviewCard
-                        nodeId={mu.extendedId} // <-- Qui usiamo l'ID della Measurement Unit
-                        unit={sensor.sensorTemplate.unit}
-                        setDirty={handleSetDirty}
-                      />
-                    </div>
-
-                    <div className="mt-3 pt-2 border-top d-flex justify-content-between small text-muted">
-                      <span>Freq. Campionamento: <strong>{sensor.samplingF} Hz</strong></span>
-                      <span>Tipo: {sensor.sensorTemplate.type}</span>
+                    <div className="mt-3 pt-2 border-top d-flex justify-content-between small text-muted" style={{ fontSize: '0.75rem' }}>
+                      <span>Sampling: <strong>{sensor.samplingF} Hz</strong></span>
+                      <span className="text-uppercase">{sensor.sensorTemplate.type}</span>
                     </div>
                   </Card.Body>
                 </Card>
@@ -215,7 +223,6 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
             ))}
           </Row>
         </div>
-      ))}
-    </Container>
+      ))}    </Container>
   );
 }
