@@ -199,7 +199,7 @@ export const getLatestLoraRSSIValue = async (nodeId: number): Promise<number | n
 };
 
 async function ConfigureCu(xsrfToken: string | null, command: CUConfigCommandDTO) {
-  const url = `${API_URL}/configure`;
+  const url = `${API_URL}/polling`;
 
   const response = await fetch(url, {
     method: 'POST',
