@@ -4,6 +4,7 @@ import { BsGearFill, BsCpu, BsClockHistory, BsBroadcast } from "react-icons/bs";
 import { ControlUnitDTO } from "../API/interfaces";
 import { CUConfigCommandDTO } from "../API/interfaces";
 import { ConfigureCu } from "../API/ControlUnitAPI";
+import { useAuth } from "../API/AuthContext";
 
 interface ConfigProps {
   cu: ControlUnitDTO;
@@ -15,6 +16,7 @@ interface ConfigProps {
 export function ConfigCUModal({ cu, show, onHide, handleSetDirty }: ConfigProps) {
   const [pollingInterval, setPollingInterval] = useState(cu.pollingInterval || 1);
   const [loading, setLoading] = useState(false);
+  const { xsrfToken, setDirty } = useAuth();
 
   const handleSave = async () => {
     setLoading(true);
@@ -28,7 +30,7 @@ export function ConfigCUModal({ cu, show, onHide, handleSetDirty }: ConfigProps)
 
       // 3. Esegui la chiamata POST /configure
       // Passa null se non gestisci i token XSRF, o recuperalo dallo stato/context
-      await ConfigureCu(null, command);
+      await ConfigureCu(xsrfToken, command);
 
       console.log(`Comando inviato per CU ${cu.deviceId}: Polling a ${pollingInterval}h`);
 
