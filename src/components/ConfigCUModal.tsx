@@ -11,17 +11,14 @@ interface ConfigProps {
 }
 
 export function ConfigCUModal({ cu, show, onHide, handleSetDirty }: ConfigProps) {
-  // Inizializziamo lo stato con il valore in ore (default 1h se non presente)
   const [pollingInterval, setPollingInterval] = useState(cu.pollingInterval || 1);
   const [loading, setLoading] = useState(false);
 
   const handleSave = async () => {
     setLoading(true);
     try {
-      // Endpoint ipotetico usando l'intervallo in ore
-      // await updateCU(cu.id, { pollingInterval: pollingInterval });
-      console.log(`Salvataggio CU ID ${cu.id}: Polling Interval impostato a ${pollingInterval} ore`);
-
+      // await updateCU(cu.id, { pollingInterval });
+      console.log(`Salvataggio CU ID ${cu.id}: Polling Interval a ${pollingInterval} ore`);
       handleSetDirty();
       onHide();
     } catch (error) {
@@ -52,13 +49,13 @@ export function ConfigCUModal({ cu, show, onHide, handleSetDirty }: ConfigProps)
           </div>
         </div>
 
-        {/* SEZIONE POLLING INTERVAL (ORE) */}
+        {/* SEZIONE POLLING INTERVAL */}
         <div className="mb-4">
           <div className="d-flex justify-content-between align-items-center mb-2">
             <label className="fw-bold text-dark small text-uppercase d-flex align-items-center gap-2">
               <BsClockHistory /> Polling Interval
             </label>
-            <Badge bg="primary" className="px-2 py-1">
+            <Badge bg="primary" className="px-3 py-2">
               {pollingInterval} {pollingInterval === 1 ? 'ora' : 'ore'}
             </Badge>
           </div>
@@ -73,26 +70,28 @@ export function ConfigCUModal({ cu, show, onHide, handleSetDirty }: ConfigProps)
             onChange={(e) => setPollingInterval(parseInt(e.target.value))}
           />
 
-          <div className="d-flex justify-content-between mt-1 text-muted px-1" style={{ fontSize: '0.7rem' }}>
+          <div className="d-flex justify-content-between mt-1 text-muted px-1" style={{ fontSize: '0.75rem' }}>
             <span>1h (Frequente)</span>
             <span>256h (Risparmio)</span>
           </div>
         </div>
 
-        {/* STATO E NOTA TECNICA */}
-        <div className="p-3 bg-primary bg-opacity-10 rounded-4 border border-primary-subtle">
+        {/* BOX 1: INFO TRASMISSIONE - Aggiunto mb-3 e font aumentato */}
+        <div className="p-3 bg-primary bg-opacity-10 rounded-4 border border-primary-subtle mb-3">
           <h6 className="small fw-bold text-primary mb-2 text-uppercase">Info Trasmissione</h6>
-
-          <div className="text-primary" style={{ fontSize: '0.75rem' }}>
+          <div className="text-primary" style={{ fontSize: '0.85rem' }}>
             * L'unità si risveglierà ogni <strong>{pollingInterval} {pollingInterval === 1 ? 'ora' : 'ore'}</strong> per trasmettere il suo stato.
           </div>
         </div>
 
+        {/* BOX 2: SINCRONIZZAZIONE - Font aumentato e linea più ariosa */}
         <div className="p-3 bg-warning bg-opacity-10 rounded-4 border border-warning-subtle">
-          <div className="d-flex gap-2">
-            <BsBroadcast className="text-warning mt-1" size={14} />
-            <div className="text-warning-emphasis" style={{ fontSize: '0.75rem', lineHeight: '1.2' }}>
-              <strong>Sincronizzazione remota:</strong> Il comando è stato messo in coda. L'unità caricherà i nuovi parametri durante la <strong>prossima connessione utile</strong>; la configurazione sarà pienamente operativa entro le 24 ore successive.
+          <div className="d-flex gap-3">
+            <BsBroadcast className="text-warning mt-1" size={18} />
+            <div className="text-warning-emphasis" style={{ fontSize: '0.85rem', lineHeight: '1.4' }}>
+              <strong>Sincronizzazione remota:</strong> Il comando è stato messo in coda.
+              L'unità caricherà i nuovi parametri durante la <strong>prossima connessione utile</strong>;
+              la configurazione sarà operativa entro le 24 ore successive.
             </div>
           </div>
         </div>
