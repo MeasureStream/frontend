@@ -5,6 +5,7 @@ import { useParams } from "react-router";
 import { useEffect, useState } from "react";
 import ChartPreviewCard from "../../../components/ChartPreviewCard";
 import { ChartModalButton } from "../../../components/ChartModalButton";
+import { MeasurementUnitCard } from "../../../components/MeasurementUnitCard";
 import { getControlUnitById } from "../../../API/ControlUnitAPI";
 
 
@@ -165,64 +166,13 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
 
       {/* --- CICLO MEASUREMENT UNITS --- */}
       {cu.measurementUnits.map((mu: any) => (
-        <div key={mu.id} className="mb-5 p-3 rounded shadow-sm border bg-white">
-          <div className="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom">
-            <div className="d-flex align-items-center gap-2">
-              <BsCpu className="text-primary" />
-              <h5 className="mb-0 font-monospace">MU: {mu.extendedId}</h5>
-            </div>
-            <Badge bg="dark" className="fw-normal">Model: {mu.model}</Badge>
-          </div>
+        <MeasurementUnitCard
+          key={mu.id}
+          mu={mu}
+          handleSetDirty={handleSetDirty}
+        />
+      ))}
+    </Container>
 
-          <Row className="g-4">
-            {mu.sensors.map((sensor: any) => (
-              <Col key={sensor.id} lg={6}>
-                <Card className="border-0 bg-light h-100 shadow-sm">
-                  <Card.Body>
-                    <div className="d-flex justify-content-between align-items-center mb-3">
-                      <div className="d-flex align-items-center gap-2">
-                        {getSensorIcon(sensor.sensorTemplate.type)}
-                        <span className="fw-bold">{sensor.modelName}</span>
-                      </div>
-
-                      <div className="d-flex align-items-center gap-2">
-                        {/* IL NUOVO BOTTONE MINIMALISTA */}
-                        <ChartModalButton
-                          nodeId={mu.extendedId}
-                          unit={sensor.sensorTemplate.unit}
-                          setDirty={handleSetDirty}
-                        />
-                        <Badge pill bg="white" className="text-primary border border-primary px-2">
-                          Ch: {sensor.sensorIndex}
-                        </Badge>
-                      </div>
-                    </div>
-
-                    <Row className="text-center mb-1 py-2 bg-white rounded mx-0 border shadow-sm">
-                      <Col>
-                        <div className="h2 mb-0 fw-bold text-primary">
-                          {sensor.physVal.toFixed(2)}
-                        </div>
-                        <small className="text-muted text-uppercase fw-bold" style={{ fontSize: '0.7rem' }}>
-                          {sensor.sensorTemplate.unit}
-                        </small>
-                      </Col>
-                      <Col className="border-start">
-                        <div className="h4 mb-0 text-dark">{sensor.elecVal.toFixed(2)}</div>
-                        <small className="text-muted" style={{ fontSize: '0.7rem' }}>Elec. (V)</small>
-                      </Col>
-                    </Row>
-
-                    <div className="mt-3 pt-2 border-top d-flex justify-content-between small text-muted" style={{ fontSize: '0.75rem' }}>
-                      <span>Sampling: <strong>{sensor.samplingF} Hz</strong></span>
-                      <span className="text-uppercase">{sensor.sensorTemplate.type}</span>
-                    </div>
-                  </Card.Body>
-                </Card>
-              </Col>
-            ))}
-          </Row>
-        </div>
-      ))}    </Container>
   );
 }
