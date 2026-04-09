@@ -7,7 +7,7 @@ import ChartPreviewCard from "../../../components/ChartPreviewCard";
 import { ChartModalButton } from "../../../components/ChartModalButton";
 import { MeasurementUnitCard } from "../../../components/MeasurementUnitCard";
 import { getControlUnitById } from "../../../API/ControlUnitAPI";
-
+import { ConfigCUModal } from "../../../components/ConfigCUModal";
 
 export function ControlUnitDetail({ allControlUnits }: { allControlUnits: ControlUnitDTO[] }) {
   const { id } = useParams<{ id: string }>();
@@ -15,6 +15,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
 
   // Stato locale per gestire l'aggiornamento della singola CU
   const [currentCU, setCurrentCU] = useState<ControlUnitDTO | null>(null);
+  const [showConfig, setShowConfig] = useState(false);
 
   // Inizializzazione: se allControlUnits cambia o l'ID cambia, cerchiamo la CU
   useEffect(() => {
@@ -139,12 +140,26 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
           </div>
         </Col>
 
-        {/* Config Summary */}
+        {/* Config Summary - CON ICONA CLICCABILE */}
         <Col md={4}>
-          <div className="p-3 bg-white rounded shadow-sm border-0 h-100">
-            <div className="d-flex align-items-center gap-2 mb-3 text-secondary">
-              <BsGear size={18} />
-              <span className="fw-bold small text-uppercase">Configuration</span>
+          <div className="p-3 bg-white rounded shadow-sm border-0 h-100 position-relative">
+            <div className="d-flex align-items-center justify-content-between mb-3 text-secondary">
+              <div className="d-flex align-items-center gap-2">
+                <BsGear size={18} />
+                <span className="fw-bold small text-uppercase">Configuration</span>
+              </div>
+              {/* ICONA CHE APRE IL MODAL */}
+              <BsGear
+                className="text-primary cursor-pointer hover-rotate"
+                style={{
+                  cursor: 'pointer',
+                  transition: 'transform 0.3s ease',
+                  fontSize: '1.2rem'
+                }}
+                onClick={() => setShowConfig(true)}
+                onMouseEnter={(e) => e.currentTarget.style.transform = 'rotate(90deg)'}
+                onMouseLeave={(e) => e.currentTarget.style.transform = 'rotate(0deg)'}
+              />
             </div>
             <div className="d-flex justify-content-between align-items-center mb-2">
               <span className="small text-muted">Polling Rate:</span>
@@ -172,6 +187,13 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
           handleSetDirty={handleSetDirty}
         />
       ))}
+
+      <ConfigCUModal
+        cu={cu}
+        show={showConfig}
+        onHide={() => setShowConfig(false)}
+        handleSetDirty={handleSetDirty}
+      />
     </Container>
 
   );
