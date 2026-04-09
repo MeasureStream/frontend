@@ -1,6 +1,7 @@
 export interface ControlUnitDTO {
   id: number;
   devEui: number;           // Sostituisce networkId
+  deviceId: string;
   name: string;
   remainingBattery: number;
   rssi: number;
@@ -153,3 +154,10 @@ export const formatDevEui = (eui: number | string): string => {
   // Aggiunge i due punti ogni 2 caratteri: 00:04:A3...
   return hex.match(/.{1,2}/g)?.join(':') || hex;
 };
+
+
+export interface CUConfigCommandDTO {
+  deviceId: string;
+  devEui: number; // o string se lo gestisci come esadecimale nel frontend
+  pollingInterval: number;
+}

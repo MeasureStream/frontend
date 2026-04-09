@@ -1,4 +1,5 @@
-import { ControlUnitDTO, } from "./interfaces";
+import { ControlUnitDTO, CUConfigCommandDTO } from "./interfaces";
+
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 const API_URL = `${BASE_URL}/API/controlunits`;
 
@@ -197,4 +198,25 @@ export const getLatestLoraRSSIValue = async (nodeId: number): Promise<number | n
   }
 };
 
-export { CreateCu, EditCu, getAllAvailableCuList, getAllCu, DeleteCu, getfirstavailableCU, CreateCuAdmin }
+async function ConfigureCu(xsrfToken: string | null, command: CUConfigCommandDTO) {
+  const url = `${API_URL}/configure`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-XSRF-TOKEN': xsrfToken || '',
+    },
+    body: JSON.stringify(command),
+  });
+
+  if (!response.ok) {
+    // Gestione errore specifica per il comando
+    throw new Error(`Configuration Error: ${response.status} ${response.statusText}`);
+  }
+
+  // L'endpoint restituisce 202 ACCEPTED (vuoto), quindi non facciamo response.json()
+  return true;
+}
+
+export { CreateCu, EditCu, getAllAvailableCuList, getAllCu, DeleteCu, getfirstavailableCU, CreateCuAdmin, ConfigureCu }

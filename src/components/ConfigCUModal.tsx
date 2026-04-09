@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Modal, Badge } from "react-bootstrap";
 import { BsGearFill, BsCpu, BsClockHistory, BsBroadcast } from "react-icons/bs";
 import { ControlUnitDTO } from "../API/interfaces";
+import { CUConfigCommandDTO } from "../API/interfaces";
+import { ConfigureCu } from "../API/ControlUnitAPI";
 
 interface ConfigProps {
   cu: ControlUnitDTO;
@@ -17,17 +19,29 @@ export function ConfigCUModal({ cu, show, onHide, handleSetDirty }: ConfigProps)
   const handleSave = async () => {
     setLoading(true);
     try {
-      // await updateCU(cu.id, { pollingInterval });
-      console.log(`Salvataggio CU ID ${cu.id}: Polling Interval a ${pollingInterval} ore`);
-      handleSetDirty();
-      onHide();
+      // 2. Prepara il payload per il comando
+      const command: CUConfigCommandDTO = {
+        deviceId: cu.deviceId,
+        devEui: cu.devEui,
+        pollingInterval: pollingInterval // il valore dello slider (1-256)
+      };
+
+      // 3. Esegui la chiamata POST /configure
+      // Passa null se non gestisci i token XSRF, o recuperalo dallo stato/context
+      await ConfigureCu(null, command);
+
+      console.log(`Comando inviato per CU ${cu.deviceId}: Polling a ${pollingInterval}h`);
+
+      handleSetDirty(); // Segnala che i dati sono cambiati
+      onHide();         // Chiudi il modal
     } catch (error) {
-      console.error("Errore configurazione:", error);
+      console.error("Errore durante l'invio della configurazione:", error);
+      // Qui potresti aggiungere un piccolo stato per mostrare un messaggio d'errore all'utente
+      alert("Errore nell'invio del comando alla centralina.");
     } finally {
       setLoading(false);
     }
   };
-
   return (
     <Modal show={show} onHide={onHide} centered contentClassName="rounded-4 border-0 shadow-lg">
       <Modal.Header closeButton className="border-0 pb-0">
