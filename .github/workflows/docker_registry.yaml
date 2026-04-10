@@ -32,7 +32,7 @@ jobs:
 
       # Build e push multi-arch
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: DockerfileFrontendNew
@@ -49,7 +49,7 @@ jobs:
       # Build e push DEV
       - name: Build and push DEV Docker image
         if: github.ref_name == 'main'
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: DockerfileFrontendDEV
