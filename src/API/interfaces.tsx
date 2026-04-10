@@ -1,6 +1,6 @@
 export interface ControlUnitDTO {
   id: number;
-  devEui: number;           // Sostituisce networkId
+  devEui: string;           // Sostituisce networkId
   deviceId: string;
   name: string;
   remainingBattery: number;
@@ -158,6 +158,6 @@ export const formatDevEui = (eui: number | string): string => {
 
 export interface CUConfigCommandDTO {
   deviceId: string;
-  devEui: number; // o string se lo gestisci come esadecimale nel frontend
+  devEui: string; // o string se lo gestisci come esadecimale nel frontend
   pollingInterval: number;
 }
