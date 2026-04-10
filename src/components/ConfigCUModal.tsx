@@ -32,6 +32,7 @@ export function ConfigCUModal({ cu, show, onHide, handleSetDirty }: ConfigProps)
       // Passa null se non gestisci i token XSRF, o recuperalo dallo stato/context
       console.log(`xsrfToken : ${xsrfToken}   command ${command}`);
       await ConfigureCu(xsrfToken, command);
+      setDirty(true);
 
       console.log(`Comando inviato per CU ${cu.deviceId}: Polling a ${pollingInterval}h`);
 
