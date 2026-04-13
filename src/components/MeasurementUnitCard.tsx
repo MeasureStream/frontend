@@ -39,61 +39,64 @@ export function MeasurementUnitCard({ mu, handleSetDirty }: Props) {
 
       {/* GRIGLIA QUADRATA: row-cols-2 per mobile, row-cols-md-3 o 4 per desktop */}
       <Row className="row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
-        {mu.sensors.map((sensor) => (
-          <Col key={sensor.id}>
-            <Card
-              className="border-0 bg-light rounded-4 shadow-xs position-relative overflow-hidden"
-              style={{
-                aspectRatio: '1 / 1',
-                minHeight: '180px',
-                display: 'flex',
-                flexDirection: 'column'
-              }}
-            >              <Card.Body className="d-flex flex-column justify-content-between p-3">
+        {mu.sensors
+          .slice() // o [...mu.sensors] per non mutare l'array originale
+          .sort((a, b) => a.sensorIndex - b.sensorIndex)
+          .map((sensor) => (
+            <Col key={sensor.id}>
+              <Card
+                className="border-0 bg-light rounded-4 shadow-xs position-relative overflow-hidden"
+                style={{
+                  aspectRatio: '1 / 1',
+                  minHeight: '180px',
+                  display: 'flex',
+                  flexDirection: 'column'
+                }}
+              >              <Card.Body className="d-flex flex-column justify-content-between p-3">
 
-                {/* TOP: Icona e Canale */}
-                <div className="d-flex justify-content-between align-items-start">
-                  <div className="p-2 bg-white rounded-3 shadow-sm">
-                    {getSensorIcon(sensor.sensorTemplate.type)}
+                  {/* TOP: Icona e Canale */}
+                  <div className="d-flex justify-content-between align-items-start">
+                    <div className="p-2 bg-white rounded-3 shadow-sm">
+                      {getSensorIcon(sensor.sensorTemplate.type)}
+                    </div>
+                    <Badge bg="white" className="text-primary border border-primary-subtle px-2 py-1" style={{ fontSize: '0.6rem' }}>
+                      CH {sensor.sensorIndex}
+                    </Badge>
                   </div>
-                  <Badge bg="white" className="text-primary border border-primary-subtle px-2 py-1" style={{ fontSize: '0.6rem' }}>
-                    CH {sensor.sensorIndex}
-                  </Badge>
-                </div>
 
-                {/* CENTER: Valore (Grosso e centrato) */}
-                <div className="text-center my-2">
-                  <div className="h2 mb-0 fw-bold text-primary tracking-tight">
-                    {sensor.physVal.toFixed(1)}
+                  {/* CENTER: Valore (Grosso e centrato) */}
+                  <div className="text-center my-2">
+                    <div className="h2 mb-0 fw-bold text-primary tracking-tight">
+                      {sensor.physVal.toFixed(1)}
+                    </div>
+                    <div className="text-muted text-uppercase fw-bold" style={{ fontSize: '0.65rem', letterSpacing: '1px' }}>
+                      {sensor.sensorTemplate.unit}
+                    </div>
                   </div>
-                  <div className="text-muted text-uppercase fw-bold" style={{ fontSize: '0.65rem', letterSpacing: '1px' }}>
-                    {sensor.sensorTemplate.unit}
-                  </div>
-                </div>
 
-                {/* BOTTOM: Azioni e Nome Modello */}
-                <div className="d-flex justify-content-between align-items-center pt-2">
-                  <div className="small text-truncate text-muted pe-2" style={{ fontSize: '0.6rem', maxWidth: '60%' }}>
-                    {sensor.modelName.split('_')[0]}
+                  {/* BOTTOM: Azioni e Nome Modello */}
+                  <div className="d-flex justify-content-between align-items-center pt-2">
+                    <div className="small text-truncate text-muted pe-2" style={{ fontSize: '0.6rem', maxWidth: '60%' }}>
+                      {sensor.modelName.split('_')[0]}
+                    </div>
+                    <div className="d-flex gap-1">
+                      <button
+                        className="btn btn-link p-0 text-muted hover-primary"
+                        onClick={() => setSelectedSensor(sensor)}
+                      >
+                        <BsInfoCircle size={14} />
+                      </button>
+                      <ChartModalButton
+                        nodeId={mu.extendedId}
+                        unit={sensor.sensorTemplate.unit || ""}
+                        setDirty={handleSetDirty}
+                      />
+                    </div>
                   </div>
-                  <div className="d-flex gap-1">
-                    <button
-                      className="btn btn-link p-0 text-muted hover-primary"
-                      onClick={() => setSelectedSensor(sensor)}
-                    >
-                      <BsInfoCircle size={14} />
-                    </button>
-                    <ChartModalButton
-                      nodeId={mu.extendedId}
-                      unit={sensor.sensorTemplate.unit || ""}
-                      setDirty={handleSetDirty}
-                    />
-                  </div>
-                </div>
-              </Card.Body>
-            </Card>
-          </Col>
-        ))}
+                </Card.Body>
+              </Card>
+            </Col>
+          ))}
       </Row>
 
       <SensorInfoModal

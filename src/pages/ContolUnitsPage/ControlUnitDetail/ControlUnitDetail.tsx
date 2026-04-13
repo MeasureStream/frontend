@@ -192,13 +192,16 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
       </div>
 
       {/* --- CICLO MEASUREMENT UNITS --- */}
-      {cu.measurementUnits.map((mu: any) => (
-        <MeasurementUnitCard
-          key={mu.id}
-          mu={mu}
-          handleSetDirty={handleSetDirty}
-        />
-      ))}
+      {cu.measurementUnits
+        .slice() // o [...mu.sensors] per non mutare l'array originale
+        .sort((a, b) => a.localId - b.localId)
+        .map((mu: any) => (
+          <MeasurementUnitCard
+            key={mu.id}
+            mu={mu}
+            handleSetDirty={handleSetDirty}
+          />
+        ))}
 
       <ConfigCUModal
         cu={cu}

@@ -5,13 +5,6 @@ import { ControlUnitDTO, CUConfigurationDTO } from "../API/interfaces";
 import { UpdateSensorsConfig } from "../API/ControlUnitAPI";
 import { useAuth } from "../API/AuthContext";
 
-const SAMPLING_OPTIONS = [
-  { label: 'OFF', value: 0 },
-  { label: '30s', value: 30 },
-  { label: '1m', value: 60 },
-  { label: '5m', value: 300 },
-  { label: '15m', value: 900 },
-];
 
 const decodeIndexToLabel = (idx: number): string => {
   if (idx === 0) return "OFF";
@@ -118,54 +111,61 @@ export function SensorConfigModal({ show, onHide, controlUnit }: Props) {
         )}
 
         <Accordion defaultActiveKey="0" className="mt-3">
-          {controlUnit.measurementUnits.map((mu, muIdx) => (
-            <Accordion.Item eventKey={muIdx.toString()} key={mu.id}>
-              <Accordion.Header>
-                <Stack>
-                  <strong>MeasurementUnit #{mu.localId}</strong>
-                  <small className="text-muted">Modello: {mu.model}</small>
-                </Stack>
-              </Accordion.Header>
-              <Accordion.Body className="p-0">
-                <ListGroup variant="flush">
-                  {mu.sensors.map((sensor) => {
-                    // Troviamo l'indice corrente (dovrai decidere se il DTO ora trasporta l'indice o i ms)
-                    // Qui assumiamo che config.samplingPeriod sia l'INDICE (0-246) per semplicità di UI
-                    const currentIdx = config.configurations
-                      .find(c => c.localId === mu.localId)
-                      ?.sensors.find(s => s.sensorIndex === sensor.sensorIndex)
-                      ?.samplingPeriod || 0;
+          {controlUnit.measurementUnits
+            .slice() // o [...mu.sensors] per non mutare l'array originale
+            .sort((a, b) => a.localId - b.localId)
 
-                    return (
-                      <ListGroup.Item key={sensor.id} className="py-3">
-                        <div className="d-flex justify-content-between align-items-center mb-2">
-                          <div className="fw-bold">{sensor.modelName}</div>
-                          <Badge bg={currentIdx === 0 ? "secondary" : "primary"} style={{ fontSize: '1rem' }}>
-                            {decodeIndexToLabel(currentIdx)}
-                          </Badge>
-                        </div>
+            .map((mu, muIdx) => (
+              <Accordion.Item eventKey={muIdx.toString()} key={mu.id}>
+                <Accordion.Header>
+                  <Stack>
+                    <strong>MeasurementUnit #{mu.localId}</strong>
+                    <small className="text-muted">Modello: {mu.model}</small>
+                  </Stack>
+                </Accordion.Header>
+                <Accordion.Body className="p-0">
+                  <ListGroup variant="flush">
+                    {mu.sensors
+                      .slice() // o [...mu.sensors] per non mutare l'array originale
+                      .sort((a, b) => a.sensorIndex - b.sensorIndex)
+                      .map((sensor) => {
+                        // Troviamo l'indice corrente (dovrai decidere se il DTO ora trasporta l'indice o i ms)
+                        // Qui assumiamo che config.samplingPeriod sia l'INDICE (0-246) per semplicità di UI
+                        const currentIdx = config.configurations
+                          .find(c => c.localId === mu.localId)
+                          ?.sensors.find(s => s.sensorIndex === sensor.sensorIndex)
+                          ?.samplingPeriod || 0;
 
-                        <Form.Range
-                          min={0}
-                          max={246}
-                          step={1}
-                          value={currentIdx}
-                          onChange={(e) => handlePeriodChange(mu.localId, sensor.sensorIndex, parseInt(e.target.value))}
-                        />
-                        <div className="d-flex justify-content-between mt-1 small text-muted">
-                          <span>OFF</span>
-                          <span>1s</span>
-                          <span>1h</span>
-                          <span>24h</span>
-                          <span>48h</span>
-                        </div>
-                      </ListGroup.Item>
-                    );
-                  })}
-                </ListGroup>
-              </Accordion.Body>
-            </Accordion.Item>
-          ))}
+                        return (
+                          <ListGroup.Item key={sensor.id} className="py-3">
+                            <div className="d-flex justify-content-between align-items-center mb-2">
+                              <div className="fw-bold">{sensor.modelName}</div>
+                              <Badge bg={currentIdx === 0 ? "secondary" : "primary"} style={{ fontSize: '1rem' }}>
+                                {decodeIndexToLabel(currentIdx)}
+                              </Badge>
+                            </div>
+
+                            <Form.Range
+                              min={0}
+                              max={246}
+                              step={1}
+                              value={currentIdx}
+                              onChange={(e) => handlePeriodChange(mu.localId, sensor.sensorIndex, parseInt(e.target.value))}
+                            />
+                            <div className="d-flex justify-content-between mt-1 small text-muted">
+                              <span>OFF</span>
+                              <span>1s</span>
+                              <span>1h</span>
+                              <span>24h</span>
+                              <span>48h</span>
+                            </div>
+                          </ListGroup.Item>
+                        );
+                      })}
+                  </ListGroup>
+                </Accordion.Body>
+              </Accordion.Item>
+            ))}
         </Accordion>
       </Modal.Body>
 
