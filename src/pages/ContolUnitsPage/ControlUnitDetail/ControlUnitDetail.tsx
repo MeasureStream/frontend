@@ -1,4 +1,4 @@
-import { Container, Row, Col, Card, Badge, ListGroup, ProgressBar } from "react-bootstrap";
+import { Container, Row, Col, Card, Badge, ListGroup, ProgressBar, Button } from "react-bootstrap";
 import { BsCpu, BsGear, BsThermometerHalf, BsDroplet, BsSpeedometer, BsToggles, BsActivity, BsBroadcast } from "react-icons/bs";
 import { ControlUnitDTO, formatDevEui } from "../../../API/interfaces";
 import { useParams } from "react-router";
@@ -8,6 +8,7 @@ import { ChartModalButton } from "../../../components/ChartModalButton";
 import { MeasurementUnitCard } from "../../../components/MeasurementUnitCard";
 import { getControlUnitById } from "../../../API/ControlUnitAPI";
 import { ConfigCUModal } from "../../../components/ConfigCUModal";
+import { SensorConfigModal } from "../../../components/SensorConfigModal";
 
 export function ControlUnitDetail({ allControlUnits }: { allControlUnits: ControlUnitDTO[] }) {
   const { id } = useParams<{ id: string }>();
@@ -16,6 +17,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
   // Stato locale per gestire l'aggiornamento della singola CU
   const [currentCU, setCurrentCU] = useState<ControlUnitDTO | null>(null);
   const [showConfig, setShowConfig] = useState(false);
+  const [showSensorConfig, setShowSensorConfig] = useState(false);
 
   // Inizializzazione: se allControlUnits cambia o l'ID cambia, cerchiamo la CU
   useEffect(() => {
@@ -175,9 +177,19 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
         </Col>
       </Row>
 
-      <h4 className="mb-4 mt-5 d-flex align-items-center gap-2">
-        <BsToggles className="text-primary" /> Measurement Units
-      </h4>
+      <div className="d-flex justify-content-between align-items-center mb-4 mt-5">
+        <h4 className="mb-0 d-flex align-items-center gap-2">
+          <BsToggles className="text-primary" /> Measurement Units
+        </h4>
+        <Button
+          variant="outline-primary"
+          size="sm"
+          className="d-flex align-items-center gap-2 shadow-sm"
+          onClick={() => setShowSensorConfig(true)}
+        >
+          <BsCpu size={16} /> Configura Sampling Sensori
+        </Button>
+      </div>
 
       {/* --- CICLO MEASUREMENT UNITS --- */}
       {cu.measurementUnits.map((mu: any) => (
@@ -194,6 +206,13 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
         onHide={() => setShowConfig(false)}
         handleSetDirty={handleSetDirty}
       />
+
+      <SensorConfigModal
+        show={showSensorConfig}
+        onHide={() => setShowSensorConfig(false)}
+        controlUnit={cu}
+      />
+
     </Container>
 
   );

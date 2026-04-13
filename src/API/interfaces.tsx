@@ -161,3 +161,27 @@ export interface CUConfigCommandDTO {
   devEui: string; // o string se lo gestisci come esadecimale nel frontend
   pollingInterval: number;
 }
+
+/**
+ * Rappresenta la configurazione di un singolo sensore all'interno di una MU.
+ */
+export interface SensorConfigDTO {
+  sensorIndex: number;    // Corrisponde all'ID/Indice del sensore (es. 1 per Temp)
+  samplingPeriod: number; // Periodo di campionamento in secondi
+}
+
+/**
+ * Rappresenta la configurazione di una Measurement Unit (MU).
+ */
+export interface MUConfigCommandDTO {
+  localId: number;               // Indirizzo hardware locale della MU (0, 1, 2...)
+  sensors: SensorConfigDTO[];    // Lista dei sensori da configurare per questa MU
+}
+
+/**
+ * DTO principale per inviare la configurazione completa a una Control Unit (CU).
+ */
+export interface CUConfigurationDTO {
+  devEui: string;                       // Identificativo univoco hardware (EUI)
+  configurations: MUConfigCommandDTO[]; // Lista delle configurazioni per MU
+}

@@ -1,4 +1,4 @@
-import { ControlUnitDTO, CUConfigCommandDTO } from "./interfaces";
+import { ControlUnitDTO, CUConfigCommandDTO, CUConfigurationDTO } from "./interfaces";
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 const API_URL = `${BASE_URL}/API/controlunits`;
@@ -219,4 +219,29 @@ async function ConfigureCu(xsrfToken: string | null, command: CUConfigCommandDTO
   return true;
 }
 
-export { CreateCu, EditCu, getAllAvailableCuList, getAllCu, DeleteCu, getfirstavailableCU, CreateCuAdmin, ConfigureCu }
+/**
+ * Invia la configurazione dei periodi di campionamento per i sensori di una CU.
+ * Endpoint: /API/controlunits/sensors-config
+ */
+async function UpdateSensorsConfig(xsrfToken: string | null, command: CUConfigurationDTO) {
+  const url = `${API_URL}/sensors-config`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-XSRF-TOKEN': xsrfToken || '',
+    },
+    body: JSON.stringify(command),
+  });
+
+  if (!response.ok) {
+    // Gestione errore specifica
+    throw new Error(`Sensor Configuration Error: ${response.status} ${response.statusText}`);
+  }
+
+  // Restituiamo true perché l'API risponde con 202 ACCEPTED senza body
+  return true;
+}
+
+export { CreateCu, EditCu, getAllAvailableCuList, getAllCu, DeleteCu, getfirstavailableCU, CreateCuAdmin, ConfigureCu, UpdateSensorsConfig }
