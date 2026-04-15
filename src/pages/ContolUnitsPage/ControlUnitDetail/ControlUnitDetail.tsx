@@ -57,15 +57,6 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
     console.log("Inviando comando STOP");
   };
 
-  const getSensorIcon = (type: string) => {
-    switch (type) {
-      case 'temperature': return <BsThermometerHalf className="text-danger" />;
-      case 'humidity': return <BsDroplet className="text-info" />;
-      case 'accelerometer': return <BsSpeedometer className="text-warning" />;
-      case 'pressure': return <BsGear className="text-secondary" />;
-      default: return <BsCpu />;
-    }
-  };
 
   const cu = currentCU;
 
@@ -188,20 +179,6 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
         </Col>
       </Row>
 
-      <div className="d-flex justify-content-between align-items-center mb-4 mt-5">
-        <h4 className="mb-0 d-flex align-items-center gap-2">
-          <BsToggles className="text-primary" /> Measurement Units
-        </h4>
-        <Button
-          variant="outline-primary"
-          size="sm"
-          className="d-flex align-items-center gap-2 shadow-sm"
-          onClick={() => setShowSensorConfig(true)}
-        >
-          <BsCpu size={16} /> Configura Sampling Sensori
-        </Button>
-      </div>
-
       {/* --- ACQUISITION CONTROL SECTION --- */}
       <div className="mb-5 mt-4">
         <h4 className="mb-3 d-flex align-items-center gap-2">
@@ -212,7 +189,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
             <Row className="align-items-center">
               <Col lg={7} md={12} className="mb-3 mb-lg-0">
                 <div className="d-flex justify-content-between align-items-end mb-2">
-                  <label className="fw-bold small text-uppercase text-muted">Sampling / Transmission Interval</label>
+                  <label className="fw-bold small text-uppercase text-muted">Transmission Interval</label>
                   <Badge bg={acqIndex === 0 ? "secondary" : "danger"} className="p-2 font-monospace" style={{ fontSize: '1rem' }}>
                     {decodeIndexToLabel(acqIndex)}
                   </Badge>
@@ -221,7 +198,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
                   type="range"
                   className="form-range custom-range"
                   min="0"
-                  max="246"
+                  max="255"
                   step="1"
                   value={acqIndex}
                   onChange={(e) => setAcqIndex(parseInt(e.target.value))}
@@ -255,11 +232,28 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
           </Card.Body>
           {acqIndex > 0 && acqIndex < 46 && (
             <div className="bg-warning-subtle text-warning-emphasis px-4 py-1 small border-top border-warning-subtle">
-              <strong>Attenzione:</strong> Campionamento sotto i 100ms. Verificare limiti di banda e batteria.
+              <strong>Attenzione:</strong> Trasmissione sotto i 100ms. Verificare limiti di banda e batteria.
             </div>
           )}
         </Card>
       </div>
+
+
+
+      <div className="d-flex justify-content-between align-items-center mb-4 mt-5">
+        <h4 className="mb-0 d-flex align-items-center gap-2">
+          <BsToggles className="text-primary" /> Measurement Units
+        </h4>
+        <Button
+          variant="outline-primary"
+          size="sm"
+          className="d-flex align-items-center gap-2 shadow-sm"
+          onClick={() => setShowSensorConfig(true)}
+        >
+          <BsCpu size={16} /> Configura Sampling Sensori
+        </Button>
+      </div>
+
 
       {/* --- CICLO MEASUREMENT UNITS --- */}
       {cu.measurementUnits
@@ -293,19 +287,9 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
 
 const decodeIndexToLabel = (idx: number): string => {
   if (idx === 0) return "OFF (Stop)";
-  if (idx <= 9) return `${idx} ms`;
-  if (idx <= 27) return `${10 + (idx - 10) * 5} ms`;
-  if (idx <= 45) return `${100 + (idx - 28) * 50} ms`;
-  if (idx <= 54) return `${1 + (idx - 46)} s`;
-  if (idx <= 64) return `${10 + (idx - 55) * 5} s`;
-  if (idx <= 73) return `${1 + (idx - 65)} m`;
-  if (idx <= 83) return `${10 + (idx - 74) * 5} m`;
-  if (idx <= 222) {
-    const totalMin = 60 + (idx - 84) * 10;
-    const h = Math.floor(totalMin / 60);
-    const m = totalMin % 60;
-    return m === 0 ? `${h}h` : `${h}h ${m}m`;
-  }
-  if (idx <= 246) return `${25 + (idx - 223)} h`;
-  return "Out of Range";
+  if (idx <= 4) return `${idx * 15} min`;
+  if (idx <= 96) return `${Math.trunc(idx * 15 / 60)} h ${(idx * 15) % 60} min`;
+  if (idx <= 254) return `${1 + Math.trunc(idx / 24)} g ${idx % 24} h`;
+  if (idx === 255) return `${1} min`;
+  return "OUT OF RANGE";
 };
