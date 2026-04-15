@@ -7,10 +7,12 @@ import { MeasurementUnitCard } from "../../../components/MeasurementUnitCard";
 import { getControlUnitById, ControlTransmission } from "../../../API/ControlUnitAPI";
 import { ConfigCUModal } from "../../../components/ConfigCUModal";
 import { SensorConfigModal } from "../../../components/SensorConfigModal";
+import { useAuth } from "../../../API/AuthContext";
 
 export function ControlUnitDetail({ allControlUnits }: { allControlUnits: ControlUnitDTO[] }) {
   const { id } = useParams<{ id: string }>();
   const cuId = Number(id);
+  const { xsrfToken } = useAuth();
 
   // Stato locale per gestire l'aggiornamento della singola CU
   const [currentCU, setCurrentCU] = useState<ControlUnitDTO | null>(null);
@@ -51,7 +53,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
     if (!currentCU) return;
 
     try {
-      await ControlTransmission(null, { // Metti il token se lo gestisci
+      await ControlTransmission(xsrfToken, { // Metti il token se lo gestisci
         devEui: currentCU.devEui,
         transmissionIndex: acqIndex
       });
@@ -65,7 +67,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
   const handleStopAcquisition = async () => {
     if (!currentCU) return;
     try {
-      await ControlTransmission(null, {
+      await ControlTransmission(xsrfToken, {
         devEui: currentCU.devEui,
         transmissionIndex: 0 // Forza lo STOP
       });
