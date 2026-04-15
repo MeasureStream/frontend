@@ -289,6 +289,7 @@ const decodeIndexToLabel = (idx: number): string => {
   if (idx === 0) return "OFF (Stop)";
   if (idx <= 4) return `${idx * 15} min`;
   if (idx <= 96) return `${Math.trunc(idx * 15 / 60)} h ${(idx * 15) % 60} min`;
+  //AGGIUNGERE che il massimo valore è 240 per fermarlo ad esattamente 7gg
   if (idx <= 254) return `${1 + Math.trunc((idx - 96) / 24)} g ${(idx - 96) % 24} h`;
   if (idx === 255) return `${1} min`;
   return "OUT OF RANGE";

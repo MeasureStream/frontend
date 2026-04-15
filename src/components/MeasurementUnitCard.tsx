@@ -15,8 +15,8 @@ export function MeasurementUnitCard({ mu, handleSetDirty }: Props) {
 
   const getSensorIcon = (type: string) => {
     switch (type.toLowerCase()) {
-      case 'temperature': return <BsThermometerHalf className="text-danger" />;
-      case 'humidity': return <BsDroplet className="text-info" />;
+      case 'temperature': return <BsThermometerHalf />;
+      case 'humidity': return <BsDroplet />;
       case 'accelerometer': return <AccelIcon />;
       case 'pressure': return <PressureIcon />;
       default: return <BsCpu />;

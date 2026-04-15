@@ -62,7 +62,7 @@ export function ChartModalButton({ nodeId, unit, setDirty }: { nodeId: number, u
         onClick={handleShow}
         title="Apri Grafico"
       >
-        <BsGraphUp size={18} />
+        <BsGraphUp size={14} />
       </Button>
 
       {/* MODAL (Carica l'iframe SOLO quando show è true) */}
@@ -84,8 +84,8 @@ export function ChartModalButton({ nodeId, unit, setDirty }: { nodeId: number, u
             <Button variant="link" size="sm" onClick={() => { setFrom(""); setTo(""); }}>Reset</Button>
 
             <div className="ms-auto d-flex gap-2">
-              <Button variant="primary" size="sm" onClick={handleDownload}>📥 JSON</Button>
-              <Button variant="danger" size="sm" onClick={handleDelete}>🗑️ Elimina</Button>
+              <Button variant="primary" size="sm" onClick={handleDownload}> JSON</Button>
+              <Button variant="danger" size="sm" onClick={handleDelete}> Elimina</Button>
             </div>
           </div>
 
