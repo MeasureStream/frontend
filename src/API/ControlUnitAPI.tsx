@@ -1,4 +1,4 @@
-import { ControlUnitDTO, CUConfigCommandDTO, CUConfigurationDTO } from "./interfaces";
+import { ControlUnitDTO, CUConfigCommandDTO, CUConfigurationDTO, CUTransmissionCommandDTO } from "./interfaces";
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 const API_URL = `${BASE_URL}/API/controlunits`;
@@ -244,4 +244,33 @@ async function UpdateSensorsConfig(xsrfToken: string | null, command: CUConfigur
   return true;
 }
 
-export { CreateCu, EditCu, getAllAvailableCuList, getAllCu, DeleteCu, getfirstavailableCU, CreateCuAdmin, ConfigureCu, UpdateSensorsConfig }
+/**
+ * Invia il comando di START o STOP per la trasmissione live dei dati.
+ * Endpoint: /API/controlunits/transmission
+ */
+async function ControlTransmission(xsrfToken: string | null, command: CUTransmissionCommandDTO) {
+  const url = `${API_URL}/transmission`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-XSRF-TOKEN': xsrfToken || '',
+    },
+    body: JSON.stringify(command),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Transmission Control Error: ${response.status} - ${errorText}`);
+  }
+
+  // Risponde con 202 ACCEPTED senza body
+  return true;
+}
+
+export {
+  CreateCu, EditCu, getAllAvailableCuList, getAllCu, DeleteCu,
+  getfirstavailableCU, CreateCuAdmin, ConfigureCu, UpdateSensorsConfig,
+  ControlTransmission
+}

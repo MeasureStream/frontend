@@ -1,12 +1,10 @@
 import { Container, Row, Col, Card, Badge, ListGroup, ProgressBar, Button } from "react-bootstrap";
 import { BsCpu, BsGear, BsThermometerHalf, BsDroplet, BsSpeedometer, BsToggles, BsActivity, BsBroadcast } from "react-icons/bs";
-import { ControlUnitDTO, formatDevEui } from "../../../API/interfaces";
+import { ControlUnitDTO, formatDevEui, CUTransmissionCommandDTO } from "../../../API/interfaces";
 import { useParams } from "react-router";
 import { useEffect, useState } from "react";
-import ChartPreviewCard from "../../../components/ChartPreviewCard";
-import { ChartModalButton } from "../../../components/ChartModalButton";
 import { MeasurementUnitCard } from "../../../components/MeasurementUnitCard";
-import { getControlUnitById } from "../../../API/ControlUnitAPI";
+import { getControlUnitById, ControlTransmission } from "../../../API/ControlUnitAPI";
 import { ConfigCUModal } from "../../../components/ConfigCUModal";
 import { SensorConfigModal } from "../../../components/SensorConfigModal";
 
@@ -23,7 +21,8 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
   // Inizializzazione: se allControlUnits cambia o l'ID cambia, cerchiamo la CU
   useEffect(() => {
     const found = allControlUnits.find(unit => unit.id === cuId);
-    if (found) setCurrentCU(found);
+    if (found) { setCurrentCU(found); setAcqIndex(found.transmissionInterval) }
+
   }, [allControlUnits, cuId]);
 
   // Funzione di refresh specifica per QUESTA unità
@@ -31,6 +30,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
     try {
       const updatedCU = await getControlUnitById(cuId);
       setCurrentCU(updatedCU);
+      setAcqIndex(updatedCU.transmissionInterval);
       console.log(`Dati aggiornati per CU ${cuId} alle ${new Date().toLocaleTimeString()}`);
     } catch (err) {
       console.error("Refresh fallito:", err);
@@ -47,16 +47,34 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
     console.log("Data marked as dirty");
   };
 
-  const handleStartAcquisition = () => {
-    console.log(`Inviando comando START con intervallo indice: ${acqIndex} (${decodeIndexToLabel(acqIndex)})`);
-    // Qui chiamerai la tua API verso il backend Rust/Java
+  const handleStartAcquisition = async () => {
+    if (!currentCU) return;
+
+    try {
+      await ControlTransmission(null, { // Metti il token se lo gestisci
+        devEui: currentCU.devEui,
+        transmissionIndex: acqIndex
+      });
+      console.log("Sessione avviata con successo");
+    } catch (err) {
+      console.error("Errore nell'avvio della sessione:", err);
+      alert("Errore durante l'avvio della sessione");
+    }
   };
 
-  const handleStopAcquisition = () => {
-    setAcqIndex(0);
-    console.log("Inviando comando STOP");
+  const handleStopAcquisition = async () => {
+    if (!currentCU) return;
+    try {
+      await ControlTransmission(null, {
+        devEui: currentCU.devEui,
+        transmissionIndex: 0 // Forza lo STOP
+      });
+      setAcqIndex(0); // Reset dello slider in UI
+      console.log("Sessione fermata");
+    } catch (err) {
+      console.error("Errore nel fermare la sessione:", err);
+    }
   };
-
 
   const cu = currentCU;
 

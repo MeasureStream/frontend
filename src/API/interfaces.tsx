@@ -23,6 +23,7 @@ export interface ControlUnitDTO {
   codingRate: string;
   frequency: number;
   lastSeen: string | null;
+  transmissionInterval: number;
 
   // Airtime totale giornaliero in ms (Soglia TTN: 30000)
   usedDailyAirtime: number;
@@ -184,4 +185,9 @@ export interface MUConfigCommandDTO {
 export interface CUConfigurationDTO {
   devEui: string;                       // Identificativo univoco hardware (EUI)
   configurations: MUConfigCommandDTO[]; // Lista delle configurazioni per MU
+}
+
+export interface CUTransmissionCommandDTO {
+  devEui: string;
+  transmissionIndex: number; // 0 per STOP, 1-246 per START
 }
