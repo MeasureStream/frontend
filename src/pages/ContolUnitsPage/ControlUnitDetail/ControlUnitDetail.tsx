@@ -230,9 +230,9 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
               </Col>
             </Row>
           </Card.Body>
-          {acqIndex > 0 && acqIndex < 46 && (
+          {acqIndex > 0 && acqIndex < 4 && (
             <div className="bg-warning-subtle text-warning-emphasis px-4 py-1 small border-top border-warning-subtle">
-              <strong>Attenzione:</strong> Trasmissione sotto i 100ms. Verificare limiti di banda e batteria.
+              <strong>Attenzione:</strong> Verificare limiti di banda e batteria.
             </div>
           )}
         </Card>
@@ -289,7 +289,7 @@ const decodeIndexToLabel = (idx: number): string => {
   if (idx === 0) return "OFF (Stop)";
   if (idx <= 4) return `${idx * 15} min`;
   if (idx <= 96) return `${Math.trunc(idx * 15 / 60)} h ${(idx * 15) % 60} min`;
-  if (idx <= 254) return `${1 + Math.trunc(idx / 24)} g ${idx % 24} h`;
+  if (idx <= 254) return `${1 + Math.trunc((idx - 96) / 24)} g ${(idx - 96) % 24} h`;
   if (idx === 255) return `${1} min`;
   return "OUT OF RANGE";
 };
