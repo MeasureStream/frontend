@@ -3,6 +3,7 @@ import { BsCpu, BsThermometerHalf, BsDroplet, BsSpeedometer, BsGear, BsInfoCircl
 import { useState } from "react";
 import { ChartModalButton } from "./ChartModalButton";
 import { MeasurementUnitDTO, SensorDTO } from "../API/interfaces";
+import { AccelIcon, PressureIcon } from "../icons/CustomIcons";
 
 interface Props {
   mu: MeasurementUnitDTO;
@@ -16,8 +17,8 @@ export function MeasurementUnitCard({ mu, handleSetDirty }: Props) {
     switch (type.toLowerCase()) {
       case 'temperature': return <BsThermometerHalf className="text-danger" />;
       case 'humidity': return <BsDroplet className="text-info" />;
-      case 'accelerometer': return <BsSpeedometer className="text-warning" />;
-      case 'pressure': return <BsGear className="text-secondary" />;
+      case 'accelerometer': return <AccelIcon />;
+      case 'pressure': return <PressureIcon />;
       default: return <BsCpu />;
     }
   };
@@ -77,7 +78,10 @@ export function MeasurementUnitCard({ mu, handleSetDirty }: Props) {
                   {/* BOTTOM: Azioni e Nome Modello */}
                   <div className="d-flex justify-content-between align-items-center pt-2">
                     <div className="small text-truncate text-muted pe-2" style={{ fontSize: '0.6rem', maxWidth: '60%' }}>
-                      {sensor.modelName.split('_')[0]}
+                      {sensor.sensorTemplate.type}
+                      {
+                        //sensor.modelName.split('_')[0]
+                      }
                     </div>
                     <div className="d-flex gap-1">
                       <button

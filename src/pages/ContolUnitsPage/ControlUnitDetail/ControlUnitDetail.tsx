@@ -18,6 +18,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
   const [currentCU, setCurrentCU] = useState<ControlUnitDTO | null>(null);
   const [showConfig, setShowConfig] = useState(false);
   const [showSensorConfig, setShowSensorConfig] = useState(false);
+  const [acqIndex, setAcqIndex] = useState(0);
 
   // Inizializzazione: se allControlUnits cambia o l'ID cambia, cerchiamo la CU
   useEffect(() => {
@@ -44,6 +45,16 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
   // Stub per la funzione setDirty richiesta dalla card
   const handleSetDirty = () => {
     console.log("Data marked as dirty");
+  };
+
+  const handleStartAcquisition = () => {
+    console.log(`Inviando comando START con intervallo indice: ${acqIndex} (${decodeIndexToLabel(acqIndex)})`);
+    // Qui chiamerai la tua API verso il backend Rust/Java
+  };
+
+  const handleStopAcquisition = () => {
+    setAcqIndex(0);
+    console.log("Inviando comando STOP");
   };
 
   const getSensorIcon = (type: string) => {
@@ -191,6 +202,65 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
         </Button>
       </div>
 
+      {/* --- ACQUISITION CONTROL SECTION --- */}
+      <div className="mb-5 mt-4">
+        <h4 className="mb-3 d-flex align-items-center gap-2">
+          <BsActivity className="text-danger" /> Live Acquisition
+        </h4>
+        <Card className="border-0 shadow-sm overflow-hidden">
+          <Card.Body className="p-4 bg-white">
+            <Row className="align-items-center">
+              <Col lg={7} md={12} className="mb-3 mb-lg-0">
+                <div className="d-flex justify-content-between align-items-end mb-2">
+                  <label className="fw-bold small text-uppercase text-muted">Sampling / Transmission Interval</label>
+                  <Badge bg={acqIndex === 0 ? "secondary" : "danger"} className="p-2 font-monospace" style={{ fontSize: '1rem' }}>
+                    {decodeIndexToLabel(acqIndex)}
+                  </Badge>
+                </div>
+                <input
+                  type="range"
+                  className="form-range custom-range"
+                  min="0"
+                  max="246"
+                  step="1"
+                  value={acqIndex}
+                  onChange={(e) => setAcqIndex(parseInt(e.target.value))}
+                />
+                <div className="d-flex justify-content-between mt-1 text-muted small">
+                  <span>OFF</span>
+                  <span>1s</span>
+                  <span>1h</span>
+                  <span>+24h</span>
+                </div>
+              </Col>
+
+              <Col lg={5} md={12} className="d-flex gap-2 justify-content-lg-end">
+                <Button
+                  variant="outline-danger"
+                  className="fw-bold px-4 py-2 d-flex align-items-center gap-2"
+                  onClick={handleStopAcquisition}
+                >
+                  STOP
+                </Button>
+                <Button
+                  variant="danger"
+                  className="fw-bold px-4 py-2 d-flex align-items-center gap-2 shadow-sm"
+                  disabled={acqIndex === 0}
+                  onClick={handleStartAcquisition}
+                >
+                  <BsBroadcast size={18} /> START SESSION
+                </Button>
+              </Col>
+            </Row>
+          </Card.Body>
+          {acqIndex > 0 && acqIndex < 46 && (
+            <div className="bg-warning-subtle text-warning-emphasis px-4 py-1 small border-top border-warning-subtle">
+              <strong>Attenzione:</strong> Campionamento sotto i 100ms. Verificare limiti di banda e batteria.
+            </div>
+          )}
+        </Card>
+      </div>
+
       {/* --- CICLO MEASUREMENT UNITS --- */}
       {cu.measurementUnits
         .slice() // o [...mu.sensors] per non mutare l'array originale
@@ -220,3 +290,22 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
 
   );
 }
+
+const decodeIndexToLabel = (idx: number): string => {
+  if (idx === 0) return "OFF (Stop)";
+  if (idx <= 9) return `${idx} ms`;
+  if (idx <= 27) return `${10 + (idx - 10) * 5} ms`;
+  if (idx <= 45) return `${100 + (idx - 28) * 50} ms`;
+  if (idx <= 54) return `${1 + (idx - 46)} s`;
+  if (idx <= 64) return `${10 + (idx - 55) * 5} s`;
+  if (idx <= 73) return `${1 + (idx - 65)} m`;
+  if (idx <= 83) return `${10 + (idx - 74) * 5} m`;
+  if (idx <= 222) {
+    const totalMin = 60 + (idx - 84) * 10;
+    const h = Math.floor(totalMin / 60);
+    const m = totalMin % 60;
+    return m === 0 ? `${h}h` : `${h}h ${m}m`;
+  }
+  if (idx <= 246) return `${25 + (idx - 223)} h`;
+  return "Out of Range";
+};
