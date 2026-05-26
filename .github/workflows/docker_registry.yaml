@@ -8,6 +8,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+
     steps:
       # Checkout repo
       - name: Checkout repository
@@ -33,7 +34,6 @@ jobs:
 
       # Build e push DEV
       - name: Build and push DEV Docker image
-        if: github.ref_name == 'main'
         uses: docker/build-push-action@v6
         with:
           context: .
