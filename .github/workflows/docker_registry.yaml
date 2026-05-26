@@ -33,7 +33,8 @@ jobs:
 
       # Build e push DEV
       - name: Build and push DEV Docker image
-        uses: docker/build-push-action@v5
+        if: github.ref_name == 'main'
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: DockerfileFrontendDEV

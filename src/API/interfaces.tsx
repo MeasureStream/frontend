@@ -1,64 +1,90 @@
 export interface ControlUnitDTO {
-  id: number,
-  networkId: number,
-  name: string,
-  remainingBattery: number,
-  rssi: number,
-  nodeId?: number,
-}
-
-/*
- export interface MeasurementUnitDTO {
-    id: number;
-    networkId: number;
-    type: string;
-    measuresUnit: string;
-    idDcc?: number;
-    nodeId?: number; // Opzionale, poiché in Kotlin è nullable (Long?)
-    dccFileNme?: string;
-    expiration?: string;
-}
-*/
-
-export interface SensorDTO {
   id: number;
-  type: string; // "ACCELEROMETER", "NTC", etc.
-  sensorIndex: number;
-  modelName: string;
-  // Campi comuni o specifici (opzionali per evitare errori di mapping)
-  unitCode?: number;
-  fullScaleRange?: number;
-  refTempC?: number;
-  // ... aggiungi altri se ti servono per la UI
+  devEui: string;           // Sostituisce networkId
+  deviceId: string;
+  name: string;
+  remainingBattery: number;
+  rssi: number;
+  model: number;
+  status: number;
+  dataRate: number;
+  usedDC: number;
+  hasGPS: boolean;
+  location: Point | null;
+  maxMU: number;
+  // Parametri di configurazione
+  setting1: number;
+  transmissionPower: number;
+  pollingInterval: number;
+  semanticLocation: string;
+  // Parametri Radio
+  bandwidth: number;
+  spreadingFactor: number;
+  codingRate: string;
+  frequency: number;
+  lastSeen: string | null;
+  transmissionInterval: number;
+
+  // Airtime totale giornaliero in ms (Soglia TTN: 30000)
+  usedDailyAirtime: number;
+
+  // Airtime dell'ultimo pacchetto in secondi (es: 0.051456)
+  lastAirtime: number;  // Relazioni
+  measurementUnits: MeasurementUnitDTO[];
 }
 
 export interface MeasurementUnitDTO {
   id: number;
-  networkId: number;
+  extendedId: number;
+  localId: number;
   model: number;
-  nodeId: number | null;
+  controlUnitId: number | null;
   sensors: SensorDTO[];
 }
 
-export interface MeasureDTO {
-  id: number,
-  value: number,
-  measureUnit: string,
-  time: string,//forse può avere senso lasciare in string e poi convertire all'evenienza
-  measurementUnitNId: number,
-  controlUnitNId: number
+export interface SensorDTO {
+  id: number;
+  modelName: string;
+  sensorIndex: number;
+  physVal: number;
+  elecVal: number;
+  samplingF: number;
+  phyThreshold: number;
+  isUpperThresholdMax: boolean;
+  isLowerThresholdMin: boolean;
+  coeffA?: number; // Nullable in Kotlin -> opzionale in TS
+  coeffB?: number;
+  coeffC?: number;
+  coeffD?: number;
+  calDate?: number; // Long in Kotlin (Timestamp)
+  measLocId?: number;
+  calInitials?: string;
+  sensorTemplate: SensorTemplate; // Il template completo dal backend
 }
 
-export interface NodeDTO {
+export interface SensorTemplate {
+  modelName: string;
+  type: string; // Es: "ACCELEROMETER", "ENVIRONMENTAL"
+  unit?: string; // Unità di misura principale (se applicabile)
 
-  id: number,
-  name: string,
-  standard: boolean,
-  controlUnitsId: number[],
-  measurementUnitsId: number[],
-  location: Point,
+  // Corrisponde a Map<String, Map<String, Double>>
+  // Es: { "temperature": { "min": -40, "max": 85 }, "humidity": { "min": 0, "max": 100 } }
+  ranges?: Record<string, Record<string, number>>;
 
+  // Corrisponde a Map<String, Any>
+  // Qui dentro ci finiscono logiche di conversione, offset, guadagni
+  conversion?: Record<string, any>;
+
+  // Proprietà generiche del sensore (es: risoluzione, bitrate)
+  properties?: Record<string, any>;
+
+  // Dati metrologici (es: incertezza, deriva temporale)
+  metrology?: Record<string, any>;
 }
+
+
+
+
 
 export interface Point {
   x: number;
@@ -74,28 +100,7 @@ export interface MeInterface {
 
 }
 
-export interface CuSettingDTO {
-  updateTxPower: number;
-  networkId: number;
-  gateway?: number;
-  bandwidth: number;
-  codingRate: number;
-  spreadingFactor: number;
-  updateInterval: number;
-  mus: number[]; // più facile da gestire in JSON
-}
 
-export interface MuSettingDTO {
-  networkId: number;
-  gateway?: number; // opzionale (nullable in Kotlin)
-  cu?: number;       // anche questo è opzionale
-  samplingFrequency: number;
-}
-
-export interface CuGw {
-  cuNetworkId: number;
-  gw: number | null;
-}
 
 export interface UserDTO {
   userId: string;
@@ -142,3 +147,47 @@ export const getUnitLabel = (unitCode: number | undefined): string => {
       return `Unit(${unitCode})`; // Fallback per codici sconosciuti
   }
 };
+
+export const formatDevEui = (eui: number | string): string => {
+  // Converte in Hex e assicura che sia lungo 16 caratteri (padding con zeri)
+  let hex = BigInt(eui).toString(16).toUpperCase().padStart(16, '0');
+
+  // Aggiunge i due punti ogni 2 caratteri: 00:04:A3...
+  return hex.match(/.{1,2}/g)?.join(':') || hex;
+};
+
+
+export interface CUConfigCommandDTO {
+  deviceId: string;
+  devEui: string; // o string se lo gestisci come esadecimale nel frontend
+  pollingInterval: number;
+}
+
+/**
+ * Rappresenta la configurazione di un singolo sensore all'interno di una MU.
+ */
+export interface SensorConfigDTO {
+  sensorIndex: number;    // Corrisponde all'ID/Indice del sensore (es. 1 per Temp)
+  samplingPeriod: number; // Periodo di campionamento in secondi
+}
+
+/**
+ * Rappresenta la configurazione di una Measurement Unit (MU).
+ */
+export interface MUConfigCommandDTO {
+  localId: number;               // Indirizzo hardware locale della MU (0, 1, 2...)
+  sensors: SensorConfigDTO[];    // Lista dei sensori da configurare per questa MU
+}
+
+/**
+ * DTO principale per inviare la configurazione completa a una Control Unit (CU).
+ */
+export interface CUConfigurationDTO {
+  devEui: string;                       // Identificativo univoco hardware (EUI)
+  configurations: MUConfigCommandDTO[]; // Lista delle configurazioni per MU
+}
+
+export interface CUTransmissionCommandDTO {
+  devEui: string;
+  transmissionIndex: number; // 0 per STOP, 1-246 per START
+}
