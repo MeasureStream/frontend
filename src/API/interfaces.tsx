@@ -191,3 +191,68 @@ export interface CUTransmissionCommandDTO {
   devEui: string;
   transmissionIndex: number; // 0 per STOP, 1-246 per START
 }
+
+// ─── DCC Service interfaces ────────────────────────────────────────────────
+
+/**
+ * Sensore come esposto da dcc_service GET /api/sensors.
+ * Distinto da SensorDTO (sensor-manager) perché manca dei campi runtime.
+ */
+export interface SensorDccDTO {
+  id: number;
+  modelName: string;
+  sensorIndex: number;
+  muExtendedId?: number;
+  cuDevEui?: number;
+  ownerId?: string | null;
+}
+
+export interface DccDTO {
+  id: number;
+  sensorId?: number;
+  name: string;
+  createdBy: string;
+  createdByName?: string;
+  createdAt: string;
+  updatedAt: string;
+  status: 'GREEN' | 'YELLOW' | 'RED' | 'BLUE';
+  pdfValid: boolean;
+  xmlValid: boolean;
+  pdfUrl?: string;
+  xmlUrl?: string;
+  dccJson: string;
+  publishedAt?: string;
+  calibrationDate?: string;
+  expirationDate?: string;
+  hashXml?: string;
+  hashPdf?: string;
+}
+
+export interface DccCreateRequest {
+  sensorId?: string;
+  name: string;
+  dccJson?: string;
+}
+
+export interface DccUpdateRequest {
+  name?: string;
+  sensorId?: string;
+  calibrationDate?: string;
+  expirationDate?: string;
+  dccJson?: string;
+}
+
+export interface SignatureDetailsDTO {
+  algorithm: string;
+  signer: string;
+  publicKeyMatch: boolean;
+  timestamp: string;
+  hash: string;
+  publicKeyHash: string;
+}
+
+export interface DccValidationResultDTO {
+  valid: boolean;
+  signatureDetails: SignatureDetailsDTO;
+  matchingDccs: DccDTO[];
+}

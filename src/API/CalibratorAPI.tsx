@@ -1,7 +1,8 @@
 import { CalibratorDTO } from "./interfaces";
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
-const API_URL = `${BASE_URL}/API/calibrator`;
+const API_URL = import.meta.env.DEV
+    ? `/API/calibrator`
+    : `${import.meta.env.VITE_API_URL || 'http://localhost:5173'}/API/calibrator`;
 
 // GET all calibrators
 async function getAllCalibrators(): Promise<CalibratorDTO[]> {

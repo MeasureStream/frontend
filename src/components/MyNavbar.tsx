@@ -17,43 +17,9 @@ function MyNavbar({ me }: NavbarProps) {
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav" role="navigation" >
           <Nav className="me-auto">
-
-            <>
-              {
-                me.name ?
-                  <>
-                    {/*
-
-                    <Nav.Link as={Link} to="/measures" >Measures</Nav.Link>
-                    <Nav.Link as={Link} to="/dcc" >DCC</Nav.Link>
-                    <Nav.Link as={Link} to="/create-node" >Create Node</Nav.Link>
-                    {
-                      role == "ADMIN" ?
-                        <Nav.Link as={Link} to="/nodes" >Nodes</Nav.Link>
-                        :
-                        <></>
-                    }
-
-                                                              <NavDropdown title="Other Actions" id="basic-nav-dropdown">
-
-                        <NavDropdown.Item  as = {Link} to="/create-mu" >Create MU</NavDropdown.Item>
-                                        <NavDropdown.Item  as = {Link} to="/create-cu" >Create CU</NavDropdown.Item>
-                                                                                <NavDropdown.Item  as = {Link} to="/mus" >Manage MUs</NavDropdown.Item>
-                                        <NavDropdown.Item  as = {Link} to="/cus" >Manage CUs</NavDropdown.Item>
-                                    <NavDropdown.Item  as = {Link} to="/add" >Add</NavDropdown.Item>
-                                    <NavDropdown.Item href="#action/3.2">Another action</NavDropdown.Item>
-                                    <NavDropdown.Item href="#action/3.3">Something</NavDropdown.Item>
-                                    <NavDropdown.Divider />
-                                    <NavDropdown.Item href="#action/3.4"> Separated link </NavDropdown.Item>
-                                                        </NavDropdown>
-
-                                    */}
-                  </>
-                  :
-                  <></>
-
-              }
-            </>
+            {me.name && (
+              <Nav.Link as={Link} to="/dcc/sensors">DCC</Nav.Link>
+            )}
           </Nav>
 
         </Navbar.Collapse>

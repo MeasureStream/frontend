@@ -1,6 +1,7 @@
 import { Row, Col, Card, Badge, Modal, ListGroup } from "react-bootstrap";
-import { BsCpu, BsThermometerHalf, BsDroplet, BsSpeedometer, BsGear, BsInfoCircle, BsTools, BsSliders, BsShieldCheck } from "react-icons/bs";
+import { BsCpu, BsThermometerHalf, BsDroplet, BsSpeedometer, BsGear, BsInfoCircle, BsTools, BsSliders, BsShieldCheck, BsFileEarmarkText } from "react-icons/bs";
 import { useState } from "react";
+import { useNavigate } from "react-router";
 import { ChartModalButton } from "./ChartModalButton";
 import { MeasurementUnitDTO, SensorDTO } from "../API/interfaces";
 import { AccelIcon, PressureIcon } from "../icons/CustomIcons";
@@ -12,6 +13,7 @@ interface Props {
 
 export function MeasurementUnitCard({ mu, handleSetDirty }: Props) {
   const [selectedSensor, setSelectedSensor] = useState<SensorDTO | null>(null);
+  const navigate = useNavigate();
 
   const getSensorIcon = (type: string) => {
     switch (type.toLowerCase()) {
@@ -86,9 +88,17 @@ export function MeasurementUnitCard({ mu, handleSetDirty }: Props) {
                     <div className="d-flex gap-1">
                       <button
                         className="btn btn-link p-0 text-muted hover-primary"
+                        title="Sensor info"
                         onClick={() => setSelectedSensor(sensor)}
                       >
                         <BsInfoCircle size={14} />
+                      </button>
+                      <button
+                        className="btn btn-link p-0 text-primary hover-primary"
+                        title="View DCC certificates for this sensor"
+                        onClick={() => navigate(`/dcc/certificates?sensorId=${sensor.id}`)}
+                      >
+                        <BsFileEarmarkText size={14} />
                       </button>
                       <ChartModalButton
                         nodeId={mu.extendedId}

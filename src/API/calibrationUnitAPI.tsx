@@ -1,7 +1,8 @@
 import { CalibrationUnitDTO } from "./interfaces";
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
-const API_URL = `${BASE_URL}/API/calibrationunits`;
+const API_URL = import.meta.env.DEV
+    ? `/API/calibrationunits`
+    : `${import.meta.env.VITE_API_URL || 'http://localhost:5173'}/API/calibrationunits`;
 
 // GET all calibration units
 async function getAllCalibrationUnits(): Promise<CalibrationUnitDTO[]> {

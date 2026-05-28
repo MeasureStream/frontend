@@ -1,17 +1,18 @@
 import { ControlUnitDTO, CUConfigCommandDTO, CUConfigurationDTO, CUTransmissionCommandDTO } from "./interfaces";
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
-const API_URL = `${BASE_URL}/API/controlunits`;
+const API_URL = import.meta.env.DEV
+  ? `/API/controlunits`
+  : `${import.meta.env.VITE_API_URL || 'http://localhost:5173'}/API/controlunits`;
 
 
 //get
 async function getAllCu(page?: number, size?: number) {
   const params: { [key: string]: any } = {};
-  if (page !== null) {
+  if (page != null) {
     params.page = page;
   }
 
-  if (size !== null) {
+  if (size != null) {
     params.size = size;
   }
 

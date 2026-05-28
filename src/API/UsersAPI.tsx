@@ -1,7 +1,8 @@
 import { UserDTO} from "./interfaces";
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
-const API_URL = `${BASE_URL}/API/user`;
+const API_URL = import.meta.env.DEV
+    ? `/API/user`
+    : `${import.meta.env.VITE_API_URL || 'http://localhost:5173'}/API/user`;
 
 export async function getUsers() {
     const response = await fetch(API_URL, {

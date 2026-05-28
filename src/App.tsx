@@ -1,6 +1,6 @@
 import MyNavbar from "./components/MyNavbar";
 import { Container } from "react-bootstrap";
-import { BrowserRouter as Router, Route, Routes } from "react-router";
+import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router";
 import { useEffect, useState } from "react";
 import { ControlUnitDTO, MeInterface, UserDTO } from "./API/interfaces";
 import { getMe } from "./API/MeAPI";
@@ -10,6 +10,11 @@ import { getAllCu } from "./API/ControlUnitAPI";
 import { useAuth } from "./API/AuthContext";
 import { ControlUnitsPage } from "./pages/ContolUnitsPage/ControlUnitsPage";
 import { ControlUnitDetail } from "./pages/ContolUnitsPage/ControlUnitDetail/ControlUnitDetail";
+import DccSensors from "./pages/DccPage/DccSensors";
+import DccCertificates from "./pages/DccPage/DccCertificates";
+import DccDetail from "./pages/DccPage/DccDetail";
+import DccTemplates from "./pages/DccPage/DccTemplates";
+import DccValidate from "./pages/DccPage/DccValidate";
 
 function App() {
   const { xsrfToken, setXsrfToken, dirty, setDirty, role, setRole, setUser } = useAuth(); // Usa il contesto
@@ -111,6 +116,13 @@ function App() {
 
             <Route path="/cus/:id" element={<ControlUnitDetail allControlUnits={controlUnits} />} />
 
+            {/* DCC routes */}
+            <Route path="/dcc" element={<Navigate to="/dcc/sensors" replace />} />
+            <Route path="/dcc/sensors" element={<DccSensors />} />
+            <Route path="/dcc/certificates" element={<DccCertificates />} />
+            <Route path="/dcc/certificates/:dccId" element={<DccDetail />} />
+            <Route path="/dcc/templates" element={<DccTemplates />} />
+            <Route path="/dcc/validate" element={<DccValidate />} />
           </Routes>
         </Container>
 

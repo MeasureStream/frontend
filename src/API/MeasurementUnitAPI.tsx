@@ -1,6 +1,7 @@
 import { MeasurementUnitDTO } from "./interfaces";
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
-const API_URL = `${BASE_URL}/API/measurementunits`;
+const API_URL = import.meta.env.DEV
+  ? `/API/measurementunits`
+  : `${import.meta.env.VITE_API_URL || 'http://localhost:5173'}/API/measurementunits`;
 
 
 //get
