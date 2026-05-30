@@ -23,6 +23,16 @@ function DccNav() {
         </Nav.Link>
       </Nav.Item>
       <Nav.Item>
+        <Nav.Link as={Link} to="/dcc/calibrations" eventKey="/dcc/calibrations">
+          Calibrations
+        </Nav.Link>
+      </Nav.Item>
+      <Nav.Item>
+        <Nav.Link as={Link} to="/dcc/anagrafica" eventKey="/dcc/anagrafica">
+          Anagrafica
+        </Nav.Link>
+      </Nav.Item>
+      <Nav.Item>
         <Nav.Link as={Link} to="/dcc/validate" eventKey="/dcc/validate">
           Validate DCC
         </Nav.Link>

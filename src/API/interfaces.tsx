@@ -256,3 +256,71 @@ export interface DccValidationResultDTO {
   signatureDetails: SignatureDetailsDTO;
   matchingDccs: DccDTO[];
 }
+
+// ─── Anagrafica interfaces ─────────────────────────────────────────────────
+
+export interface AnagraficaDTO {
+  id: number;
+  name: string;
+  jsonData: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AnagraficaCreateRequest {
+  name: string;
+  jsonData: string;
+}
+
+// ─── Calibration Wizard interfaces ─────────────────────────────────────────
+
+export interface CalibrationWizardDTO {
+  id: number;
+  muId: number;
+  processed: boolean;
+  createdAt: string;
+  updatedAt: string;
+  sub: string;
+  description?: string;
+  calibrationDeviceId?: string;
+  calibrationRequestId?: number;
+  // wizard steps JSON (raw strings)
+  baseInputJson?: string;
+  calibrationMethodJson?: string;
+  measurestreamCompanyJson?: string;
+  clientCompanyJson?: string;
+  jobJson?: string;
+  certificatoIn?: string;
+  resultJson?: string;
+  images?: string;
+}
+
+export interface WizardStepRequest {
+  step: number; // 0=base_input, 1=method, 2=ms_company, 3=client, 4=job
+  jsonData: string;
+}
+
+// ─── Calibration interfaces ─────────────────────────────────────────────────
+
+export interface CalibrationRequestDTO {
+  id: number;
+  calibrationId: string;      // es: calib-1-1-20260422T175123
+  calibratorId: number;
+  muId: number;
+  sensorId: number;
+  processed: boolean;
+  createdAt: string;
+  inputJson: string;          // JSON raw aggregato dei messaggi
+  processedJson: string;      // JSON elaborato (uint16 decoded)
+}
+
+export interface CalibrationMessageDTO {
+  id: number;
+  calibId: string;
+  stepIndex: number;
+  target: number;
+  totalSteps: number;
+  assembled: boolean;
+  receivedAt: string;
+  rawJson: string;
+}

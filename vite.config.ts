@@ -26,7 +26,17 @@ export default defineConfig({
         changeOrigin: true,
         secure: false
       },
+      '/api/anagrafica': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        secure: false
+      },
       '/api/public': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        secure: false
+      },
+      '/api/calibrations': {
         target: 'http://localhost:8080',
         changeOrigin: true,
         secure: false

@@ -15,6 +15,8 @@ import DccCertificates from "./pages/DccPage/DccCertificates";
 import DccDetail from "./pages/DccPage/DccDetail";
 import DccTemplates from "./pages/DccPage/DccTemplates";
 import DccValidate from "./pages/DccPage/DccValidate";
+import DccCalibrations from "./pages/DccPage/DccCalibrations";
+import DccAnagrafica from "./pages/DccPage/DccAnagrafica";
 
 function App() {
   const { xsrfToken, setXsrfToken, dirty, setDirty, role, setRole, setUser } = useAuth(); // Usa il contesto
@@ -122,6 +124,8 @@ function App() {
             <Route path="/dcc/certificates" element={<DccCertificates />} />
             <Route path="/dcc/certificates/:dccId" element={<DccDetail />} />
             <Route path="/dcc/templates" element={<DccTemplates />} />
+            <Route path="/dcc/calibrations" element={<DccCalibrations />} />
+            <Route path="/dcc/anagrafica" element={<DccAnagrafica />} />
             <Route path="/dcc/validate" element={<DccValidate />} />
           </Routes>
         </Container>
