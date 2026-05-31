@@ -354,3 +354,25 @@ export interface CalibrationMessageDTO {
   receivedAt: string;
   rawJson: string;
 }
+
+// ─── Verify DCC Conformity interfaces ──────────────────────────────────────
+
+export interface ConformityImageDTO {
+  filename: string;
+  dataUri: string;   // "data:image/png;base64,..."
+}
+
+export interface ConformityVerificationResultDTO {
+  success: boolean;
+  overall: 'CONFORME' | 'NON CONFORME' | 'ERROR' | 'UNKNOWN';
+  log: string;
+  images: ConformityImageDTO[];
+}
+
+export interface ConformityVerifyRequest {
+  file: File;
+  sensor: string;
+  mae: number;
+  pfaThreshold: number;
+  uRef: number;
+}

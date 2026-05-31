@@ -7,8 +7,7 @@ import {
 import DccNav from '../../components/DccNav';
 import { getCalibrationByRequest } from '../../API/WizardAPI';
 import { CalibrationWizardDTO } from '../../API/interfaces';
-import { createDcc } from '../../API/DccAPI';
-import { useAuth } from '../../API/AuthContext';
+
 
 const CALIB_BASE = '/api/calibrations';
 
@@ -35,7 +34,7 @@ function formatJson(s: string | null | undefined): string {
 function CalibrationRunPage() {
   const { requestId } = useParams<{ requestId: string }>();
   const navigate = useNavigate();
-  const { xsrfToken } = useAuth();
+
 
   const [calib, setCalib] = useState<CalibrationWizardDTO | null>(null);
   const [loading, setLoading] = useState(true);
@@ -70,25 +69,17 @@ function CalibrationRunPage() {
     setSavingDcc(true);
     setSaveError(null);
     try {
-      // Step 1: Convert the stored DCC XML → JSON via the dcc_service proxy endpoint
-      const convertRes = await fetch(
-        `${CALIB_BASE}/wizard/${calib.id}/dcc-json`,
+      // Single backend call: converts XML→JSON via gemimeg, resolves sensorId from
+      // CalibrationRequest, creates the DCC record with both IDs set, returns DccDto.
+      const res = await fetch(
+        `${CALIB_BASE}/wizard/${calib.id}/save-dcc`,
         { method: 'POST', credentials: 'include' }
       );
-      if (!convertRes.ok) {
-        const errText = await convertRes.text().catch(() => convertRes.statusText);
-        throw new Error(`DCC XML→JSON conversion failed: ${errText}`);
+      if (!res.ok) {
+        const errText = await res.text().catch(() => res.statusText);
+        throw new Error(`Salva DCC failed: ${errText}`);
       }
-      const dccJsonObj = await convertRes.json();
-      const dccJsonStr = JSON.stringify(dccJsonObj);
-
-      // Step 2: Create DCC record in dcc_service
-      const newDcc = await createDcc(xsrfToken || '', {
-        name: `DCC from calibration ${calib.runId ?? requestId}`,
-        dccJson: dccJsonStr,
-        calibrationRequestId: requestId ? parseInt(requestId) : undefined,
-      } as any);
-
+      const newDcc = await res.json();
       setSavedDccId(newDcc.id);
     } catch (e: any) {
       setSaveError(e.message);

@@ -1,4 +1,5 @@
 import {
+  ConformityVerificationResultDTO,
   DccCreateRequest,
   DccDTO,
   DccUpdateRequest,
@@ -170,5 +171,49 @@ export async function externalValidatePdf(
     body: formData,
   });
   if (!res.ok) throw new Error('Error validating external PDF');
+  return res.json();
+}
+
+// ─── Verify DCC Conformity ─────────────────────────────────────────────────
+
+/**
+ * POST /api/dcc/external/verify-conformity
+ * Runs verify_dcc_conformity.py on the uploaded DCC XML in a temp dir on the server.
+ * Returns log text + Base64-encoded PNG charts. Nothing is persisted.
+ */
+export async function verifyDccConformity(
+  xsrfToken: string,
+  file: File,
+  sensor: string,
+  mae: number,
+  pfaThreshold: number,
+  uRef: number
+): Promise<ConformityVerificationResultDTO> {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('sensor', sensor);
+  formData.append('mae', String(mae));
+  formData.append('pfaThreshold', String(pfaThreshold));
+  formData.append('uRef', String(uRef));
+  const res = await fetch(`${API_URL}/external/verify-conformity`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'X-XSRF-TOKEN': xsrfToken },
+    body: formData,
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`Error verifying DCC conformity: ${text || res.statusText}`);
+  }
+  return res.json();
+}
+
+/**
+ * GET /api/calibrations/sensor-templates
+ * Returns the list of sensor template JSON file names from models_in/sensors/.
+ */
+export async function getSensorTemplates(): Promise<string[]> {
+  const res = await fetch('/api/calibrations/sensor-templates', { credentials: 'include' });
+  if (!res.ok) throw new Error('Error fetching sensor templates');
   return res.json();
 }
