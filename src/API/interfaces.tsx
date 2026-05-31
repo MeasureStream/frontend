@@ -293,6 +293,36 @@ export interface CalibrationWizardDTO {
   certificatoIn?: string;
   resultJson?: string;
   images?: string;
+  // calibration run fields
+  runId?: string;
+  runStatus?: 'PENDING' | 'RUNNING' | 'SUCCESS' | 'FAILED';
+  runLog?: string;
+  conformityJson?: string;
+  pdfOutputUrl?: string;
+  dccXml?: string;
+}
+
+// ─── Calibration Run interfaces ────────────────────────────────────────────
+
+export interface CalibrationRunConfig {
+  sensorJson: string;
+  refJson: string;
+  procedure?: string;
+  charts?: boolean;
+  verbose?: boolean;
+  updateIfOutRange?: boolean;
+  checkUnits?: boolean;
+  convertUnits?: boolean;
+  noPdf?: boolean;
+  noXml?: boolean;
+}
+
+export interface CalibrationRunConfigOptions {
+  availableSensors: string[];
+  availableRefs: string[];
+  procedures: string[];
+  runId: string;
+  hasExistingRun: boolean;
 }
 
 export interface WizardStepRequest {

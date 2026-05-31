@@ -3,9 +3,10 @@ import {
   Container, Table, Badge, Button, Modal, Form,
   Row, Col, Spinner, Nav, Tab,
 } from 'react-bootstrap';
-import { useSearchParams } from 'react-router';
+import { useSearchParams, useNavigate } from 'react-router';
 import DccNav from '../../components/DccNav';
 import CertificatoWizard from '../../components/CertificatoWizard';
+import CalibrationRunModal from '../../components/CalibrationRunModal';
 import {
   getCalibrationRequests, getCalibrationRequest, getCalibrationMessages,
 } from '../../API/CalibrationAPI';
@@ -14,6 +15,7 @@ import { CalibrationRequestDTO, CalibrationMessageDTO, CalibrationWizardDTO } fr
 
 function DccCalibrations() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const sensorIdParam = searchParams.get('sensorId');
   const muIdParam = searchParams.get('muId');
 
@@ -37,12 +39,16 @@ function DccCalibrations() {
   const [wizardReq, setWizardReq] = useState<CalibrationRequestDTO | null>(null);
   const [showWizard, setShowWizard] = useState(false);
 
-  // Map requestId → Calibration (to know which rows have a certificato_in)
+  // Map requestId → Calibration (to know which rows have a certificato_in / run results)
   const [calibrationMap, setCalibrationMap] = useState<Record<number, CalibrationWizardDTO>>({});
 
   // Certificato Base JSON viewer modal
   const [showCertModal, setCertModal] = useState(false);
   const [certJson, setCertJson] = useState<string | null>(null);
+
+  // Calibration Run modal
+  const [runModalReq, setRunModalReq] = useState<{ req: CalibrationRequestDTO; calib: CalibrationWizardDTO } | null>(null);
+  const [showRunModal, setShowRunModal] = useState(false);
 
   const fetchRequests = async () => {
     setLoading(true);
@@ -140,6 +146,16 @@ function DccCalibrations() {
     setCertModal(true);
   };
 
+  const openRunModal = (req: CalibrationRequestDTO, calib: CalibrationWizardDTO) => {
+    setRunModalReq({ req, calib });
+    setShowRunModal(true);
+  };
+
+  const closeRunModal = () => {
+    setShowRunModal(false);
+    setRunModalReq(null);
+  };
+
   const filteredRequests = requests.filter(r =>
     (!filterCalibId || r.calibrationId.toLowerCase().includes(filterCalibId.toLowerCase()))
   );
@@ -230,21 +246,47 @@ function DccCalibrations() {
                 </td>
                 <td>{new Date(r.createdAt).toLocaleString()}</td>
                 <td>
-                  <Button size="sm" variant="outline-primary" className="me-1" onClick={() => openWizard(r)}>
-                    Compila Certificato
-                  </Button>
-                  <Button size="sm" variant="outline-secondary" className="me-1" onClick={() => openDetail(r)}>
-                    View JSON
-                  </Button>
-                  {calibrationMap[r.id]?.certificatoIn && (
-                    <Button
-                      size="sm"
-                      variant="outline-success"
-                      onClick={() => openCertJson(calibrationMap[r.id])}
-                    >
-                      View Certificato Base JSON
+                  <div className="d-flex gap-1 flex-wrap">
+                    <Button size="sm" variant="outline-primary" onClick={() => openWizard(r)}>
+                      Compila Certificato
                     </Button>
-                  )}
+                    <Button size="sm" variant="outline-secondary" onClick={() => openDetail(r)}>
+                      View JSON
+                    </Button>
+                    {calibrationMap[r.id]?.certificatoIn && (
+                      <Button
+                        size="sm"
+                        variant="outline-success"
+                        onClick={() => openCertJson(calibrationMap[r.id])}
+                      >
+                        View Certificato Base JSON
+                      </Button>
+                    )}
+                    {calibrationMap[r.id]?.certificatoIn && (
+                      <Button
+                        size="sm"
+                        variant={calibrationMap[r.id]?.runStatus === 'SUCCESS' ? 'success' : 'warning'}
+                        onClick={() => openRunModal(r, calibrationMap[r.id])}
+                        title="Run calibration pipeline (analisi_calib_data.py)"
+                      >
+                        {calibrationMap[r.id]?.runStatus === 'SUCCESS'
+                          ? 'Re-Calibrate'
+                          : calibrationMap[r.id]?.runStatus === 'FAILED'
+                          ? 'Retry Calibration'
+                          : 'Calibrate'}
+                      </Button>
+                    )}
+                    {calibrationMap[r.id]?.runStatus && (
+                      <Button
+                        size="sm"
+                        variant="outline-dark"
+                        onClick={() => navigate(`/dcc/calibrations/${r.id}/run`)}
+                        title="View run results"
+                      >
+                        View Run
+                      </Button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}
@@ -302,6 +344,21 @@ function DccCalibrations() {
           calibrationRequestId={wizardReq.id}
           calibrationRequestLabel={wizardReq.calibrationId}
           onHide={closeWizard}
+        />
+      )}
+
+      {/* Calibration Run Modal */}
+      {runModalReq && (
+        <CalibrationRunModal
+          show={showRunModal}
+          calibrationId={runModalReq.calib.id}
+          calibrationRequestId={runModalReq.req.id}
+          calibrationLabel={runModalReq.req.calibrationId}
+          onHide={closeRunModal}
+          onRunComplete={(result) => {
+            // Update the calibration map so the badge refreshes immediately
+            setCalibrationMap((prev) => ({ ...prev, [runModalReq.req.id]: result }));
+          }}
         />
       )}
 
