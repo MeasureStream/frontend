@@ -11,6 +11,15 @@ function getCookie(name: string): string | null {
   return null;
 }
 
+function getXsrfHeaders(contentType?: boolean): HeadersInit | undefined {
+  const xsrfToken = getCookie('XSRF-TOKEN');
+  if (!xsrfToken) return contentType ? { 'Content-Type': 'application/json' } : undefined;
+
+  return contentType
+    ? { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': xsrfToken }
+    : { 'X-XSRF-TOKEN': xsrfToken };
+}
+
 /** Fetch the Calibration associated to a CalibrationRequest (404 if not yet created) */
 export async function getCalibrationByRequest(requestId: number): Promise<CalibrationWizardDTO | null> {
   const res = await fetch(`${BASE}/requests/${requestId}/calibration`, { credentials: 'include' });
@@ -21,11 +30,10 @@ export async function getCalibrationByRequest(requestId: number): Promise<Calibr
 
 /** Inizializza o ricarica il wizard per una CalibrationRequest */
 export async function initWizard(calibrationRequestId: number): Promise<CalibrationWizardDTO> {
-  const xsrfToken = getCookie('XSRF-TOKEN');
   const res = await fetch(`${BASE}/requests/${calibrationRequestId}/wizard/init`, {
     method: 'POST',
     credentials: 'include',
-    headers: xsrfToken ? { 'X-XSRF-TOKEN': xsrfToken } : undefined,
+    headers: getXsrfHeaders(),
   });
   if (!res.ok) throw new Error('Error initializing wizard');
   return res.json();
@@ -43,7 +51,7 @@ export async function saveWizardStep(calibrationId: number, req: WizardStepReque
   const res = await fetch(`${BASE}/wizard/${calibrationId}/step`, {
     method: 'PUT',
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getXsrfHeaders(true),
     body: JSON.stringify(req),
   });
   if (!res.ok) throw new Error('Error saving wizard step');
@@ -55,6 +63,7 @@ export async function buildCertificatoIn(calibrationId: number): Promise<Calibra
   const res = await fetch(`${BASE}/wizard/${calibrationId}/build`, {
     method: 'POST',
     credentials: 'include',
+    headers: getXsrfHeaders(),
   });
   if (!res.ok) {
     const msg = await res.text().catch(() => res.statusText);

@@ -2,6 +2,24 @@ import { CalibrationRunConfig, CalibrationRunConfigOptions, CalibrationWizardDTO
 
 const BASE = '/api/calibrations';
 
+function getCookie(name: string): string | null {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) {
+    return parts.pop()?.split(';').shift() ?? null;
+  }
+  return null;
+}
+
+function getXsrfHeaders(contentType?: boolean): HeadersInit | undefined {
+  const xsrfToken = getCookie('XSRF-TOKEN');
+  if (!xsrfToken) return contentType ? { 'Content-Type': 'application/json' } : undefined;
+
+  return contentType
+    ? { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': xsrfToken }
+    : { 'X-XSRF-TOKEN': xsrfToken };
+}
+
 /**
  * Returns available sensor/reference templates and procedure options.
  * Used to populate the CalibrationRunModal dropdowns.
@@ -24,7 +42,7 @@ export async function startCalibrationRun(
   const res = await fetch(`${BASE}/wizard/${calibrationId}/run`, {
     method: 'POST',
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getXsrfHeaders(true),
     body: JSON.stringify(config),
   });
   if (!res.ok) {

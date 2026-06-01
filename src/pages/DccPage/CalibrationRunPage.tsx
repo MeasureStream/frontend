@@ -11,6 +11,20 @@ import { CalibrationWizardDTO } from '../../API/interfaces';
 
 const CALIB_BASE = '/api/calibrations';
 
+function getCookie(name: string): string | null {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) {
+    return parts.pop()?.split(';').shift() ?? null;
+  }
+  return null;
+}
+
+function getXsrfHeaders(): HeadersInit | undefined {
+  const xsrfToken = getCookie('XSRF-TOKEN');
+  return xsrfToken ? { 'X-XSRF-TOKEN': xsrfToken } : undefined;
+}
+
 function statusVariant(status?: string) {
   if (status === 'SUCCESS') return 'success';
   if (status === 'FAILED') return 'danger';
@@ -73,7 +87,7 @@ function CalibrationRunPage() {
       // CalibrationRequest, creates the DCC record with both IDs set, returns DccDto.
       const res = await fetch(
         `${CALIB_BASE}/wizard/${calib.id}/save-dcc`,
-        { method: 'POST', credentials: 'include' }
+        { method: 'POST', credentials: 'include', headers: getXsrfHeaders() }
       );
       if (!res.ok) {
         const errText = await res.text().catch(() => res.statusText);
