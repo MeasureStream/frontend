@@ -310,6 +310,7 @@ function CalibrationRunPage() {
                         <strong>Calibration Certificate PDF</strong> generated
                       </span>
                       <Button
+                        as="a"
                         size="sm" variant="outline-primary"
                         href={calib.pdfOutputUrl}
                         target="_blank"
