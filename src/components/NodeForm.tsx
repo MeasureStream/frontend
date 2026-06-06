@@ -1,7 +1,24 @@
 import { Form, Button, Container, Row, Col } from "react-bootstrap";
 import { useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
+
+// Lightweight local yup resolver to avoid dependency on @hookform/resolvers/yup
+const yupResolver = (schema: any) => async (data: any) => {
+    try {
+        const values = await schema.validate(data, { abortEarly: false, stripUnknown: true });
+        return { values, errors: {} };
+    } catch (err: any) {
+        const errors: any = {};
+        if (Array.isArray(err.inner)) {
+            err.inner.forEach((e: any) => {
+                if (!errors[e.path]) {
+                    errors[e.path] = { type: e.type ?? 'validation', message: e.message };
+                }
+            });
+        }
+        return { values: {}, errors };
+    }
+};
 
 // Schema di validazione per Node
 const nodeSchema = yup.object().shape({

@@ -12,10 +12,10 @@ export default defineConfig({
     host: "0.0.0.0",
     hmr: true, // Abilita Hot Module Replacement
     strictPort: true,
-    port: 5173, // you can replace this port with any port
+    port: 5174, // you can replace this port with any port
     proxy: {
       '/me': {
-        target: 'http://localhost:8080',
+        target: 'http://localhost:8081',
         changeOrigin: true,
         secure: false
       },
@@ -30,7 +30,7 @@ export default defineConfig({
         secure: false
       },
       '/API': {
-        target: 'http://localhost:8080',
+        target: 'http://localhost:8082',
         changeOrigin: true,
         secure: false
       },
