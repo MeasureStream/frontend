@@ -20,7 +20,7 @@ async function downloadMeasures (nodeId : number, measureUnit: string, start: st
         });
 
         if (!response.ok) {
-            throw new Error('Errore nel download del file');
+            throw new Error('Error downloading file');
         }
 
         const blob = await response.blob();

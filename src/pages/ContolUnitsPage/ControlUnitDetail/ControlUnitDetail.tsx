@@ -33,9 +33,9 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
       const updatedCU = await getControlUnitById(cuId);
       setCurrentCU(updatedCU);
       setAcqIndex(updatedCU.transmissionInterval);
-      console.log(`Dati aggiornati per CU ${cuId} alle ${new Date().toLocaleTimeString()}`);
+      console.log(`Data updated for CU ${cuId} at ${new Date().toLocaleTimeString()}`);
     } catch (err) {
-      console.error("Refresh fallito:", err);
+      console.error("Refresh failed:", err);
     }
   };
 
@@ -57,10 +57,10 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
         devEui: currentCU.devEui,
         transmissionIndex: acqIndex
       });
-      console.log("Sessione avviata con successo");
+      console.log("Session started successfully");
     } catch (err) {
-      console.error("Errore nell'avvio della sessione:", err);
-      alert("Errore durante l'avvio della sessione");
+      console.error("Error starting session:", err);
+      alert("Error starting session");
     }
   };
 
@@ -72,15 +72,15 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
         transmissionIndex: 0 // Forza lo STOP
       });
       setAcqIndex(0); // Reset dello slider in UI
-      console.log("Sessione fermata");
+      console.log("Session stopped");
     } catch (err) {
-      console.error("Errore nel fermare la sessione:", err);
+      console.error("Error stopping session:", err);
     }
   };
 
   const cu = currentCU;
 
-  if (!cu) return <Container className="py-5"><h1>CU non trovata</h1></Container>;
+  if (!cu) return <Container className="py-5"><h1>CU not found</h1></Container>;
 
   const airtimeLimit = 30000;
   const airtimePercentage = Math.min((cu.usedDailyAirtime / airtimeLimit) * 100, 100);
@@ -252,7 +252,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
           </Card.Body>
           {acqIndex > 0 && acqIndex < 4 && (
             <div className="bg-warning-subtle text-warning-emphasis px-4 py-1 small border-top border-warning-subtle">
-              <strong>Attenzione:</strong> Verificare limiti di banda e batteria.
+              <strong>Warning:</strong> Check bandwidth and battery limits.
             </div>
           )}
         </Card>
@@ -270,7 +270,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
           className="d-flex align-items-center gap-2 shadow-sm"
           onClick={() => setShowSensorConfig(true)}
         >
-          <BsCpu size={16} /> Configura Sampling Sensori
+          <BsCpu size={16} /> Configure Sensor Sampling
         </Button>
       </div>
 

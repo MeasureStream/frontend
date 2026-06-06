@@ -194,7 +194,7 @@ export const getLatestLoraRSSIValue = async (nodeId: number): Promise<number | n
 
     return null; // Nessun dato trovato nell'intervallo
   } catch (error) {
-    console.error("Errore fetch RSSI:", error);
+    console.error("Error fetching RSSI:", error);
     return null;
   }
 };

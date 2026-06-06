@@ -15,6 +15,7 @@ import DccCertificates from "./pages/DccPage/DccCertificates";
 import DccDetail from "./pages/DccPage/DccDetail";
 import DccTemplates from "./pages/DccPage/DccTemplates";
 import DccValidate from "./pages/DccPage/DccValidate";
+import DccConformity from "./pages/DccPage/DccConformity";
 import DccCalibrations from "./pages/DccPage/DccCalibrations";
 import DccAnagrafica from "./pages/DccPage/DccAnagrafica";
 import CalibrationRunPage from "./pages/DccPage/CalibrationRunPage";
@@ -85,7 +86,7 @@ function App() {
               setControlUnits(cu_fetch);
               setDirty(false);
             } catch (err) {
-              console.error("Errore durante il caricamento delle CU:", err);
+              console.error("Error loading CUs:", err);
               setControlUnits([]);
             }
           }
@@ -94,7 +95,7 @@ function App() {
 
 
         } catch (error) {
-          console.error("Errore nel fetching :", (error as Error).message);
+          console.error("Error fetching :", (error as Error).message);
 
         }
 
@@ -129,6 +130,7 @@ function App() {
             <Route path="/dcc/calibrations/:requestId/run" element={<CalibrationRunPage />} />
             <Route path="/dcc/anagrafica" element={<DccAnagrafica />} />
             <Route path="/dcc/validate" element={<DccValidate />} />
+            <Route path="/dcc/conformity" element={<DccConformity />} />
           </Routes>
         </Container>
 

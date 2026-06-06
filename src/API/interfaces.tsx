@@ -215,7 +215,7 @@ export interface DccDTO {
   createdByName?: string;
   createdAt: string;
   updatedAt: string;
-  status: 'GREEN' | 'YELLOW' | 'RED' | 'BLUE';
+  status: 'GREY' | 'GREEN' | 'YELLOW' | 'RED' | 'BLUE' | 'ARCHIVED';
   pdfValid: boolean;
   xmlValid: boolean;
   pdfUrl?: string;
@@ -226,6 +226,8 @@ export interface DccDTO {
   expirationDate?: string;
   hashXml?: string;
   hashPdf?: string;
+  archived: boolean;
+  calibrationRequestId?: number;
 }
 
 export interface DccCreateRequest {
@@ -300,6 +302,9 @@ export interface CalibrationWizardDTO {
   conformityJson?: string;
   pdfOutputUrl?: string;
   dccXml?: string;
+  // sensor info resolved at wizard init
+  sensorId?: number;
+  sensorModelName?: string;
 }
 
 // ─── Calibration Run interfaces ────────────────────────────────────────────
@@ -364,7 +369,7 @@ export interface ConformityImageDTO {
 
 export interface ConformityVerificationResultDTO {
   success: boolean;
-  overall: 'CONFORME' | 'NON CONFORME' | 'ERROR' | 'UNKNOWN';
+  overall: 'CONFORMING' | 'NON-CONFORMING' | 'ERROR' | 'UNKNOWN';
   log: string;
   images: ConformityImageDTO[];
 }

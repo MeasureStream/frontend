@@ -3,13 +3,17 @@ import {
   Container, Table, Badge, Button, Modal, Form,
   Row, Col, Alert, Spinner,
 } from 'react-bootstrap';
+import {
+  BsPencil, BsBoxArrowUpRight, BsShieldCheck, BsCheckCircle,
+  BsFiletypePdf, BsFiletypeXml, BsGraphUp,
+} from 'react-icons/bs';
 import { useNavigate, useSearchParams } from 'react-router';
 import { useAuth } from '../../API/AuthContext';
 import DccNav from '../../components/DccNav';
 import {
-  getDccs, createDcc, updateDcc, updateDccJson, validateDcc,
+  getDccs, createDcc, updateDcc, validateDcc,
   publishDcc, unpublishDcc, deleteDcc, downloadSignedPdf,
-  downloadSignedXml, getDccs as getDccsTemplate, getSensors,
+  downloadSignedXml, downloadCalibrationResult, getSensors,
 } from '../../API/DccAPI';
 import {
   DccDTO, DccCreateRequest, DccUpdateRequest, SensorDccDTO,
@@ -22,13 +26,15 @@ function statusBg(status: string) {
   if (status === 'YELLOW') return 'warning';
   if (status === 'RED') return 'danger';
   if (status === 'BLUE') return 'primary';
+  if (status === 'GREY') return 'secondary';
+  if (status === 'ARCHIVED') return 'dark';
   return 'secondary';
 }
 
 // ─── Main page ─────────────────────────────────────────────────────────────
 
 function DccCertificates() {
-  const { xsrfToken } = useAuth();
+  const { xsrfToken, role } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const sensorIdParam = searchParams.get('sensorId');
@@ -102,9 +108,11 @@ function DccCertificates() {
 
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h4 className="mb-0">DCC Certificates</h4>
-        <Button variant="primary" onClick={() => setShowCreate(true)}>
-          Create DCC
-        </Button>
+        {role === 'ADMIN' && (
+          <Button variant="primary" onClick={() => setShowCreate(true)}>
+            Create DCC
+          </Button>
+        )}
       </div>
 
       {sensorIdParam && (
@@ -210,17 +218,14 @@ function DccActions({
 }: { dcc: DccDTO; sensors: SensorDccDTO[]; setDirty: (v: boolean) => void }) {
   const { xsrfToken, role } = useAuth();
   const [showEdit, setShowEdit] = useState(false);
-  const [showJson, setShowJson] = useState(false);
-  const [showImport, setShowImport] = useState(false);
-  const [templates, setTemplates] = useState<DccDTO[]>([]);
-  const [selectedTemplate, setSelectedTemplate] = useState('');
-  const [jsonContent, setJsonContent] = useState(dcc.dccJson);
   const [editForm, setEditForm] = useState<DccUpdateRequest>({
     name: dcc.name,
     sensorId: dcc.sensorId?.toString() || '',
     calibrationDate: dcc.calibrationDate
       ? new Date(dcc.calibrationDate).toISOString().split('T')[0]
-      : '',
+      : dcc.createdAt
+        ? new Date(dcc.createdAt).toISOString().split('T')[0]
+        : '',
     expirationDate: dcc.expirationDate
       ? new Date(dcc.expirationDate).toISOString().split('T')[0]
       : '',
@@ -238,14 +243,6 @@ function DccActions({
       setShowEdit(false);
       setDirty(true);
     } catch (e) { console.error(e); alert('Update failed'); }
-  };
-
-  const handleJsonSave = async () => {
-    try {
-      await updateDccJson(xsrfToken || '', dcc.id, jsonContent);
-      setShowJson(false);
-      setDirty(true);
-    } catch (e) { console.error(e); alert('JSON update failed'); }
   };
 
   const handleValidate = async () => {
@@ -291,57 +288,77 @@ function DccActions({
     } catch (e) { console.error(e); alert(`Download ${type} failed`); }
   };
 
-  const openImport = async () => {
+  const handleCalibrationResult = async () => {
     try {
-      const data = await getDccsTemplate(undefined, true);
-      setTemplates(data); setShowImport(true);
-    } catch (e) { console.error(e); alert('Failed to load templates'); }
+      const blob = await downloadCalibrationResult(dcc.id);
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl; a.download = `calibration-result-dcc-${dcc.id}.pdf`;
+      document.body.appendChild(a); a.click(); URL.revokeObjectURL(blobUrl); document.body.removeChild(a);
+    } catch (e) { console.error(e); alert('Download calibration result failed'); }
   };
 
-  const handleImport = async () => {
-    if (!selectedTemplate) { alert('Select a template'); return; }
-    const tmpl = templates.find((t) => t.id.toString() === selectedTemplate);
-    if (!tmpl) return;
-    try {
-      const current = JSON.parse(dcc.dccJson || '{}');
-      const tmplJson = JSON.parse(tmpl.dccJson || '{}');
-      if (tmplJson.administrativeData) {
-        current.administrativeData = tmplJson.administrativeData;
-        await updateDccJson(xsrfToken || '', dcc.id, JSON.stringify(current));
-        setShowImport(false); setDirty(true);
-        alert('Administrative data imported!');
-      } else {
-        alert('Template has no administrativeData.');
-      }
-    } catch (e) { console.error(e); alert('Import failed'); }
-  };
+  const isEffectiveOrArchived = dcc.status === 'BLUE' || dcc.status === 'ARCHIVED';
 
   return (
     <div className="d-flex gap-1 flex-wrap justify-content-center">
-      <Button size="sm" variant="outline-primary" onClick={() => setShowEdit(true)}>Edit</Button>
-      <Button size="sm" variant="outline-secondary" onClick={() => setShowJson(true)}>JSON</Button>
-      <Button size="sm" variant="outline-warning" onClick={openImport}>Import Admin</Button>
-      <Button
-        size="sm" variant="info"
-        onClick={(e) =>
-          window.open(`${GEMIMEG_URL}?dccId=${dcc.id}`, e.ctrlKey || e.metaKey ? '_blank' : '_self')
-        }
-      >
-        GEMIMEG
-      </Button>
-      <Button size="sm" variant="outline-success" onClick={handleValidate} disabled={dcc.pdfValid && dcc.xmlValid}>
-        Sign & Verify
-      </Button>
-      {role === 'ADMIN' && (
-        dcc.publishedAt
-          ? <Button size="sm" variant="warning" onClick={handleUnpublish}>Ineffective</Button>
-          : <Button size="sm" variant="success" onClick={handlePublish} disabled={dcc.status === 'RED'}>Effective</Button>
+      {/* Effective or Archived: only download buttons */}
+      {isEffectiveOrArchived ? (
+        <>
+          <Button size="sm" variant="outline-danger" onClick={() => handleDownload('PDF')} disabled={!dcc.pdfValid}>
+            <BsFiletypePdf className="me-1" />PDF
+          </Button>
+          <Button size="sm" variant="outline-warning" onClick={() => handleDownload('XML')} disabled={!dcc.xmlValid}>
+            <BsFiletypeXml className="me-1" />XML
+          </Button>
+          {dcc.calibrationRequestId && (
+            <Button size="sm" variant="outline-info" onClick={handleCalibrationResult}>
+              <BsGraphUp className="me-1" />Calibration Result
+            </Button>
+          )}
+        </>
+      ) : (
+        <>
+          {/* Admin actions for non-effective, non-archived DCCs */}
+          {role === 'ADMIN' && (
+            <Button size="sm" variant="primary" onClick={() => setShowEdit(true)}>
+              <BsPencil className="me-1" />Edit
+            </Button>
+          )}
+          {role === 'ADMIN' && (
+            <Button
+              size="sm" variant="info"
+              onClick={(e) =>
+                window.open(`${GEMIMEG_URL}?dccId=${dcc.id}`, e.ctrlKey || e.metaKey ? '_blank' : '_self')
+              }
+            >
+              <BsBoxArrowUpRight className="me-1" />GEMIMEG
+            </Button>
+          )}
+          {role === 'ADMIN' && !dcc.pdfValid && !dcc.xmlValid && (
+            <Button size="sm" variant="success" onClick={handleValidate}>
+              <BsShieldCheck className="me-1" />Sign & Verify
+            </Button>
+          )}
+          {role === 'ADMIN' && dcc.pdfValid && dcc.xmlValid && !dcc.publishedAt && (
+            <Button size="sm" variant="success" onClick={handlePublish}>
+              <BsCheckCircle className="me-1" />Make Effective
+            </Button>
+          )}
+          {role === 'ADMIN' && dcc.publishedAt && (
+            <Button size="sm" variant="warning" onClick={handleUnpublish}>Make Ineffective</Button>
+          )}
+          {role === 'ADMIN' && !dcc.publishedAt && (
+            <Button size="sm" variant="danger" onClick={handleDelete}>Delete</Button>
+          )}
+          <Button size="sm" variant="outline-danger" onClick={() => handleDownload('PDF')} disabled={!dcc.pdfValid}>
+            <BsFiletypePdf className="me-1" />PDF
+          </Button>
+          <Button size="sm" variant="outline-warning" onClick={() => handleDownload('XML')} disabled={!dcc.xmlValid}>
+            <BsFiletypeXml className="me-1" />XML
+          </Button>
+        </>
       )}
-      {role === 'ADMIN' && (
-        <Button size="sm" variant="danger" onClick={handleDelete}>Delete</Button>
-      )}
-      <Button size="sm" variant="light" onClick={() => handleDownload('PDF')} disabled={!dcc.pdfValid}>⬇ PDF</Button>
-      <Button size="sm" variant="light" onClick={() => handleDownload('XML')} disabled={!dcc.xmlValid}>⬇ XML</Button>
 
       {/* Edit modal */}
       <Modal show={showEdit} onHide={() => setShowEdit(false)}>
@@ -383,42 +400,6 @@ function DccActions({
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowEdit(false)}>Cancel</Button>
           <Button variant="primary" onClick={handleEdit}>Save</Button>
-        </Modal.Footer>
-      </Modal>
-
-      {/* JSON modal */}
-      <Modal show={showJson} onHide={() => setShowJson(false)} size="lg">
-        <Modal.Header closeButton><Modal.Title>Update DCC JSON</Modal.Title></Modal.Header>
-        <Modal.Body>
-          <Form.Control as="textarea" rows={15} value={jsonContent} onChange={(e) => setJsonContent(e.target.value)} />
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowJson(false)}>Cancel</Button>
-          <Button variant="primary" onClick={handleJsonSave}>Save JSON</Button>
-        </Modal.Footer>
-      </Modal>
-
-      {/* Import admin data modal */}
-      <Modal show={showImport} onHide={() => setShowImport(false)}>
-        <Modal.Header closeButton><Modal.Title>Import Administrative Data</Modal.Title></Modal.Header>
-        <Modal.Body>
-          <p><strong>DCC:</strong> {dcc.name} (ID {dcc.id})</p>
-          <Form.Group className="mb-3">
-            <Form.Label>Select Template</Form.Label>
-            <Form.Select value={selectedTemplate} onChange={(e) => setSelectedTemplate(e.target.value)}>
-              <option value="">-- Choose a Template --</option>
-              {templates.map((t) => (
-                <option key={t.id} value={t.id}>{t.name} (ID: {t.id})</option>
-              ))}
-            </Form.Select>
-          </Form.Group>
-          <Alert variant="warning" className="small">
-            Replaces <code>administrativeData</code> in the current DCC JSON with data from the selected template.
-          </Alert>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowImport(false)}>Cancel</Button>
-          <Button variant="primary" onClick={handleImport} disabled={!selectedTemplate}>Import</Button>
         </Modal.Footer>
       </Modal>
     </div>

@@ -24,8 +24,8 @@ const STEP_LABELS = [
 ];
 
 /**
- * Wizard a 6 step per compilare il certificato (certificato_in).
- * Aperto dal bottone "Compila Certificato" su una CalibrationRequest.
+ * Wizard a 6 step to insert administrative data (certificato_in).
+ * Opened by the "Administrative Data" button on a CalibrationRequest.
  *
  * Step 0  — review/edit base_input.json
  * Step 1  — scegli calibration_method dall'anagrafica + form adattivo
@@ -147,7 +147,15 @@ function CertificatoWizard({ show, calibrationRequestId, calibrationRequestLabel
     <Modal show={show} onHide={onHide} size="xl" scrollable backdrop="static">
       <Modal.Header closeButton>
         <Modal.Title>
-          Compila Certificato — <code className="small">{calibrationRequestLabel}</code>
+          Administrative Data — <code className="small">{calibrationRequestLabel}</code>
+          {wizard?.sensorModelName && (
+            <span className="ms-3 small text-muted">
+              Sensor: <Badge bg="info" className="me-1">{wizard.sensorModelName}</Badge>
+              {wizard?.sensorId && (
+                <span className="text-muted">ID: <code>{wizard.sensorId}</code></span>
+              )}
+            </span>
+          )}
         </Modal.Title>
       </Modal.Header>
 

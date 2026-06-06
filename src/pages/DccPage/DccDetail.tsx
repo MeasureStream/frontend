@@ -4,9 +4,14 @@ import {
   Container, Card, Row, Col, Button, Badge,
   ListGroup, Spinner,
 } from 'react-bootstrap';
+import {
+  BsFiletypePdf, BsFiletypeXml, BsGraphUp,
+  BsBoxArrowUpRight, BsShieldCheck, BsCheckCircle,
+} from 'react-icons/bs';
 import { DccDTO } from '../../API/interfaces';
 import {
   getDcc, validateDcc, downloadSignedPdf, downloadSignedXml,
+  downloadCalibrationResult,
   publishDcc, unpublishDcc,
 } from '../../API/DccAPI';
 import { useAuth } from '../../API/AuthContext';
@@ -18,6 +23,8 @@ function statusBg(status: string) {
   if (status === 'YELLOW') return 'warning';
   if (status === 'RED') return 'danger';
   if (status === 'BLUE') return 'primary';
+  if (status === 'GREY') return 'secondary';
+  if (status === 'ARCHIVED') return 'dark';
   return 'secondary';
 }
 
@@ -83,11 +90,24 @@ function DccDetail() {
     catch (e) { console.error(e); alert('Unpublish failed'); }
   };
 
+  const handleCalibrationResult = async () => {
+    if (!dcc) return;
+    try {
+      const blob = await downloadCalibrationResult(dcc.id);
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl; a.download = `calibration-result-dcc-${dcc.id}.pdf`;
+      document.body.appendChild(a); a.click(); URL.revokeObjectURL(blobUrl); document.body.removeChild(a);
+    } catch (e) { console.error(e); alert('Download calibration result failed'); }
+  };
+
   if (loading) return <Container className="mt-4"><Spinner animation="border" /></Container>;
   if (!dcc) return <Container className="mt-4"><h3>DCC not found</h3></Container>;
 
   let parsedJson: any = null;
   try { parsedJson = JSON.parse(dcc.dccJson); } catch { /* leave null */ }
+
+  const isEffectiveOrArchived = dcc.status === 'BLUE' || dcc.status === 'ARCHIVED';
 
   return (
     <Container className="mt-4">
@@ -99,18 +119,26 @@ function DccDetail() {
         <Card.Header as="h4" className="d-flex justify-content-between align-items-center">
           <span>DCC Details: {dcc.name}</span>
           <div className="d-flex gap-2 align-items-center">
-            <Button
-              size="sm" variant="info"
-              onClick={(e) => window.open(`${GEMIMEG_URL}?dccId=${dcc.id}`, e.ctrlKey || e.metaKey ? '_blank' : '_self')}
-            >
-              GEMIMEG
-            </Button>
-            {role === 'ADMIN' && (
+            {role === 'ADMIN' && !isEffectiveOrArchived && (
+              <Button
+                size="sm" variant="info"
+                onClick={(e) => window.open(`${GEMIMEG_URL}?dccId=${dcc.id}`, e.ctrlKey || e.metaKey ? '_blank' : '_self')}
+              >
+                <BsBoxArrowUpRight className="me-1" />GEMIMEG
+              </Button>
+            )}
+            {role === 'ADMIN' && !isEffectiveOrArchived ? (
               dcc.publishedAt
                 ? <Button size="sm" variant="warning" onClick={handleUnpublish}>Make Ineffective</Button>
-                : <Button size="sm" variant="success" onClick={handlePublish} disabled={dcc.status === 'RED'}>Make Effective</Button>
+                : dcc.pdfValid && dcc.xmlValid
+                  ? <Button size="sm" variant="success" onClick={handlePublish}><BsCheckCircle className="me-1" />Make Effective</Button>
+                  : null
+            ) : (
+              <Badge bg={statusBg(dcc.status)}>{dcc.status}</Badge>
             )}
-            <Badge bg={statusBg(dcc.status)}>{dcc.status}</Badge>
+            {role === 'ADMIN' && !isEffectiveOrArchived && (
+              <Badge bg={statusBg(dcc.status)}>{dcc.status}</Badge>
+            )}
           </div>
         </Card.Header>
 
@@ -168,19 +196,25 @@ function DccDetail() {
                   XML {dcc.xmlValid ? 'Valid' : 'Invalid/Missing'}
                 </Badge>
                 <div className="ms-auto d-flex gap-2 flex-wrap">
-                  <Button
-                    size="sm" variant="outline-success"
-                    onClick={handleSignAndVerify} disabled={validating}
-                  >
-                    {validating ? <Spinner as="span" animation="border" size="sm" /> : 'Sign & Verify Both'}
+                  {role === 'ADMIN' && !isEffectiveOrArchived && !dcc.pdfValid && !dcc.xmlValid && (
+                    <Button
+                      size="sm" variant="success"
+                      onClick={handleSignAndVerify} disabled={validating}
+                    >
+                      {validating ? <><Spinner as="span" animation="border" size="sm" className="me-1" />Signing...</> : <><BsShieldCheck className="me-1" />Sign & Verify</>}
+                    </Button>
+                  )}
+                  <Button size="sm" variant="outline-danger" onClick={() => handleDownload('PDF')} disabled={!dcc.pdfValid || validating}>
+                    <BsFiletypePdf className="me-1" />Signed PDF
                   </Button>
-                  <div className="vr" />
-                  <Button size="sm" variant="primary" onClick={() => handleDownload('PDF')} disabled={!dcc.pdfValid || validating}>
-                    ⬇ Signed PDF
+                  <Button size="sm" variant="outline-warning" onClick={() => handleDownload('XML')} disabled={!dcc.xmlValid || validating}>
+                    <BsFiletypeXml className="me-1" />Signed XML
                   </Button>
-                  <Button size="sm" variant="info" onClick={() => handleDownload('XML')} disabled={!dcc.xmlValid || validating}>
-                    ⬇ Signed XML
-                  </Button>
+                  {dcc.calibrationRequestId && isEffectiveOrArchived && (
+                    <Button size="sm" variant="outline-info" onClick={handleCalibrationResult}>
+                      <BsGraphUp className="me-1" />Calibration Result
+                    </Button>
+                  )}
                 </div>
               </div>
             </Col>

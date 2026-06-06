@@ -246,20 +246,20 @@ function DccCalibrations() {
                 </td>
                 <td>{new Date(r.createdAt).toLocaleString()}</td>
                 <td>
-                  <div className="d-flex gap-1 flex-wrap">
-                    <Button size="sm" variant="outline-primary" onClick={() => openWizard(r)}>
-                      Compila Certificato
+                  <div className="d-flex gap-1 flex-wrap calib-actions">
+                    <Button size="sm" variant="primary" onClick={() => openWizard(r)}>
+                      Administrative Data
                     </Button>
                     <Button size="sm" variant="outline-secondary" onClick={() => openDetail(r)}>
-                      View JSON
+                      Raw Data
                     </Button>
                     {calibrationMap[r.id]?.certificatoIn && (
                       <Button
                         size="sm"
-                        variant="outline-success"
+                        variant="outline-info"
                         onClick={() => openCertJson(calibrationMap[r.id])}
                       >
-                        View Certificato Base JSON
+                        Administrative Data
                       </Button>
                     )}
                     {calibrationMap[r.id]?.certificatoIn && (
@@ -270,7 +270,7 @@ function DccCalibrations() {
                         title="Run calibration pipeline (analisi_calib_data.py)"
                       >
                         {calibrationMap[r.id]?.runStatus === 'SUCCESS'
-                          ? 'Re-Calibrate'
+                          ? 'Retry Calibration'
                           : calibrationMap[r.id]?.runStatus === 'FAILED'
                           ? 'Retry Calibration'
                           : 'Calibrate'}
@@ -279,11 +279,11 @@ function DccCalibrations() {
                     {calibrationMap[r.id]?.runStatus && (
                       <Button
                         size="sm"
-                        variant="outline-dark"
+                        variant="info"
                         onClick={() => navigate(`/dcc/calibrations/${r.id}/run`)}
                         title="View run results"
                       >
-                        View Run
+                        Results
                       </Button>
                     )}
                   </div>
@@ -337,7 +337,7 @@ function DccCalibrations() {
         </Table>
       )}
 
-      {/* Certificato Wizard */}
+      {/* Certificate Wizard */}
       {wizardReq && (
         <CertificatoWizard
           show={showWizard}
@@ -455,10 +455,10 @@ function DccCalibrations() {
           <Button variant="secondary" onClick={() => setShowDetail(false)}>Close</Button>
         </Modal.Footer>
       </Modal>
-      {/* Certificato Base JSON viewer */}
+      {/* Certificate Base JSON viewer */}
       <Modal show={showCertModal} onHide={() => setCertModal(false)} size="xl" scrollable>
         <Modal.Header closeButton>
-          <Modal.Title>Certificato Base JSON <span className="text-muted small">(certificato_in)</span></Modal.Title>
+          <Modal.Title>Administrative Data <span className="text-muted small">(certificato_in)</span></Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <div className="d-flex justify-content-end mb-2">

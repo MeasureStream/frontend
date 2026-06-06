@@ -34,14 +34,13 @@ export function ConfigCUModal({ cu, show, onHide, handleSetDirty }: ConfigProps)
       await ConfigureCu(xsrfToken, command);
       setDirty(true);
 
-      console.log(`Comando inviato per CU ${cu.deviceId}: Polling a ${pollingInterval}h`);
+      console.log(`Command sent for CU ${cu.deviceId}: Polling set to ${pollingInterval}h`);
 
-      handleSetDirty(); // Segnala che i dati sono cambiati
-      onHide();         // Chiudi il modal
+      handleSetDirty(); // Notify data changed
+      onHide();         // Close modal
     } catch (error) {
-      console.error("Errore durante l'invio della configurazione:", error);
-      // Qui potresti aggiungere un piccolo stato per mostrare un messaggio d'errore all'utente
-      alert("Errore nell'invio del comando alla centralina.");
+      console.error("Error sending configuration:", error);
+      alert("Error sending command to control unit.");
     } finally {
       setLoading(false);
     }
@@ -51,7 +50,7 @@ export function ConfigCUModal({ cu, show, onHide, handleSetDirty }: ConfigProps)
       <Modal.Header closeButton className="border-0 pb-0">
         <Modal.Title className="fw-bold d-flex align-items-center gap-2">
           <BsGearFill className="text-primary" />
-          <span>Impostazioni Unità</span>
+          <span>Unit Settings</span>
         </Modal.Title>
       </Modal.Header>
 
@@ -74,7 +73,7 @@ export function ConfigCUModal({ cu, show, onHide, handleSetDirty }: ConfigProps)
               <BsClockHistory /> Polling Interval
             </label>
             <Badge bg="primary" className="px-3 py-2">
-              {pollingInterval} {pollingInterval === 1 ? 'ora' : 'ore'}
+              {pollingInterval} {pollingInterval === 1 ? 'hour' : 'hours'}
             </Badge>
           </div>
 
@@ -89,16 +88,16 @@ export function ConfigCUModal({ cu, show, onHide, handleSetDirty }: ConfigProps)
           />
 
           <div className="d-flex justify-content-between mt-1 text-muted px-1" style={{ fontSize: '0.75rem' }}>
-            <span>1h (Frequente)</span>
-            <span>256h (Risparmio)</span>
+            <span>1h (Frequent)</span>
+            <span>256h (Low Power)</span>
           </div>
         </div>
 
         {/* BOX 1: INFO TRASMISSIONE - Aggiunto mb-3 e font aumentato */}
         <div className="p-3 bg-primary bg-opacity-10 rounded-4 border border-primary-subtle mb-3">
-          <h6 className="small fw-bold text-primary mb-2 text-uppercase">Info Trasmissione</h6>
+          <h6 className="small fw-bold text-primary mb-2 text-uppercase">Transmission Info</h6>
           <div className="text-primary" style={{ fontSize: '0.85rem' }}>
-            * L'unità si risveglierà ogni <strong>{pollingInterval} {pollingInterval === 1 ? 'ora' : 'ore'}</strong> per trasmettere il suo stato.
+            * The unit will wake up every <strong>{pollingInterval} {pollingInterval === 1 ? 'hour' : 'hours'}</strong> to transmit its status.
           </div>
         </div>
 
@@ -107,9 +106,9 @@ export function ConfigCUModal({ cu, show, onHide, handleSetDirty }: ConfigProps)
           <div className="d-flex gap-3">
             <BsBroadcast className="text-warning mt-1" size={18} />
             <div className="text-warning-emphasis" style={{ fontSize: '0.85rem', lineHeight: '1.4' }}>
-              <strong>Sincronizzazione remota:</strong> Il comando è stato messo in coda.
-              L'unità caricherà i nuovi parametri durante la <strong>prossima connessione utile</strong>;
-              la configurazione sarà operativa entro le 24 ore successive.
+              <strong>Remote sync:</strong> The command has been queued.
+              The unit will load the new parameters on the <strong>next available connection</strong>;
+              the configuration will be active within 24 hours.
             </div>
           </div>
         </div>
@@ -118,14 +117,14 @@ export function ConfigCUModal({ cu, show, onHide, handleSetDirty }: ConfigProps)
 
       <Modal.Footer className="border-0 p-4 pt-0">
         <button className="btn btn-link text-muted text-decoration-none me-auto" onClick={onHide}>
-          Annulla
+          Cancel
         </button>
         <button
           className="btn btn-primary rounded-pill px-4 fw-bold shadow-sm"
           onClick={handleSave}
           disabled={loading}
         >
-          {loading ? 'Invio in corso...' : 'Salva Modifiche'}
+          {loading ? 'Sending...' : 'Save Changes'}
         </button>
       </Modal.Footer>
     </Modal>

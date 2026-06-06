@@ -5,6 +5,7 @@ import {
   Nav, Tab, Card,
 } from 'react-bootstrap';
 import DccNav from '../../components/DccNav';
+import { useAuth } from '../../API/AuthContext';
 import { getCalibrationByRequest } from '../../API/WizardAPI';
 import { CalibrationWizardDTO } from '../../API/interfaces';
 
@@ -39,11 +40,11 @@ function formatJson(s: string | null | undefined): string {
 }
 
 /**
- * CalibrationRunPage — /dcc/calibrations/:requestId/run
+ * Results page — /dcc/calibrations/:requestId/run
  *
  * Shows the results of the last calibration run for a given CalibrationRequest.
  * Four tabs: Log, Results JSON, DCC XML, Conformity.
- * Footer: "Salva DCC" button that calls gemimeg XML→JSON then POST /api/dcc.
+ * Footer: "Save DCC" button that calls gemimeg XML→JSON then POST /api/dcc.
  */
 function CalibrationRunPage() {
   const { requestId } = useParams<{ requestId: string }>();
@@ -56,6 +57,8 @@ function CalibrationRunPage() {
   const [savingDcc, setSavingDcc] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [savedDccId, setSavedDccId] = useState<number | null>(null);
+
+  const { role } = useAuth();
 
   useEffect(() => {
     if (!requestId) return;
@@ -76,7 +79,7 @@ function CalibrationRunPage() {
   const calibImages = images.filter((u) => u.includes('/images/calibration/'));
   const conformImages = images.filter((u) => u.includes('/images/conformity/'));
 
-  // ── Salva DCC ───────────────────────────────────────────────────────────
+  // ── Save DCC ───────────────────────────────────────────────────────────
 
   const handleSaveDcc = async () => {
     if (!calib?.id) return;
@@ -91,7 +94,7 @@ function CalibrationRunPage() {
       );
       if (!res.ok) {
         const errText = await res.text().catch(() => res.statusText);
-        throw new Error(`Salva DCC failed: ${errText}`);
+        throw new Error(`Save DCC failed: ${errText}`);
       }
       const newDcc = await res.json();
       setSavedDccId(newDcc.id);
@@ -140,7 +143,7 @@ function CalibrationRunPage() {
           <Button variant="outline-secondary" size="sm" onClick={() => navigate('/dcc/calibrations')} className="me-2">
             ← Back
           </Button>
-          <span className="fw-bold fs-5">Calibration Run Results</span>
+          <span className="fw-bold fs-5">Results</span>
           <code className="ms-2 text-muted small">{calib.runId ?? `request-${requestId}`}</code>
         </div>
         <div className="d-flex align-items-center gap-2">
@@ -157,7 +160,7 @@ function CalibrationRunPage() {
         </div>
       </div>
 
-      {/* "Salva DCC" success banner */}
+      {/* "Save DCC" success banner */}
       {savedDccId && (
         <Alert variant="success" className="d-flex justify-content-between align-items-center">
           <span>DCC saved successfully (ID: {savedDccId})</span>
@@ -262,19 +265,21 @@ function CalibrationRunPage() {
                       >
                         Copy XML
                       </Button>
-                      <Button
-                        size="sm" variant="primary"
-                        onClick={handleSaveDcc}
-                        disabled={savingDcc || !!savedDccId || !calib.dccXml}
-                      >
-                        {savingDcc ? (
-                          <><Spinner as="span" size="sm" animation="border" className="me-1" />Saving DCC...</>
-                        ) : savedDccId ? (
-                          `DCC Saved (ID ${savedDccId})`
-                        ) : (
-                          'Salva DCC'
-                        )}
-                      </Button>
+                      {role === 'ADMIN' && (
+                        <Button
+                          size="sm" variant="primary"
+                          onClick={handleSaveDcc}
+                          disabled={savingDcc || !!savedDccId || !calib.dccXml}
+                        >
+                          {savingDcc ? (
+                            <><Spinner as="span" size="sm" animation="border" className="me-1" />Saving DCC...</>
+                          ) : savedDccId ? (
+                            `DCC Saved (ID ${savedDccId})`
+                          ) : (
+                            'Save DCC'
+                          )}
+                        </Button>
+                      )}
                     </div>
                   </div>
                   <pre
@@ -403,14 +408,14 @@ function ConformitySummary({ conformityJson }: { conformityJson: string }) {
   if (!summary) return null;
 
   const overall: string = summary.overall ?? 'UNKNOWN';
-  const checks = ['G', 'A', 'B', 'C', 'D', 'E', 'F', 'H'];
+  const checks = ['G', 'A', 'B', 'H'];
 
   return (
     <div className="p-3 rounded border mb-2">
       <div className="d-flex align-items-center gap-3 mb-3">
         <span className="fw-bold">Conformity Result:</span>
         <Badge
-          bg={overall === 'CONFORME' ? 'success' : overall === 'NON CONFORME' ? 'danger' : 'secondary'}
+          bg={overall === 'CONFORMING' ? 'success' : overall === 'NON-CONFORMING' ? 'danger' : 'secondary'}
           className="px-3 py-2"
         >
           {overall}

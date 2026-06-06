@@ -78,35 +78,35 @@ export function SensorConfigModal({ show, onHide, controlUnit }: Props) {
 
   const handleSave = async () => {
     if (!isComplete) {
-      alert("Errore: tutti i sensori devono avere un periodo impostato.");
+      alert("Error: all sensors must have a sampling period set.");
       return;
     }
 
     try {
       await UpdateSensorsConfig(xsrfToken, config);
-      alert("Configurazione inviata con successo!");
+      alert("Configuration sent successfully!");
       onHide();
     } catch (e) {
       console.error(e);
-      alert("Errore nell'invio della configurazione. Controlla i permessi.");
+      alert("Error sending configuration. Check permissions.");
     }
   };
 
   return (
     <Modal show={show} onHide={onHide} size="lg" centered backdrop="static">
       <Modal.Header closeButton>
-        <Modal.Title>Configurazione Sensori: {controlUnit.name}</Modal.Title>
+        <Modal.Title>Sensor Configuration: {controlUnit.name}</Modal.Title>
       </Modal.Header>
 
       <Modal.Body>
         <p className="text-muted small">
-          Devi impostare il periodo per <strong>tutti</strong> i sensori delle MU associate.
-          Usa "OFF" per disabilitare il campionamento.
+          You must set the period for <strong>all</strong> sensors of the associated MUs.
+          Use "OFF" to disable sampling.
         </p>
 
         {!isComplete && (
           <Alert variant="danger" className="py-2">
-            Configurazione incompleta: mancano dati per alcuni sensori.
+            Incomplete configuration: missing data for some sensors.
           </Alert>
         )}
 
@@ -120,7 +120,7 @@ export function SensorConfigModal({ show, onHide, controlUnit }: Props) {
                 <Accordion.Header>
                   <Stack>
                     <strong>MeasurementUnit #{mu.localId}</strong>
-                    <small className="text-muted">Modello: {mu.model}</small>
+                    <small className="text-muted">Model: {mu.model}</small>
                   </Stack>
                 </Accordion.Header>
                 <Accordion.Body className="p-0">
@@ -171,7 +171,7 @@ export function SensorConfigModal({ show, onHide, controlUnit }: Props) {
 
       <Modal.Footer className="bg-light">
         <Button variant="outline-secondary" onClick={onHide}>
-          Annulla
+          Cancel
         </Button>
         <Button
           variant="primary"
@@ -179,7 +179,7 @@ export function SensorConfigModal({ show, onHide, controlUnit }: Props) {
           disabled={!isComplete}
           className="px-4"
         >
-          Invia a Control Unit
+          Send to Control Unit
         </Button>
       </Modal.Footer>
     </Modal>

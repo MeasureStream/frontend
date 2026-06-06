@@ -7,8 +7,8 @@ export function ControlUnitsPage({ controlUnits }: { controlUnits: ControlUnitDT
   return (
     <Container className="py-4">
       <header className="mb-4">
-        <h1>Benvenuto, ecco le tue Control Units</h1>
-        <p className="text-muted">Monitoraggio in tempo reale del network LoRaWAN</p>
+        <h1>Welcome, here are your Control Units</h1>
+        <p className="text-muted">Real-time LoRaWAN network monitoring</p>
       </header>
 
       <Row>
@@ -41,7 +41,7 @@ export function ControlUnitsPage({ controlUnits }: { controlUnits: ControlUnitDT
                   <Col>
                     <BsSignal className="text-info mb-1" />
                     <div className="small fw-bold">{cu.rssi} dBm</div>
-                    <small className="text-muted">Segnale</small>
+                    <small className="text-muted">Signal</small>
                   </Col>
                   <Col>
                     <BsCpu className="text-warning mb-1" />
@@ -52,12 +52,12 @@ export function ControlUnitsPage({ controlUnits }: { controlUnits: ControlUnitDT
 
                 <div className="d-grid">
                   <Link to={`/cus/${cu.id}`} className="btn btn-outline-primary btn-sm d-flex align-items-center justify-content-center gap-2">
-                    Dettaglio Sensori <BsArrowRight />
+                    Sensor Details <BsArrowRight />
                   </Link>
                 </div>
               </Card.Body>
               <Card.Footer className="bg-white border-0 py-2">
-                <small className="text-muted">Località: {cu.semanticLocation || "Non specificata"}</small>
+                <small className="text-muted">Location: {cu.semanticLocation || "Not specified"}</small>
               </Card.Footer>
             </Card>
           </Col>

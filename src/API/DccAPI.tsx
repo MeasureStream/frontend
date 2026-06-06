@@ -132,6 +132,12 @@ export async function downloadSignedPdf(id: number): Promise<Blob> {
   return res.blob();
 }
 
+export async function downloadCalibrationResult(id: number): Promise<Blob> {
+  const res = await fetch(`${API_URL}/${id}/download/calibration-result`, { credentials: 'include' });
+  if (!res.ok) throw new Error('Error downloading calibration result PDF');
+  return res.blob();
+}
+
 // ─── Sensors (entry point per creare DCC) ─────────────────────────────────
 
 export async function getSensors(): Promise<SensorDccDTO[]> {

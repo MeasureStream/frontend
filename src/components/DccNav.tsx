@@ -1,9 +1,11 @@
 import { Nav } from 'react-bootstrap';
 import { Link, useLocation } from 'react-router';
+import { useAuth } from '../API/AuthContext';
 
 function DccNav() {
   const location = useLocation();
   const active = location.pathname;
+  const { role } = useAuth();
 
   return (
     <Nav variant="tabs" activeKey={active} className="mb-3">
@@ -17,24 +19,28 @@ function DccNav() {
           DCC Certificates
         </Nav.Link>
       </Nav.Item>
-      <Nav.Item>
-        <Nav.Link as={Link} to="/dcc/templates" eventKey="/dcc/templates">
-          DCC Templates
-        </Nav.Link>
-      </Nav.Item>
-      <Nav.Item>
-        <Nav.Link as={Link} to="/dcc/calibrations" eventKey="/dcc/calibrations">
-          Calibrations
-        </Nav.Link>
-      </Nav.Item>
-      <Nav.Item>
-        <Nav.Link as={Link} to="/dcc/anagrafica" eventKey="/dcc/anagrafica">
-          Anagrafica
-        </Nav.Link>
-      </Nav.Item>
+      {role === 'ADMIN' && (
+        <Nav.Item>
+          <Nav.Link as={Link} to="/dcc/calibrations" eventKey="/dcc/calibrations">
+            Calibrations
+          </Nav.Link>
+        </Nav.Item>
+      )}
+      {role === 'ADMIN' && (
+        <Nav.Item>
+          <Nav.Link as={Link} to="/dcc/anagrafica" eventKey="/dcc/anagrafica">
+            Anagrafica
+          </Nav.Link>
+        </Nav.Item>
+      )}
       <Nav.Item>
         <Nav.Link as={Link} to="/dcc/validate" eventKey="/dcc/validate">
           Validate DCC
+        </Nav.Link>
+      </Nav.Item>
+      <Nav.Item>
+        <Nav.Link as={Link} to="/dcc/conformity" eventKey="/dcc/conformity">
+          DCC Conformity
         </Nav.Link>
       </Nav.Item>
     </Nav>

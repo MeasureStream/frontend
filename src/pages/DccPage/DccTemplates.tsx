@@ -137,7 +137,7 @@ function DccTemplates() {
 function TemplateActions({
   dcc, sensors, setDirty,
 }: { dcc: DccDTO; sensors: SensorDccDTO[]; setDirty: (v: boolean) => void }) {
-  const { xsrfToken } = useAuth();
+  const { xsrfToken, role } = useAuth();
   const [showEdit, setShowEdit] = useState(false);
   const [showJson, setShowJson] = useState(false);
   const [jsonContent, setJsonContent] = useState(dcc.dccJson);
@@ -173,17 +173,25 @@ function TemplateActions({
 
   return (
     <div className="d-flex gap-1 flex-wrap justify-content-center">
-      <Button size="sm" variant="outline-primary" onClick={() => setShowEdit(true)}>Edit</Button>
-      <Button size="sm" variant="outline-secondary" onClick={() => setShowJson(true)}>JSON</Button>
-      <Button
-        size="sm" variant="info"
-        onClick={(e) => window.open(`${GEMIMEG_URL}?dccId=${dcc.id}`, e.ctrlKey || e.metaKey ? '_blank' : '_self')}
-      >
-        GEMIMEG
-      </Button>
+      {role === 'ADMIN' && (
+        <Button size="sm" variant="outline-primary" onClick={() => setShowEdit(true)}>Edit</Button>
+      )}
+      {role === 'ADMIN' && (
+        <Button size="sm" variant="outline-secondary" onClick={() => setShowJson(true)}>JSON</Button>
+      )}
+      {role === 'ADMIN' && (
+        <Button
+          size="sm" variant="info"
+          onClick={(e) => window.open(`${GEMIMEG_URL}?dccId=${dcc.id}`, e.ctrlKey || e.metaKey ? '_blank' : '_self')}
+        >
+          GEMIMEG
+        </Button>
+      )}
       <Button size="sm" variant="light" onClick={() => window.open(`${DCC_API}/${dcc.id}/download?fileType=PDF`, '_blank')}>⬇ PDF</Button>
       <Button size="sm" variant="light" onClick={() => window.open(`${DCC_API}/${dcc.id}/download?fileType=XML`, '_blank')}>⬇ XML</Button>
-      <Button size="sm" variant="danger" onClick={handleDelete}>Delete</Button>
+      {role === 'ADMIN' && (
+        <Button size="sm" variant="danger" onClick={handleDelete}>Delete</Button>
+      )}
 
       <Modal show={showEdit} onHide={() => setShowEdit(false)}>
         <Modal.Header closeButton><Modal.Title>Edit Template Details</Modal.Title></Modal.Header>
