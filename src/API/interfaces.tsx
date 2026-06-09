@@ -315,7 +315,7 @@ export interface CalibrationRunConfig {
   procedure?: string;
   charts?: boolean;
   verbose?: boolean;
-  updateIfOutRange?: boolean;
+  updateIfOutRange?: string;
   checkUnits?: boolean;
   convertUnits?: boolean;
   noPdf?: boolean;

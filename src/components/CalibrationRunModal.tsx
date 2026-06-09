@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
-  Modal, Button, Form, Row, Col, Spinner, Alert, Badge, ListGroup,
+  Modal, Button, Form, Row, Col, Spinner, Alert, ListGroup, Accordion,
 } from 'react-bootstrap';
 import { useNavigate } from 'react-router';
 import { CalibrationRunConfig, CalibrationRunConfigOptions, CalibrationWizardDTO } from '../API/interfaces';
@@ -43,11 +43,9 @@ function CalibrationRunModal({
   const [procedure, setProcedure] = useState(DEFAULT_PROCEDURE);
   const [charts, setCharts] = useState(true);
   const [verbose, setVerbose] = useState(true);
-  const [updateIfOutRange, setUpdateIfOutRange] = useState(false);
+  const [updateIfOutRange, setUpdateIfOutRange] = useState('none');
   const [checkUnits, setCheckUnits] = useState(false);
   const [convertUnits, setConvertUnits] = useState(false);
-  const [noPdf, setNoPdf] = useState(false);
-  const [noXml, setNoXml] = useState(false);
 
   // Load available options when modal opens
   useEffect(() => {
@@ -77,8 +75,6 @@ function CalibrationRunModal({
       updateIfOutRange,
       checkUnits,
       convertUnits,
-      noPdf,
-      noXml,
     };
     try {
       const result = await startCalibrationRun(calibrationId, config);
@@ -120,37 +116,11 @@ function CalibrationRunModal({
           </div>
         ) : (
           <>
-            {/* Locked params */}
-            <div className="mb-3 p-3 rounded bg-light border">
-              <div className="fw-bold small text-muted text-uppercase mb-2">System-managed paths (read-only)</div>
-              <ListGroup variant="flush" className="small">
-                <ListGroup.Item className="bg-transparent px-0 d-flex justify-content-between">
-                  <span className="text-muted">Input (processedJson)</span>
-                  <code>runs/{opts?.runId ?? '...'}/input/export.json</code>
-                </ListGroup.Item>
-                <ListGroup.Item className="bg-transparent px-0 d-flex justify-content-between">
-                  <span className="text-muted">Output dir</span>
-                  <code>runs/{opts?.runId ?? '...'}/output/</code>
-                </ListGroup.Item>
-                <ListGroup.Item className="bg-transparent px-0 d-flex justify-content-between">
-                  <span className="text-muted">Images dir</span>
-                  <code>runs/{opts?.runId ?? '...'}/images/</code>
-                </ListGroup.Item>
-              </ListGroup>
-              {opts?.hasExistingRun && (
-                <Alert variant="warning" className="mb-0 mt-2 py-1 small">
-                  A previous run exists for this calibration. Running again will overwrite all outputs.
-                </Alert>
-              )}
-            </div>
-
             {/* User-configurable params */}
-            <Row className="g-3">
+            <Row className="g-3 mb-3">
               <Col md={6}>
                 <Form.Group>
-                  <Form.Label className="fw-semibold">
-                    Sensor Template <Badge bg="secondary" className="ms-1">--sensor</Badge>
-                  </Form.Label>
+                  <Form.Label className="fw-semibold">Sensor Template</Form.Label>
                   <Form.Select value={sensorJson} onChange={(e) => setSensorJson(e.target.value)}>
                     {(opts?.availableSensors ?? []).map((s) => (
                       <option key={s} value={s}>{s}</option>
@@ -162,9 +132,7 @@ function CalibrationRunModal({
 
               <Col md={6}>
                 <Form.Group>
-                  <Form.Label className="fw-semibold">
-                    Reference Template <Badge bg="secondary" className="ms-1">--ref</Badge>
-                  </Form.Label>
+                  <Form.Label className="fw-semibold">Reference Template</Form.Label>
                   <Form.Select value={refJson} onChange={(e) => setRefJson(e.target.value)}>
                     {(opts?.availableRefs ?? []).map((r) => (
                       <option key={r} value={r}>{r}</option>
@@ -176,9 +144,7 @@ function CalibrationRunModal({
 
               <Col md={6}>
                 <Form.Group>
-                  <Form.Label className="fw-semibold">
-                    Procedure <Badge bg="secondary" className="ms-1">--procedure</Badge>
-                  </Form.Label>
+                  <Form.Label className="fw-semibold">Procedure</Form.Label>
                   <Form.Select value={procedure} onChange={(e) => setProcedure(e.target.value)}>
                     <option value="">Default (from sensor JSON)</option>
                     {(opts?.procedures ?? []).map((p) => (
@@ -188,36 +154,93 @@ function CalibrationRunModal({
                   <Form.Text className="text-muted">Leave empty to use the sensor's declared procedure</Form.Text>
                 </Form.Group>
               </Col>
-
-              <Col md={6}>
-                <Form.Label className="fw-semibold">Options</Form.Label>
-                <div className="d-flex flex-wrap gap-2">
-                  {[
-                    { label: 'Charts', val: charts, set: setCharts, flag: '--charts' },
-                    { label: 'Verbose', val: verbose, set: setVerbose, flag: '--verbose' },
-                    { label: 'Update if out-of-range', val: updateIfOutRange, set: setUpdateIfOutRange, flag: '--update-parameters-if-out-range-error' },
-                    { label: 'Check units', val: checkUnits, set: setCheckUnits, flag: '--check-units' },
-                    { label: 'Convert units', val: convertUnits, set: setConvertUnits, flag: '--convert-units' },
-                    { label: 'No PDF', val: noPdf, set: setNoPdf, flag: '--no-pdf' },
-                    { label: 'No XML', val: noXml, set: setNoXml, flag: '--no-xml' },
-                  ].map(({ label, val, set, flag }) => (
-                    <Form.Check
-                      key={flag}
-                      type="switch"
-                      id={`flag-${flag}`}
-                      label={
-                        <span>
-                          {label}{' '}
-                          <code className="text-muted" style={{ fontSize: '0.65rem' }}>{flag}</code>
-                        </span>
-                      }
-                      checked={val}
-                      onChange={(e) => set(e.target.checked)}
-                    />
-                  ))}
-                </div>
-              </Col>
             </Row>
+
+            {/* System-managed paths + Options — collapsed by default */}
+            <Accordion>
+              <Accordion.Item eventKey="paths">
+                <Accordion.Header>
+                  System-managed paths <span className="text-muted ms-2 small">(read-only)</span>
+                </Accordion.Header>
+                <Accordion.Body>
+                  <ListGroup variant="flush" className="small">
+                    <ListGroup.Item className="bg-transparent px-0 d-flex justify-content-between">
+                      <span className="text-muted">Input</span>
+                      <code>runs/{opts?.runId ?? '...'}/input/export.json</code>
+                    </ListGroup.Item>
+                    <ListGroup.Item className="bg-transparent px-0 d-flex justify-content-between">
+                      <span className="text-muted">Output dir</span>
+                      <code>runs/{opts?.runId ?? '...'}/output/</code>
+                    </ListGroup.Item>
+                    <ListGroup.Item className="bg-transparent px-0 d-flex justify-content-between">
+                      <span className="text-muted">Images dir</span>
+                      <code>runs/{opts?.runId ?? '...'}/images/</code>
+                    </ListGroup.Item>
+                  </ListGroup>
+                  {opts?.hasExistingRun && (
+                    <Alert variant="warning" className="mb-0 mt-2 py-1 small">
+                      A previous run exists for this calibration. Running again will overwrite all outputs.
+                    </Alert>
+                  )}
+                </Accordion.Body>
+              </Accordion.Item>
+
+              <Accordion.Item eventKey="options">
+                <Accordion.Header>Options</Accordion.Header>
+                <Accordion.Body>
+                  <Row className="g-3">
+                    <Col md={6}>
+                      <Form.Check
+                        type="switch"
+                        id="flag-charts"
+                        label="Charts"
+                        checked={charts}
+                        onChange={(e) => setCharts(e.target.checked)}
+                      />
+                      <Form.Check
+                        type="switch"
+                        id="flag-verbose"
+                        label="Verbose"
+                        checked={verbose}
+                        onChange={(e) => setVerbose(e.target.checked)}
+                        className="mt-2"
+                      />
+                    </Col>
+                    <Col md={6}>
+                      <Form.Group>
+                        <Form.Label className="small text-muted mb-1">Parameter update</Form.Label>
+                        <Form.Select
+                          value={updateIfOutRange}
+                          onChange={(e) => setUpdateIfOutRange(e.target.value)}
+                          size="sm"
+                        >
+                          <option value="none">Do not adjust</option>
+                          <option value="always">Adjust always</option>
+                          <option value="if-out-of-tolerance">Adjust if error out of tolerance</option>
+                        </Form.Select>
+                      </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                      <Form.Check
+                        type="switch"
+                        id="flag-check-units"
+                        label="Check units compatibility"
+                        checked={checkUnits}
+                        onChange={(e) => setCheckUnits(e.target.checked)}
+                      />
+                      <Form.Check
+                        type="switch"
+                        id="flag-convert-units"
+                        label="Convert units"
+                        checked={convertUnits}
+                        onChange={(e) => setConvertUnits(e.target.checked)}
+                        className="mt-2"
+                      />
+                    </Col>
+                  </Row>
+                </Accordion.Body>
+              </Accordion.Item>
+            </Accordion>
           </>
         )}
       </Modal.Body>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   Container, Table, Badge, Button, Modal, Form,
-  Row, Col, Spinner, Nav, Tab,
+  Row, Col, Spinner, Nav, Tab, Accordion,
 } from 'react-bootstrap';
 import { useSearchParams, useNavigate } from 'react-router';
 import DccNav from '../../components/DccNav';
@@ -210,8 +210,8 @@ function DccCalibrations() {
         </Col>
       </Row>
 
-      {/* Calibration Requests table */}
-      <h5 className="mb-2">Calibration Requests</h5>
+      {/* Calibration Measurements table */}
+      <h5 className="mb-2">Calibration Measurements</h5>
       {loading ? (
         <div className="text-center py-4"><Spinner animation="border" variant="primary" /></div>
       ) : (
@@ -294,48 +294,54 @@ function DccCalibrations() {
         </Table>
       )}
 
-      {/* Raw Calibration Messages table */}
-      <h5 className="mb-2">
-        Raw Calibration Messages
-        <Badge bg="secondary" className="ms-2">{messages.length}</Badge>
-      </h5>
-      {loadingMsgs ? (
-        <div className="text-center py-4"><Spinner animation="border" variant="secondary" /></div>
-      ) : (
-        <Table responsive hover className="shadow-sm" style={{ fontSize: '0.85rem' }}>
-          <thead className="table-light">
-            <tr>
-              <th>ID</th>
-              <th>Calib ID</th>
-              <th>Step</th>
-              <th>Target (°C)</th>
-              <th>Total Steps</th>
-              <th>Assembled</th>
-              <th>Received At</th>
-            </tr>
-          </thead>
-          <tbody>
-            {messages.length === 0 && (
-              <tr><td colSpan={7} className="text-center text-muted py-3">No messages received yet.</td></tr>
+      {/* Raw Messages — collapsed by default */}
+      <Accordion className="mb-4">
+        <Accordion.Item eventKey="messages">
+          <Accordion.Header>
+            Raw Messages
+            <Badge bg="secondary" className="ms-2">{messages.length}</Badge>
+          </Accordion.Header>
+          <Accordion.Body>
+            {loadingMsgs ? (
+              <div className="text-center py-4"><Spinner animation="border" variant="secondary" /></div>
+            ) : (
+              <Table responsive hover className="shadow-sm" style={{ fontSize: '0.85rem' }}>
+                <thead className="table-light">
+                  <tr>
+                    <th>ID</th>
+                    <th>Calib ID</th>
+                    <th>Step</th>
+                    <th>Target (°C)</th>
+                    <th>Total Steps</th>
+                    <th>Assembled</th>
+                    <th>Received At</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {messages.length === 0 && (
+                    <tr><td colSpan={7} className="text-center text-muted py-3">No messages received yet.</td></tr>
+                  )}
+                  {messages.map(m => (
+                    <tr key={m.id}>
+                      <td>{m.id}</td>
+                      <td><code className="small">{m.calibId}</code></td>
+                      <td><Badge bg="info" pill>{m.stepIndex} / {(m.totalSteps ?? 1) - 1}</Badge></td>
+                      <td>{m.target?.toFixed(1)}</td>
+                      <td>{m.totalSteps}</td>
+                      <td>
+                        <Badge bg={m.assembled ? 'success' : 'secondary'}>
+                          {m.assembled ? 'Yes' : 'No'}
+                        </Badge>
+                      </td>
+                      <td>{new Date(m.receivedAt).toLocaleString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
             )}
-            {messages.map(m => (
-              <tr key={m.id}>
-                <td>{m.id}</td>
-                <td><code className="small">{m.calibId}</code></td>
-                <td><Badge bg="info" pill>{m.stepIndex} / {(m.totalSteps ?? 1) - 1}</Badge></td>
-                <td>{m.target?.toFixed(1)}</td>
-                <td>{m.totalSteps}</td>
-                <td>
-                  <Badge bg={m.assembled ? 'success' : 'secondary'}>
-                    {m.assembled ? 'Yes' : 'No'}
-                  </Badge>
-                </td>
-                <td>{new Date(m.receivedAt).toLocaleString()}</td>
-              </tr>
-            ))}
-          </tbody>
-        </Table>
-      )}
+          </Accordion.Body>
+        </Accordion.Item>
+      </Accordion>
 
       {/* Certificate Wizard */}
       {wizardReq && (
