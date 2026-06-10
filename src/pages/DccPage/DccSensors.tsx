@@ -2,17 +2,43 @@ import { useEffect, useState } from 'react';
 import { Container, Table, Badge, Spinner } from 'react-bootstrap';
 import { useNavigate } from 'react-router';
 import DccNav from '../../components/DccNav';
-import { getSensors } from '../../API/DccAPI';
-import { SensorDccDTO, formatDevEui } from '../../API/interfaces';
+import { getSensors, getDccs } from '../../API/DccAPI';
+import { SensorDccDTO, DccDTO, formatDevEui } from '../../API/interfaces';
+
+function statusBg(status: string) {
+  switch (status) {
+    case 'GREEN': return 'success';
+    case 'YELLOW': return 'warning';
+    case 'RED': return 'danger';
+    case 'BLUE': return 'primary';
+    case 'GREY': return 'secondary';
+    case 'ARCHIVED': return 'dark';
+    default: return 'secondary';
+  }
+}
 
 function DccSensors() {
   const navigate = useNavigate();
   const [sensors, setSensors] = useState<SensorDccDTO[]>([]);
+  const [dccStatusMap, setDccStatusMap] = useState<Record<number, string>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getSensors()
-      .then(setSensors)
+    Promise.all([getSensors(), getDccs()])
+      .then(([sensorData, dccs]) => {
+        setSensors(sensorData);
+        // Build map: sensorId → most recent active (non-archived) DCC status
+        const map: Record<number, string> = {};
+        const filtered = dccs
+          .filter((d: DccDTO) => d.sensorId != null && !d.archived)
+          .sort((a: DccDTO, b: DccDTO) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        for (const d of filtered) {
+          if (!(d.sensorId! in map)) {
+            map[d.sensorId!] = d.status;
+          }
+        }
+        setDccStatusMap(map);
+      })
       .catch((e) => console.error('Error fetching sensors:', e))
       .finally(() => setLoading(false));
   }, []);
@@ -35,15 +61,16 @@ function DccSensors() {
       ) : sensors.length === 0 ? (
         <p className="text-muted mt-4">No sensors available.</p>
       ) : (
-        <Table responsive hover className="shadow-sm">
-          <thead className="table-light">
+        <Table responsive hover className="calib-table">
+          <thead>
             <tr>
-              <th>Sensor ID</th>
-              <th>Model Name</th>
+              <th>ID</th>
+              <th>Model</th>
               <th>Index</th>
-              <th>MU Extended ID</th>
+              <th>MU</th>
               <th>CU DevEui</th>
               <th>Owner</th>
+              <th>DCC Status</th>
               <th></th>
             </tr>
           </thead>
@@ -54,7 +81,7 @@ function DccSensors() {
                 style={{ cursor: 'pointer' }}
                 onClick={() => navigate(`/dcc/certificates?sensorId=${s.id}`)}
               >
-                <td className="fw-bold">{s.id}</td>
+                <td className="fw-bold text-muted">#{s.id}</td>
                 <td>
                   <code>{s.modelName}</code>
                 </td>
@@ -75,11 +102,20 @@ function DccSensors() {
                 </td>
                 <td>
                   {s.ownerId ? (
-                    <Badge bg="success">Claimed</Badge>
+                    <Badge bg="success" className="calib-status-badge">Claimed</Badge>
                   ) : (
-                    <Badge bg="warning" text="dark">
+                    <Badge bg="warning" text="dark" className="calib-status-badge">
                       Unclaimed
                     </Badge>
+                  )}
+                </td>
+                <td>
+                  {dccStatusMap[s.id] ? (
+                    <Badge bg={statusBg(dccStatusMap[s.id])} className="calib-status-badge">
+                      {dccStatusMap[s.id]}
+                    </Badge>
+                  ) : (
+                    <span className="text-muted small">—</span>
                   )}
                 </td>
                 <td>
