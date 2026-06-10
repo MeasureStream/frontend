@@ -111,7 +111,6 @@ function DccConformity() {
                     : <option value="ntc_temperature.json">ntc_temperature.json</option>
                   }
                 </Form.Select>
-                <Form.Text className="text-muted">From models_in/sensors/</Form.Text>
               </Form.Group>
 
               <div className="mb-3">
