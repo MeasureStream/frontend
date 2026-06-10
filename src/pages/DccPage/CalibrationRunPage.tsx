@@ -188,6 +188,11 @@ function CalibrationRunPage() {
               DCC XML
             </Nav.Link>
           </Nav.Item>
+          <Nav.Item>
+            <Nav.Link eventKey="plots" disabled={images.length === 0}>
+              Plots ({images.length})
+            </Nav.Link>
+          </Nav.Item>
         </Nav>
 
         <Card className="rounded-top-0 border-top-0">
@@ -280,97 +285,90 @@ function CalibrationRunPage() {
                   </pre>
                 </div>
               </Tab.Pane>
+
+              {/* ── Plots tab ── */}
+              <Tab.Pane eventKey="plots">
+                <div className="p-3">
+                  {calib.pdfOutputUrl && (
+                    <Alert variant="info" className="d-flex justify-content-between align-items-center py-2 mb-3">
+                      <span className="small">
+                        <strong>Calibration Certificate PDF</strong> generated
+                      </span>
+                      <Button
+                        as="a"
+                        size="sm" variant="outline-primary"
+                        href={calib.pdfOutputUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Download PDF
+                      </Button>
+                    </Alert>
+                  )}
+
+                  {calibImages.length > 0 && (
+                    <>
+                      <div className="fw-bold text-muted small text-uppercase mb-2">Calibration Charts</div>
+                      <Row className="g-3 mb-4">
+                        {calibImages.map((url) => (
+                          <Col key={url} md={6} lg={4}>
+                            <PlotCard url={url} />
+                          </Col>
+                        ))}
+                      </Row>
+                    </>
+                  )}
+
+                  {conformImages.length > 0 && (
+                    <>
+                      <div className="fw-bold text-muted small text-uppercase mb-2">Conformity Charts</div>
+                      <Row className="g-3">
+                        {conformImages.map((url) => (
+                          <Col key={url} md={6} lg={4}>
+                            <PlotCard url={url} />
+                          </Col>
+                        ))}
+                      </Row>
+                    </>
+                  )}
+
+                  {images.length === 0 && (
+                    <Alert variant="secondary">No plot images available.</Alert>
+                  )}
+                </div>
+              </Tab.Pane>
             </Tab.Content>
           </Card.Body>
         </Card>
       </Tab.Container>
 
-      {/* ── Conformity & Plots (collapsible) ── */}
-      {(calib.conformityJson || images.length > 0 || calib.pdfOutputUrl) && (
+      {/* ── Conformity (collapsible) ── */}
+      {calib.conformityJson && (
         <Accordion className="mt-3">
-          {calib.conformityJson && (
-            <Accordion.Item eventKey="conformity">
-              <Accordion.Header>
-                Conformity
-                <span className="text-muted ms-2 small">certificato_funzione_filled.json &amp; conformity checks</span>
-              </Accordion.Header>
-              <Accordion.Body>
-                <ConformitySummary conformityJson={calib.conformityJson} />
-                <div className="d-flex justify-content-between align-items-center mb-2 mt-3">
-                  <span className="fw-bold small text-muted">conformity.json (full)</span>
-                  <Button
-                    size="sm" variant="outline-secondary"
-                    onClick={() => navigator.clipboard.writeText(formatJson(calib.conformityJson))}
-                  >
-                    Copy JSON
-                  </Button>
-                </div>
-                <pre
-                  className="bg-light p-3 rounded border"
-                  style={{ maxHeight: '45vh', overflowY: 'auto', fontSize: '0.72rem' }}
+          <Accordion.Item eventKey="conformity">
+            <Accordion.Header>
+              Conformity
+              <span className="text-muted ms-2 small">certificato_funzione_filled.json &amp; conformity checks</span>
+            </Accordion.Header>
+            <Accordion.Body>
+              <ConformitySummary conformityJson={calib.conformityJson} />
+              <div className="d-flex justify-content-between align-items-center mb-2 mt-3">
+                <span className="fw-bold small text-muted">conformity.json (full)</span>
+                <Button
+                  size="sm" variant="outline-secondary"
+                  onClick={() => navigator.clipboard.writeText(formatJson(calib.conformityJson))}
                 >
-                  {formatJson(calib.conformityJson)}
-                </pre>
-              </Accordion.Body>
-            </Accordion.Item>
-          )}
-
-          {(images.length > 0 || calib.pdfOutputUrl) && (
-            <Accordion.Item eventKey="plots">
-              <Accordion.Header>
-                Plots ({images.length})
-                <span className="text-muted ms-2 small">calibration charts &amp; conformity plots</span>
-              </Accordion.Header>
-              <Accordion.Body>
-                {calib.pdfOutputUrl && (
-                  <Alert variant="info" className="d-flex justify-content-between align-items-center py-2 mb-3">
-                    <span className="small">
-                      <strong>Calibration Certificate PDF</strong> generated
-                    </span>
-                    <Button
-                      as="a"
-                      size="sm" variant="outline-primary"
-                      href={calib.pdfOutputUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Download PDF
-                    </Button>
-                  </Alert>
-                )}
-
-                {calibImages.length > 0 && (
-                  <>
-                    <div className="fw-bold text-muted small text-uppercase mb-2">Calibration Charts</div>
-                    <Row className="g-3 mb-4">
-                      {calibImages.map((url) => (
-                        <Col key={url} md={6} lg={4}>
-                          <PlotCard url={url} />
-                        </Col>
-                      ))}
-                    </Row>
-                  </>
-                )}
-
-                {conformImages.length > 0 && (
-                  <>
-                    <div className="fw-bold text-muted small text-uppercase mb-2">Conformity Charts</div>
-                    <Row className="g-3">
-                      {conformImages.map((url) => (
-                        <Col key={url} md={6} lg={4}>
-                          <PlotCard url={url} />
-                        </Col>
-                      ))}
-                    </Row>
-                  </>
-                )}
-
-                {images.length === 0 && (
-                  <Alert variant="secondary">No plot images available.</Alert>
-                )}
-              </Accordion.Body>
-            </Accordion.Item>
-          )}
+                  Copy JSON
+                </Button>
+              </div>
+              <pre
+                className="bg-light p-3 rounded border"
+                style={{ maxHeight: '45vh', overflowY: 'auto', fontSize: '0.72rem' }}
+              >
+                {formatJson(calib.conformityJson)}
+              </pre>
+            </Accordion.Body>
+          </Accordion.Item>
         </Accordion>
       )}
     </Container>
