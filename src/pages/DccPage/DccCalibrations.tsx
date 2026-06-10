@@ -307,9 +307,11 @@ function DccCalibrations() {
                     <Button size="sm" variant="outline-primary" onClick={() => openWizard(r)} title="Build certificate step-by-step">
                       <FiFileText className="me-1" />Compile Administrative Data
                     </Button>
-                    <Button size="sm" variant="outline-dark" onClick={() => openDetail(r)} title="View raw calibration data">
-                      <FiCode className="me-1" />Preview Administrative Data
-                    </Button>
+                    {calibrationMap[r.id]?.certificatoIn && (
+                      <Button size="sm" variant="outline-dark" onClick={() => openCertJson(calibrationMap[r.id])} title="View compiled administrative data (certificato_in)">
+                        <FiCode className="me-1" />Preview Administrative Data
+                      </Button>
+                    )}
                     {calibrationMap[r.id]?.certificatoIn && (
                       <Button
                         size="sm"
@@ -355,32 +357,34 @@ function DccCalibrations() {
                         Save DCC
                       </Button>
                     )}
-                    <Dropdown>
-                      <Dropdown.Toggle variant="light" size="sm" id={`calib-menu-${r.id}`} className="p-1">
-                        <BsThreeDotsVertical />
-                      </Dropdown.Toggle>
-                      <Dropdown.Menu>
-                        <Dropdown.Item onClick={() => openDetail(r)}>
-                          <FiCode className="me-2" />View Raw Data
-                        </Dropdown.Item>
-                        {role === 'ADMIN' && (
-                          <>
-                            <Dropdown.Divider />
-                            <Dropdown.Item
-                              className="text-danger"
-                              disabled={deletingRow[r.id]}
-                              onClick={() => handleDelete(r.id)}
-                            >
-                              {deletingRow[r.id] ? (
-                                <><Spinner as="span" size="sm" animation="border" className="me-2" />Deleting...</>
-                              ) : (
-                                <><FiTrash2 className="me-2" />Delete</>
-                              )}
-                            </Dropdown.Item>
-                          </>
-                        )}
-                      </Dropdown.Menu>
-                    </Dropdown>
+                    <div className="ms-auto">
+                      <Dropdown>
+                        <Dropdown.Toggle variant="light" size="sm" id={`calib-menu-${r.id}`} className="p-1">
+                          <BsThreeDotsVertical />
+                        </Dropdown.Toggle>
+                        <Dropdown.Menu>
+                          <Dropdown.Item onClick={() => openDetail(r)}>
+                            <FiCode className="me-2" />View Raw Data
+                          </Dropdown.Item>
+                          {role === 'ADMIN' && (
+                            <>
+                              <Dropdown.Divider />
+                              <Dropdown.Item
+                                className="text-danger"
+                                disabled={deletingRow[r.id]}
+                                onClick={() => handleDelete(r.id)}
+                              >
+                                {deletingRow[r.id] ? (
+                                  <><Spinner as="span" size="sm" animation="border" className="me-2" />Deleting...</>
+                                ) : (
+                                  <><FiTrash2 className="me-2" />Delete</>
+                                )}
+                              </Dropdown.Item>
+                            </>
+                          )}
+                        </Dropdown.Menu>
+                      </Dropdown>
+                    </div>
                   </div>
                 </td>
               </tr>
