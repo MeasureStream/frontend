@@ -4,7 +4,7 @@ import {
   Row, Col, Spinner, Nav, Tab, Accordion,
 } from 'react-bootstrap';
 import { useSearchParams, useNavigate } from 'react-router';
-import { FiFileText, FiCode, FiPlay, FiRefreshCw, FiBarChart2, FiRefreshCcw } from 'react-icons/fi';
+import { FiFileText, FiCode, FiPlay, FiRefreshCw, FiBarChart2, FiRefreshCcw, FiActivity } from 'react-icons/fi';
 import DccNav from '../../components/DccNav';
 import CertificatoWizard from '../../components/CertificatoWizard';
 import CalibrationRunModal from '../../components/CalibrationRunModal';
@@ -172,80 +172,98 @@ function DccCalibrations() {
       <DccNav />
 
       {/* Filters */}
-      <Row className="g-2 mb-3">
-        <Col md={3}>
-          <Form.Control
-            placeholder="Filter by Calibration ID"
-            value={filterCalibId}
-            onChange={e => setFilterCalibId(e.target.value)}
-          />
-        </Col>
-        <Col md={2}>
-          <Form.Control
-            placeholder="Sensor ID"
-            type="number"
-            value={filterSensorId}
-            onChange={e => setFilterSensorId(e.target.value)}
-          />
-        </Col>
-        <Col md={2}>
-          <Form.Control
-            placeholder="MU ID"
-            type="number"
-            value={filterMuId}
-            onChange={e => setFilterMuId(e.target.value)}
-          />
-        </Col>
-        <Col md="auto">
-          <Button variant="primary" onClick={handleFilter}>Apply</Button>
-          <Button variant="outline-secondary" className="ms-2" onClick={() => {
-            setFilterCalibId(''); setFilterSensorId(''); setFilterMuId('');
-            setSearchParams({});
-            getCalibrationRequests().then(setRequests).catch(console.error);
-          }}>Clear</Button>
-        </Col>
-        <Col md="auto" className="ms-auto">
-          <Button variant="outline-primary" size="sm" onClick={() => { fetchRequests(); fetchMessages(); }}>
-            <FiRefreshCcw className="me-1" />Refresh
-          </Button>
-        </Col>
-      </Row>
+      <div className="calib-filters mb-3">
+        <Row className="g-2 align-items-center">
+          <Col md={3}>
+            <Form.Control
+              size="sm"
+              placeholder="Filter by Calibration ID"
+              value={filterCalibId}
+              onChange={e => setFilterCalibId(e.target.value)}
+            />
+          </Col>
+          <Col md={2}>
+            <Form.Control
+              size="sm"
+              placeholder="Sensor ID"
+              type="number"
+              value={filterSensorId}
+              onChange={e => setFilterSensorId(e.target.value)}
+            />
+          </Col>
+          <Col md={2}>
+            <Form.Control
+              size="sm"
+              placeholder="MU ID"
+              type="number"
+              value={filterMuId}
+              onChange={e => setFilterMuId(e.target.value)}
+            />
+          </Col>
+          <Col md="auto">
+            <Button variant="primary" size="sm" onClick={handleFilter}>
+              <FiPlay className="me-1" style={{ transform: 'rotate(90deg)' }} />Apply
+            </Button>
+            <Button variant="outline-secondary" size="sm" className="ms-2" onClick={() => {
+              setFilterCalibId(''); setFilterSensorId(''); setFilterMuId('');
+              setSearchParams({});
+              getCalibrationRequests().then(setRequests).catch(console.error);
+            }}>Clear</Button>
+          </Col>
+          <Col md="auto" className="ms-auto">
+            <Button variant="outline-primary" size="sm" onClick={() => { fetchRequests(); fetchMessages(); }}>
+              <FiRefreshCcw className="me-1" />Refresh
+            </Button>
+          </Col>
+        </Row>
+      </div>
 
       {/* Calibration Measurements table */}
-      <h5 className="mb-2">Calibration Measurements</h5>
+      <div className="calib-heading">
+        <FiActivity />Calibration Measurements
+      </div>
       {loading ? (
         <div className="text-center py-4"><Spinner animation="border" variant="primary" /></div>
       ) : (
-        <Table responsive hover className="shadow-sm mb-5">
-          <thead className="table-light">
+        <Table responsive hover className="calib-table mb-5">
+          <thead>
             <tr>
               <th>ID</th>
               <th>Calibration ID</th>
-              <th>Calibrator ID</th>
-              <th>MU ID</th>
-              <th>Sensor ID</th>
+              <th>Calibrator</th>
+              <th>MU</th>
+              <th>Sensor</th>
               <th>Status</th>
               <th>Created At</th>
-              <th></th>
+              <th style={{ minWidth: 420 }}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {filteredRequests.length === 0 && (
-              <tr><td colSpan={8} className="text-center text-muted py-3">No calibration requests found.</td></tr>
+              <tr><td colSpan={8} className="calib-empty text-center py-4">No calibration requests found.</td></tr>
             )}
-            {filteredRequests.map(r => (
-              <tr key={r.id}>
-                <td className="fw-bold">{r.id}</td>
+            {filteredRequests.map((r, i) => (
+              <tr key={r.id}
+                style={{
+                  borderLeft: `4px solid ${r.processed ? '#198754' : '#ffc107'}`,
+                  backgroundColor: i % 2 === 0 ? 'rgba(0,0,0,0.01)' : undefined,
+                }}
+              >
+                <td className="fw-bold text-muted">#{r.id}</td>
                 <td><code className="small">{r.calibrationId}</code></td>
                 <td>{r.calibratorId}</td>
                 <td>{r.muId}</td>
                 <td>{r.sensorId}</td>
                 <td>
-                  <Badge bg={r.processed ? 'success' : 'warning'} text={r.processed ? undefined : 'dark'}>
+                  <Badge
+                    bg={r.processed ? 'success' : 'warning'}
+                    text={r.processed ? undefined : 'dark'}
+                    className="calib-status-badge"
+                  >
                     {r.processed ? 'Processed' : 'Pending'}
                   </Badge>
                 </td>
-                <td>{new Date(r.createdAt).toLocaleString()}</td>
+                <td className="text-muted small">{new Date(r.createdAt).toLocaleString()}</td>
                 <td>
                   <div className="d-flex gap-2 flex-wrap calib-actions">
                     <Button size="sm" variant="outline-primary" onClick={() => openWizard(r)} title="Build certificate step-by-step">
@@ -296,14 +314,14 @@ function DccCalibrations() {
         <Accordion.Item eventKey="messages">
           <Accordion.Header>
             Raw Messages
-            <Badge bg="secondary" className="ms-2">{messages.length}</Badge>
+            <Badge bg="secondary" className="calib-status-badge ms-2">{messages.length}</Badge>
           </Accordion.Header>
           <Accordion.Body>
             {loadingMsgs ? (
               <div className="text-center py-4"><Spinner animation="border" variant="secondary" /></div>
             ) : (
-              <Table responsive hover className="shadow-sm" style={{ fontSize: '0.85rem' }}>
-                <thead className="table-light">
+              <Table responsive hover className="calib-table" style={{ fontSize: '0.85rem' }}>
+                <thead>
                   <tr>
                     <th>ID</th>
                     <th>Calib ID</th>
@@ -316,11 +334,11 @@ function DccCalibrations() {
                 </thead>
                 <tbody>
                   {messages.length === 0 && (
-                    <tr><td colSpan={7} className="text-center text-muted py-3">No messages received yet.</td></tr>
+                    <tr><td colSpan={7} className="calib-empty text-center py-3">No messages received yet.</td></tr>
                   )}
                   {messages.map(m => (
                     <tr key={m.id}>
-                      <td>{m.id}</td>
+                      <td className="text-muted small">#{m.id}</td>
                       <td><code className="small">{m.calibId}</code></td>
                       <td><Badge bg="info" pill>{m.stepIndex} / {(m.totalSteps ?? 1) - 1}</Badge></td>
                       <td>{m.target?.toFixed(1)}</td>
@@ -330,7 +348,7 @@ function DccCalibrations() {
                           {m.assembled ? 'Yes' : 'No'}
                         </Badge>
                       </td>
-                      <td>{new Date(m.receivedAt).toLocaleString()}</td>
+                      <td className="text-muted small">{new Date(m.receivedAt).toLocaleString()}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -376,19 +394,16 @@ function DccCalibrations() {
           {selectedReq && (
             <>
               <Row className="mb-3 g-2">
-                <Col xs="auto"><Badge bg="secondary">Calibrator {selectedReq.calibratorId}</Badge></Col>
-                <Col xs="auto"><Badge bg="info">MU {selectedReq.muId}</Badge></Col>
-                <Col xs="auto"><Badge bg="primary">Sensor {selectedReq.sensorId}</Badge></Col>
+                <Col xs="auto"><Badge bg="secondary" className="calib-status-badge">Calibrator {selectedReq.calibratorId}</Badge></Col>
+                <Col xs="auto"><Badge bg="info" className="calib-status-badge">MU {selectedReq.muId}</Badge></Col>
+                <Col xs="auto"><Badge bg="primary" className="calib-status-badge">Sensor {selectedReq.sensorId}</Badge></Col>
                 <Col xs="auto">
-                  <Badge bg={selectedReq.processed ? 'success' : 'warning'} text={selectedReq.processed ? undefined : 'dark'}>
+                  <Badge bg={selectedReq.processed ? 'success' : 'warning'} text={selectedReq.processed ? undefined : 'dark'} className="calib-status-badge">
                     {selectedReq.processed ? 'Processed' : 'Pending'}
                   </Badge>
                 </Col>
                 <Col xs="auto" className="text-muted small">
                   {new Date(selectedReq.createdAt).toLocaleString()}
-                </Col>
-                <Col xs="auto" className="text-muted small">
-                  Messages: {reqMessages.length}
                 </Col>
               </Row>
 

@@ -52,3 +52,66 @@
   transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
+
+/* ── Calibration page ─────────────────────────────────────────── */
+
+.calib-filters {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  border: 1px solid #dee2e6;
+}
+
+.calib-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #1a237e;
+  font-weight: 700;
+  font-size: 1.15rem;
+  margin-bottom: 0.75rem;
+}
+
+.calib-table {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+
+.calib-table thead th {
+  background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: none;
+  padding: 0.75rem 1rem;
+}
+
+.calib-table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.calib-table tbody tr:hover {
+  background-color: rgba(13, 110, 253, 0.04);
+}
+
+.calib-table tbody td {
+  vertical-align: middle;
+  padding: 0.65rem 1rem;
+}
+
+.calib-status-badge {
+  font-size: 0.78rem;
+  padding: 0.35em 0.75em;
+  border-radius: 20px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.calib-empty {
+  background: #f8f9fa;
+  color: #6c757d;
+  font-style: italic;
+}
