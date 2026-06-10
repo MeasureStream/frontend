@@ -20,6 +20,97 @@ const SECTION_LABELS: Record<Section, string> = {
   'client-companies': 'Client Companies',
 };
 
+const PRETTY = (o: any) => JSON.stringify(o, null, 2);
+
+const METHOD_TEMPLATE = PRETTY({
+  "_comment": "",
+  "sensor_method_template": {
+    "device_type": "",
+    "item": "",
+    "manufacturer": "",
+    "calibration_method": "",
+    "measurement_conditions": [""],
+    "procedure_code": "",
+    "traceability_chain_ids": [""],
+    "traceability_certificate_ids": [""],
+    "traceability_labs": [""],
+    "traceability": "",
+    "starting_uncertainties": "",
+    "measurement_current": "",
+    "connection_terminals": "",
+    "notes_template": [""],
+    "ntc_model": {
+      "R25": 0,
+      "B25_85": 0,
+      "A_steinhart": 0,
+      "B_steinhart": 0,
+      "C_steinhart": 0,
+      "alpha_25": 0,
+      "uncertainty_limit": "",
+      "calibration_formula": ""
+    }
+  },
+  "calculated_calibration_values_method": {
+    "observations_method": [""],
+    "conclusions": ""
+  },
+  "calibration_specific_data_method": {
+    "_comment": "",
+    "certificate_title": "",
+    "certificate_title_en": "",
+    "conditions": [""]
+  },
+  "pdf_template_data_method": {
+    "statements_method": [""],
+    "results_headers": [""],
+    "notes_title": "",
+    "notes_lines": [""],
+    "measurement_note_template": "",
+    "page4_title": "",
+    "page4_intro_text": "",
+    "coeff_labels": {
+      "r25": "",
+      "b25_85": "",
+      "alpha25": "",
+      "interp": ""
+    },
+    "intro_text": ""
+  }
+});
+
+const MS_COMPANY_TEMPLATE = PRETTY({
+  "_comment": "",
+  "company_data": {
+    "org_name": "",
+    "department": "",
+    "address_lines": [""],
+    "phone": "",
+    "email": "",
+    "website": "",
+    "accreditation_line": ""
+  },
+  "organization_data": {
+    "accreditation_body": "",
+    "reproduction_conditions": "",
+    "traceability_statement": ""
+  }
+});
+
+const CLIENT_TEMPLATE = PRETTY({
+  "_comment": "",
+  "calibration_specific_data": {
+    "customer": "",
+    "receiver": "",
+    "location": ""
+  }
+});
+
+const EMPTY_TEMPLATES: Record<Section, string> = {
+  'methods': METHOD_TEMPLATE,
+  'ms-companies': MS_COMPANY_TEMPLATE,
+  'client-companies': CLIENT_TEMPLATE,
+};
+
 function DccAnagrafica() {
   const [section, setSection] = useState<Section>('methods');
   const [items, setItems] = useState<AnagraficaDTO[]>([]);
@@ -57,7 +148,7 @@ function DccAnagrafica() {
   const openCreate = () => {
     setEditing(null);
     setFormName('');
-    setFormJson('{}');
+    setFormJson(EMPTY_TEMPLATES[section]);
     setError(null);
     setShowModal(true);
   };
