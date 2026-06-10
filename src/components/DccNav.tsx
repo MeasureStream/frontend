@@ -35,7 +35,7 @@ function DccNav() {
       )}
       <Nav.Item>
         <Nav.Link as={Link} to="/dcc/validate" eventKey="/dcc/validate">
-          Validate DCC
+          DCC Signature
         </Nav.Link>
       </Nav.Item>
       <Nav.Item>

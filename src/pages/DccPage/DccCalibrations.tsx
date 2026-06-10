@@ -4,6 +4,7 @@ import {
   Row, Col, Spinner, Nav, Tab, Accordion,
 } from 'react-bootstrap';
 import { useSearchParams, useNavigate } from 'react-router';
+import { FiFileText, FiCode, FiDatabase, FiPlay, FiRefreshCw, FiBarChart2, FiRefreshCcw } from 'react-icons/fi';
 import DccNav from '../../components/DccNav';
 import CertificatoWizard from '../../components/CertificatoWizard';
 import CalibrationRunModal from '../../components/CalibrationRunModal';
@@ -205,7 +206,7 @@ function DccCalibrations() {
         </Col>
         <Col md="auto" className="ms-auto">
           <Button variant="outline-primary" size="sm" onClick={() => { fetchRequests(); fetchMessages(); }}>
-            Refresh
+            <FiRefreshCcw className="me-1" />Refresh
           </Button>
         </Col>
       </Row>
@@ -246,33 +247,41 @@ function DccCalibrations() {
                 </td>
                 <td>{new Date(r.createdAt).toLocaleString()}</td>
                 <td>
-                  <div className="d-flex gap-1 flex-wrap calib-actions">
-                    <Button size="sm" variant="primary" onClick={() => openWizard(r)}>
-                      Administrative Data
+                  <div className="d-flex gap-2 flex-wrap calib-actions">
+                    <Button size="sm" variant="outline-primary" onClick={() => openWizard(r)} title="Build certificate step-by-step">
+                      <FiFileText className="me-1" />Wizard
                     </Button>
-                    <Button size="sm" variant="outline-secondary" onClick={() => openDetail(r)}>
-                      Raw Data
+                    <Button size="sm" variant="outline-dark" onClick={() => openDetail(r)} title="View raw calibration messages and JSON">
+                      <FiCode className="me-1" />Raw Data
                     </Button>
                     {calibrationMap[r.id]?.certificatoIn && (
                       <Button
                         size="sm"
                         variant="outline-info"
                         onClick={() => openCertJson(calibrationMap[r.id])}
+                        title="View certificato_in JSON"
                       >
-                        Administrative Data
+                        <FiDatabase className="me-1" />Input JSON
                       </Button>
                     )}
                     {calibrationMap[r.id]?.certificatoIn && (
                       <Button
                         size="sm"
-                        variant={calibrationMap[r.id]?.runStatus === 'SUCCESS' ? 'success' : 'warning'}
+                        variant={calibrationMap[r.id]?.runStatus === 'SUCCESS' ? 'warning' : calibrationMap[r.id]?.runStatus === 'RUNNING' ? 'secondary' : 'success'}
                         onClick={() => openRunModal(r, calibrationMap[r.id])}
                         title="Run calibration pipeline (analisi_calib_data.py)"
                       >
+                        {(calibrationMap[r.id]?.runStatus && calibrationMap[r.id]?.runStatus !== 'RUNNING') ? (
+                          <FiRefreshCw className="me-1" />
+                        ) : (
+                          <FiPlay className="me-1" />
+                        )}
                         {calibrationMap[r.id]?.runStatus === 'SUCCESS'
-                          ? 'Retry Calibration'
+                          ? 'Recalibrate'
                           : calibrationMap[r.id]?.runStatus === 'FAILED'
                           ? 'Retry Calibration'
+                          : calibrationMap[r.id]?.runStatus === 'RUNNING'
+                          ? 'Running...'
                           : 'Calibrate'}
                       </Button>
                     )}
@@ -283,7 +292,7 @@ function DccCalibrations() {
                         onClick={() => navigate(`/dcc/calibrations/${r.id}/run`)}
                         title="View run results"
                       >
-                        Results
+                        <FiBarChart2 className="me-1" />Results
                       </Button>
                     )}
                   </div>

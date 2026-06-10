@@ -162,7 +162,7 @@ function DccValidate() {
   return (
     <Container fluid>
       <DccNav />
-      <h4 className="mt-4 mb-4">Validate DCC Signatures</h4>
+      <h4 className="mt-4 mb-4">DCC Signature</h4>
 
       <Row className="mb-4">
         <Col md={6}>
