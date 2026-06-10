@@ -4,7 +4,7 @@ import {
   Row, Col, Spinner, Nav, Tab, Accordion,
 } from 'react-bootstrap';
 import { useSearchParams, useNavigate } from 'react-router';
-import { FiFileText, FiCode, FiDatabase, FiPlay, FiRefreshCw, FiBarChart2, FiRefreshCcw } from 'react-icons/fi';
+import { FiFileText, FiCode, FiPlay, FiRefreshCw, FiBarChart2, FiRefreshCcw } from 'react-icons/fi';
 import DccNav from '../../components/DccNav';
 import CertificatoWizard from '../../components/CertificatoWizard';
 import CalibrationRunModal from '../../components/CalibrationRunModal';
@@ -249,40 +249,28 @@ function DccCalibrations() {
                 <td>
                   <div className="d-flex gap-2 flex-wrap calib-actions">
                     <Button size="sm" variant="outline-primary" onClick={() => openWizard(r)} title="Build certificate step-by-step">
-                      <FiFileText className="me-1" />Wizard
+                      <FiFileText className="me-1" />Compile Administrative Data
                     </Button>
-                    <Button size="sm" variant="outline-dark" onClick={() => openDetail(r)} title="View raw calibration messages and JSON">
-                      <FiCode className="me-1" />Raw Data
+                    <Button size="sm" variant="outline-dark" onClick={() => openDetail(r)} title="View raw calibration data">
+                      <FiCode className="me-1" />Preview Administrative Data
                     </Button>
                     {calibrationMap[r.id]?.certificatoIn && (
                       <Button
                         size="sm"
-                        variant="outline-info"
-                        onClick={() => openCertJson(calibrationMap[r.id])}
-                        title="View certificato_in JSON"
-                      >
-                        <FiDatabase className="me-1" />Input JSON
-                      </Button>
-                    )}
-                    {calibrationMap[r.id]?.certificatoIn && (
-                      <Button
-                        size="sm"
-                        variant={calibrationMap[r.id]?.runStatus === 'SUCCESS' ? 'warning' : calibrationMap[r.id]?.runStatus === 'RUNNING' ? 'secondary' : 'success'}
+                        variant={
+                          calibrationMap[r.id]?.runStatus === 'SUCCESS' ? 'warning'
+                            : calibrationMap[r.id]?.runStatus === 'FAILED' ? 'danger'
+                            : 'success'
+                        }
                         onClick={() => openRunModal(r, calibrationMap[r.id])}
                         title="Run calibration pipeline (analisi_calib_data.py)"
                       >
-                        {(calibrationMap[r.id]?.runStatus && calibrationMap[r.id]?.runStatus !== 'RUNNING') ? (
+                        {calibrationMap[r.id]?.runStatus ? (
                           <FiRefreshCw className="me-1" />
                         ) : (
                           <FiPlay className="me-1" />
                         )}
-                        {calibrationMap[r.id]?.runStatus === 'SUCCESS'
-                          ? 'Recalibrate'
-                          : calibrationMap[r.id]?.runStatus === 'FAILED'
-                          ? 'Retry Calibration'
-                          : calibrationMap[r.id]?.runStatus === 'RUNNING'
-                          ? 'Running...'
-                          : 'Calibrate'}
+                        Analyze
                       </Button>
                     )}
                     {calibrationMap[r.id]?.runStatus && (
