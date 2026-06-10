@@ -403,37 +403,153 @@ function ConformitySummary({ conformityJson }: { conformityJson: string }) {
   try { parsed = JSON.parse(conformityJson); } catch { return null; }
 
   const summary = parsed?.summary;
+  const checkG = parsed?.check_G;
+  const checkH = parsed?.check_H;
+  const hParams = parsed?.check_H_params;
   if (!summary) return null;
 
   const overall: string = summary.overall ?? 'UNKNOWN';
   const checks = ['G', 'A', 'B', 'H'];
+  const gPoints: any[] = checkG?.per_point ?? [];
+  const hPoints: any[] = checkH?.per_point ?? [];
+
+  const mae = hParams?.mae_y ?? null;
+  const pfaThreshold = hParams?.pfa_threshold_pct ?? null;
 
   return (
-    <div className="p-3 rounded border mb-2">
-      <div className="d-flex align-items-center gap-3 mb-3">
-        <span className="fw-bold">Conformity Result:</span>
-        <Badge
-          bg={overall === 'CONFORMING' ? 'success' : overall === 'NON-CONFORMING' ? 'danger' : 'secondary'}
-          className="px-3 py-2"
-        >
-          {overall}
-        </Badge>
-        {summary.calibration_done && (
-          <Badge bg="info">{summary.calibration_done}</Badge>
-        )}
+    <div>
+      {/* Summary header */}
+      <div className="p-3 rounded border mb-3">
+        <div className="d-flex align-items-center gap-3 mb-3">
+          <span className="fw-bold">Conformity Result:</span>
+          <Badge
+            bg={overall === 'CONFORME' ? 'success' : overall === 'NON CONFORME' ? 'danger' : 'secondary'}
+            className="px-3 py-2"
+          >
+            {overall}
+          </Badge>
+          {summary.calibration_done && (
+            <Badge bg="info">{summary.calibration_done}</Badge>
+          )}
+        </div>
+        <div className="d-flex flex-wrap gap-2">
+          {checks.map((k) => {
+            const val: string = summary[k] ?? 'N/A';
+            const bg = val === 'PASS' ? 'success' : val === 'FAIL' ? 'danger' : val === 'WARN' ? 'warning' : 'secondary';
+            return (
+              <div key={k} className="text-center" style={{ minWidth: '50px' }}>
+                <div className="text-muted small">Check {k}</div>
+                <Badge bg={bg} className="w-100">{val}</Badge>
+              </div>
+            );
+          })}
+        </div>
       </div>
-      <div className="d-flex flex-wrap gap-2">
-        {checks.map((k) => {
-          const val: string = summary[k] ?? 'N/A';
-          const bg = val === 'PASS' ? 'success' : val === 'FAIL' ? 'danger' : val === 'WARN' ? 'warning' : 'secondary';
-          return (
-            <div key={k} className="text-center" style={{ minWidth: '50px' }}>
-              <div className="text-muted small">Check {k}</div>
-              <Badge bg={bg} className="w-100">{val}</Badge>
-            </div>
-          );
-        })}
-      </div>
+
+      {/* Check G: As-found accuracy vs declared limits */}
+      {gPoints.length > 0 && (
+        <div className="mb-3">
+          <h6 className="fw-bold mb-2">
+            Check G — As-Found Accuracy vs Declared Limits
+            <Badge bg={summary.G === 'PASS' ? 'success' : summary.G === 'FAIL' ? 'danger' : 'warning'} className="ms-2">{summary.G}</Badge>
+          </h6>
+          <Table responsive size="sm" className="calib-table" style={{ fontSize: '0.82rem' }}>
+            <thead>
+              <tr>
+                <th>Pt</th>
+                <th>T<sub>ref</sub></th>
+                <th>M<sub>e</sub> pre</th>
+                <th>±Max Error</th>
+                <th>G1</th>
+              </tr>
+            </thead>
+            <tbody>
+              {gPoints.map((p: any, i: number) => (
+                <tr key={i}>
+                  <td className="fw-bold">{p.punto}</td>
+                  <td>{p.T_ref_y?.toFixed(4)}</td>
+                  <td style={{ color: Math.abs(p.M_e_pre_y) > (p.max_allowed_error_y ?? Infinity) ? '#dc3545' : '#198754' }}>
+                    {p.M_e_pre_y?.toFixed(6)}
+                  </td>
+                  <td>
+                    {p.max_allowed_error_y != null
+                      ? `±${p.max_allowed_error_y.toFixed(4)}`
+                      : <span className="text-danger">OUT OF RANGE</span>
+                    }
+                  </td>
+                  <td>
+                    <Badge bg={p.G1_in_range ? 'success' : 'danger'}>
+                      {p.G1_in_range ? 'PASS' : 'FAIL'}
+                    </Badge>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+          {checkG?.note && <small className="text-muted">{checkG.note}</small>}
+        </div>
+      )}
+
+      {/* Check H: PFA per point */}
+      {hPoints.length > 0 && (
+        <div className="mb-3">
+          <h6 className="fw-bold mb-2">
+            Check H — Probability of False Acceptance (PFA) per Point
+            <Badge bg={summary.H === 'PASS' ? 'success' : summary.H === 'FAIL' ? 'danger' : 'warning'} className="ms-2">{summary.H}</Badge>
+          </h6>
+          <div className="d-flex gap-3 mb-2 flex-wrap">
+            {mae != null && (
+              <small className="text-muted">
+                MAE = ±<strong>{mae.toFixed(4)}</strong>
+              </small>
+            )}
+            {pfaThreshold != null && (
+              <small className="text-muted">
+                PFA threshold = <strong>{pfaThreshold.toFixed(1)}%</strong>
+              </small>
+            )}
+            {hParams?.u_std_mode && (
+              <small className="text-muted">
+                U<sub>std</sub> mode: <strong>{hParams.u_std_mode}</strong>
+              </small>
+            )}
+          </div>
+          <Table responsive size="sm" className="calib-table" style={{ fontSize: '0.82rem' }}>
+            <thead>
+              <tr>
+                <th>Pt</th>
+                <th>T<sub>ref</sub></th>
+                <th>M<sub>e</sub> pre</th>
+                <th>E<sub>in</sub></th>
+                <th>U<sub>std</sub></th>
+                <th>PFA %</th>
+                <th>Verdict</th>
+              </tr>
+            </thead>
+            <tbody>
+              {hPoints.map((p: any, i: number) => (
+                <tr key={i}>
+                  <td className="fw-bold">{p.punto}</td>
+                  <td>{p.T_ref_y?.toFixed(4)}</td>
+                  <td>{p.M_e_pre_y?.toFixed(6)}</td>
+                  <td>{p.Ein?.toFixed(4)}</td>
+                  <td>{p.u_std_y?.toFixed(6)}</td>
+                  <td>
+                    <span style={{ color: p.PFA_pct <= (p.PFA_threshold_pct ?? 100) ? '#198754' : '#dc3545', fontWeight: 600 }}>
+                      {p.PFA_pct?.toFixed(2)}%
+                    </span>
+                  </td>
+                  <td>
+                    <Badge bg={p.pass ? 'success' : 'danger'}>
+                      {p.pass ? 'PASS' : 'FAIL'}
+                    </Badge>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        </div>
+      )}
     </div>
   );
 }
