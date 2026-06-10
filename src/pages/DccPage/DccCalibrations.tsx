@@ -1,22 +1,26 @@
 import { useEffect, useState } from 'react';
 import {
   Container, Table, Badge, Button, Modal, Form,
-  Row, Col, Spinner, Nav, Tab, Accordion,
+  Row, Col, Spinner, Nav, Tab, Accordion, Dropdown,
 } from 'react-bootstrap';
 import { useSearchParams, useNavigate } from 'react-router';
-import { FiFileText, FiCode, FiPlay, FiRefreshCw, FiBarChart2, FiRefreshCcw, FiActivity } from 'react-icons/fi';
+import { FiFileText, FiCode, FiPlay, FiRefreshCw, FiBarChart2, FiRefreshCcw, FiActivity, FiSave, FiTrash2 } from 'react-icons/fi';
+import { BsThreeDotsVertical } from 'react-icons/bs';
 import DccNav from '../../components/DccNav';
 import CertificatoWizard from '../../components/CertificatoWizard';
 import CalibrationRunModal from '../../components/CalibrationRunModal';
 import {
   getCalibrationRequests, getCalibrationRequest, getCalibrationMessages,
+  deleteCalibrationRequest,
 } from '../../API/CalibrationAPI';
-import { getCalibrationByRequest } from '../../API/WizardAPI';
+import { getCalibrationByRequest, saveDccFromCalibration } from '../../API/WizardAPI';
 import { CalibrationRequestDTO, CalibrationMessageDTO, CalibrationWizardDTO } from '../../API/interfaces';
+import { useAuth } from '../../API/AuthContext';
 
 function DccCalibrations() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { role } = useAuth();
   const sensorIdParam = searchParams.get('sensorId');
   const muIdParam = searchParams.get('muId');
 
@@ -50,6 +54,10 @@ function DccCalibrations() {
   // Calibration Run modal
   const [runModalReq, setRunModalReq] = useState<{ req: CalibrationRequestDTO; calib: CalibrationWizardDTO } | null>(null);
   const [showRunModal, setShowRunModal] = useState(false);
+
+  // Save DCC state (per-row)
+  const [savingDcc, setSavingDcc] = useState<Record<number, boolean>>({});
+  const [deletingRow, setDeletingRow] = useState<Record<number, boolean>>({});
 
   const fetchRequests = async () => {
     setLoading(true);
@@ -155,6 +163,36 @@ function DccCalibrations() {
   const closeRunModal = () => {
     setShowRunModal(false);
     setRunModalReq(null);
+  };
+
+  const handleSaveDcc = async (reqId: number, calib: CalibrationWizardDTO) => {
+    setSavingDcc(prev => ({ ...prev, [reqId]: true }));
+    try {
+      await saveDccFromCalibration(calib.id);
+      alert('DCC saved successfully.');
+    } catch (e: any) {
+      alert('Save DCC failed: ' + e.message);
+    } finally {
+      setSavingDcc(prev => ({ ...prev, [reqId]: false }));
+    }
+  };
+
+  const handleDelete = async (reqId: number) => {
+    if (!window.confirm('Are you sure you want to delete this calibration request and all associated data?')) return;
+    setDeletingRow(prev => ({ ...prev, [reqId]: true }));
+    try {
+      await deleteCalibrationRequest(reqId);
+      setRequests(prev => prev.filter(r => r.id !== reqId));
+      setCalibrationMap(prev => {
+        const next = { ...prev };
+        delete next[reqId];
+        return next;
+      });
+    } catch (e: any) {
+      alert('Delete failed: ' + e.message);
+    } finally {
+      setDeletingRow(prev => ({ ...prev, [reqId]: false }));
+    }
   };
 
   const filteredRequests = requests.filter(r =>
@@ -265,7 +303,7 @@ function DccCalibrations() {
                 </td>
                 <td className="text-muted small">{new Date(r.createdAt).toLocaleString()}</td>
                 <td>
-                  <div className="d-flex gap-2 flex-wrap calib-actions">
+                  <div className="d-flex gap-2 flex-wrap calib-actions align-items-center">
                     <Button size="sm" variant="outline-primary" onClick={() => openWizard(r)} title="Build certificate step-by-step">
                       <FiFileText className="me-1" />Compile Administrative Data
                     </Button>
@@ -301,6 +339,48 @@ function DccCalibrations() {
                         <FiBarChart2 className="me-1" />Results
                       </Button>
                     )}
+                    {calibrationMap[r.id]?.runStatus === 'SUCCESS' && calibrationMap[r.id]?.dccXml && (
+                      <Button
+                        size="sm"
+                        variant="success"
+                        disabled={savingDcc[r.id]}
+                        onClick={() => handleSaveDcc(r.id, calibrationMap[r.id])}
+                        title="Save DCC from calibration XML"
+                      >
+                        {savingDcc[r.id] ? (
+                          <Spinner as="span" size="sm" animation="border" className="me-1" />
+                        ) : (
+                          <FiSave className="me-1" />
+                        )}
+                        Save DCC
+                      </Button>
+                    )}
+                    <Dropdown>
+                      <Dropdown.Toggle variant="light" size="sm" id={`calib-menu-${r.id}`} className="p-1">
+                        <BsThreeDotsVertical />
+                      </Dropdown.Toggle>
+                      <Dropdown.Menu>
+                        <Dropdown.Item onClick={() => openDetail(r)}>
+                          <FiCode className="me-2" />View Raw Data
+                        </Dropdown.Item>
+                        {role === 'ADMIN' && (
+                          <>
+                            <Dropdown.Divider />
+                            <Dropdown.Item
+                              className="text-danger"
+                              disabled={deletingRow[r.id]}
+                              onClick={() => handleDelete(r.id)}
+                            >
+                              {deletingRow[r.id] ? (
+                                <><Spinner as="span" size="sm" animation="border" className="me-2" />Deleting...</>
+                              ) : (
+                                <><FiTrash2 className="me-2" />Delete</>
+                              )}
+                            </Dropdown.Item>
+                          </>
+                        )}
+                      </Dropdown.Menu>
+                    </Dropdown>
                   </div>
                 </td>
               </tr>

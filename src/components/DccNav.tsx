@@ -14,18 +14,6 @@ function DccNav() {
           Sensors
         </Nav.Link>
       </Nav.Item>
-      <Nav.Item>
-        <Nav.Link as={Link} to="/dcc/certificates" eventKey="/dcc/certificates">
-          DCC Certificates
-        </Nav.Link>
-      </Nav.Item>
-      {role === 'ADMIN' && (
-        <Nav.Item>
-          <Nav.Link as={Link} to="/dcc/calibrations" eventKey="/dcc/calibrations">
-            Calibrations
-          </Nav.Link>
-        </Nav.Item>
-      )}
       {role === 'ADMIN' && (
         <Nav.Item>
           <Nav.Link as={Link} to="/dcc/anagrafica" eventKey="/dcc/anagrafica">
@@ -33,6 +21,18 @@ function DccNav() {
           </Nav.Link>
         </Nav.Item>
       )}
+      {role === 'ADMIN' && (
+        <Nav.Item>
+          <Nav.Link as={Link} to="/dcc/calibrations" eventKey="/dcc/calibrations">
+            Calibrations
+          </Nav.Link>
+        </Nav.Item>
+      )}
+      <Nav.Item>
+        <Nav.Link as={Link} to="/dcc/certificates" eventKey="/dcc/certificates">
+          DCC Certificates
+        </Nav.Link>
+      </Nav.Item>
       <Nav.Item>
         <Nav.Link as={Link} to="/dcc/validate" eventKey="/dcc/validate">
           DCC Signature

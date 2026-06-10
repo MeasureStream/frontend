@@ -79,7 +79,20 @@ function CertificatoWizard({ show, calibrationRequestId, calibrationRequestLabel
       case 1: setDraftJson(wizard.calibrationMethodJson || '{}'); setSelectedId(null); break;
       case 2: setDraftJson(wizard.measurestreamCompanyJson || '{}'); setSelectedId(null); break;
       case 3: setDraftJson(wizard.clientCompanyJson || '{}'); setSelectedId(null); break;
-      case 4: setDraftJson(wizard.jobJson || '{}'); break;
+      case 4: {
+        const job = JSON.parse(wizard.jobJson || '{}');
+        if (wizard.sensorId || wizard.sensorModelName) {
+          if (!job.sensor_method_template) job.sensor_method_template = {};
+          if (wizard.sensorModelName && !job.sensor_method_template.model) {
+            job.sensor_method_template.model = wizard.sensorModelName;
+          }
+          if (wizard.sensorId != null && !job.sensor_method_template.serial_number) {
+            job.sensor_method_template.serial_number = String(wizard.sensorId);
+          }
+        }
+        setDraftJson(JSON.stringify(job, null, 2));
+        break;
+      }
       case 5: setDraftJson(wizard.certificatoIn || ''); break;
     }
   }, [step, wizard]);
@@ -296,7 +309,7 @@ function StepHeader({ step }: { step: number }) {
     'Select a calibration method from the registry, then customize if needed.',
     'Select a lab company profile from the registry, then customize if needed.',
     'Select a client company profile from the registry, then customize if needed.',
-    'Review and complete the job data (dates and personnel are pre-filled).',
+    'Review and complete the job data (dates, personnel, and sensor template are pre-filled).',
     'Review the generated certificato_in JSON output.',
   ];
   return (

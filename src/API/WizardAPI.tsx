@@ -1,4 +1,4 @@
-import { CalibrationWizardDTO, WizardStepRequest } from './interfaces';
+import { CalibrationWizardDTO, WizardStepRequest, DccDTO } from './interfaces';
 
 const BASE = '/api/calibrations';
 
@@ -68,6 +68,20 @@ export async function buildCertificatoIn(calibrationId: number): Promise<Calibra
   if (!res.ok) {
     const msg = await res.text().catch(() => res.statusText);
     throw new Error(`Build failed: ${msg}`);
+  }
+  return res.json();
+}
+
+/** Converts DCC XML to JSON via gemimeg and saves as DCC record */
+export async function saveDccFromCalibration(calibrationId: number): Promise<DccDTO> {
+  const res = await fetch(`${BASE}/wizard/${calibrationId}/save-dcc`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: getXsrfHeaders(),
+  });
+  if (!res.ok) {
+    const msg = await res.text().catch(() => res.statusText);
+    throw new Error(`Save DCC failed: ${msg}`);
   }
   return res.json();
 }

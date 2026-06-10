@@ -31,3 +31,14 @@ export async function getCalibrationMessages(calibId?: string): Promise<Calibrat
   if (!res.ok) throw new Error('Error fetching calibration messages');
   return res.json();
 }
+
+export async function deleteCalibrationRequest(requestId: number): Promise<void> {
+  const xsrfToken = document.cookie.split('; ').find(r => r.startsWith('XSRF-TOKEN='))?.split('=')[1];
+  const headers: HeadersInit = xsrfToken ? { 'X-XSRF-TOKEN': xsrfToken } : {};
+  const res = await fetch(`${BASE}/requests/${requestId}`, {
+    method: 'DELETE',
+    credentials: 'include',
+    headers,
+  });
+  if (!res.ok) throw new Error('Error deleting calibration request');
+}
