@@ -147,7 +147,7 @@ function CalibrationRunModal({
                   <Form.Label className="fw-semibold">Procedure</Form.Label>
                   <Form.Select value={procedure} onChange={(e) => setProcedure(e.target.value)}>
                     <option value="">Default (from sensor JSON)</option>
-                    {(opts?.procedures ?? []).map((p) => (
+                    {(opts?.procedures ?? []).filter(p => p === 'linear' || p === 'cubic').map((p) => (
                       <option key={p} value={p}>{p}</option>
                     ))}
                   </Form.Select>
