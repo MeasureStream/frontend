@@ -190,11 +190,10 @@ function DccConformity() {
             <h5>How it works</h5>
             <p className="small mb-0">
               Upload a signed DCC XML certificate. The system will:
-              <br />1. Parse the embedded measurement data (T_ref, T_sensor, errors, uncertainties).
-              <br />2. Run <strong>Check G</strong> — sensor as-found accuracy vs declared limits.
-              <br />3. Run <strong>Check H</strong> — Probability of False Acceptance (PFA) per point.
-              <br />4. Run the <strong>Overlap Check</strong> — uncertainty interval compatibility.
-              <br />5. Generate conformity charts and return the full verification report.
+              <br />1. Extract the embedded measurement data (T_ref, T_sensor, errors, uncertainties).
+              <br />2. Run <strong>Check G</strong> — sensor as-found accuracy vs declared tolerance: we check for eache point that the measured error is less than the tolerance.
+              <br />3. Run <strong>Check H</strong> — Probability of False Acceptance (PFA) per point, guard band.
+              <br />4. Generate conformity charts and return the full verification report.
               <br /><br />
               Nothing is saved to the database — all processing is ephemeral.
             </p>
