@@ -308,11 +308,6 @@ function DccCalibrations() {
                       <FiFileText className="me-1" />Compile Administrative Data
                     </Button>
                     {calibrationMap[r.id]?.certificatoIn && (
-                      <Button size="sm" variant="outline-dark" onClick={() => openCertJson(calibrationMap[r.id])} title="View compiled administrative data (certificato_in)">
-                        <FiCode className="me-1" />Preview Administrative Data
-                      </Button>
-                    )}
-                    {calibrationMap[r.id]?.certificatoIn && (
                       <Button
                         size="sm"
                         variant={
@@ -366,6 +361,11 @@ function DccCalibrations() {
                           <Dropdown.Item onClick={() => openDetail(r)}>
                             <FiCode className="me-2" />View Raw Data
                           </Dropdown.Item>
+                          {calibrationMap[r.id]?.certificatoIn && (
+                            <Dropdown.Item onClick={() => openCertJson(calibrationMap[r.id])} title="View compiled administrative data (certificato_in)">
+                              <FiCode className="me-2" />Preview Administrative Data
+                            </Dropdown.Item>
+                          )}
                           {role === 'ADMIN' && (
                             <>
                               <Dropdown.Divider />
