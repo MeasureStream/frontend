@@ -44,7 +44,7 @@ function CalibrationRunModal({
   const [charts, setCharts] = useState(true);
   const [verbose, setVerbose] = useState(true);
   const [updateIfOutRange, setUpdateIfOutRange] = useState('none');
-  const [checkUnits, setCheckUnits] = useState(false);
+  const [tolerance, setTolerance] = useState<string>('');
   const [convertUnits, setConvertUnits] = useState(false);
 
   // Load available options when modal opens
@@ -73,7 +73,7 @@ function CalibrationRunModal({
       charts,
       verbose,
       updateIfOutRange,
-      checkUnits,
+      tolerance: tolerance.trim() === '' ? undefined : Number(tolerance),
       convertUnits,
     };
     try {
@@ -223,19 +223,25 @@ function CalibrationRunModal({
                     <Col md={6}>
                       <Form.Check
                         type="switch"
-                        id="flag-check-units"
-                        label="Check units compatibility"
-                        checked={checkUnits}
-                        onChange={(e) => setCheckUnits(e.target.checked)}
-                      />
-                      <Form.Check
-                        type="switch"
                         id="flag-convert-units"
                         label="Convert units"
                         checked={convertUnits}
                         onChange={(e) => setConvertUnits(e.target.checked)}
-                        className="mt-2"
                       />
+                    </Col>
+                    <Col md={6}>
+                      <Form.Group>
+                        <Form.Label className="small text-muted mb-1">Tolerance override (Check G)</Form.Label>
+                        <Form.Control
+                          type="number"
+                          step="any"
+                          min="0"
+                          value={tolerance}
+                          onChange={(e) => setTolerance(e.target.value)}
+                          placeholder="leave empty to use sensor default"
+                        />
+                        <Form.Text className="text-muted">Same unit as the sensor JSON (typically °C).</Form.Text>
+                      </Form.Group>
                     </Col>
                   </Row>
                 </Accordion.Body>
