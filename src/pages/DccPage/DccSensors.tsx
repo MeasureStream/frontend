@@ -91,7 +91,7 @@ function DccSensors() {
               <th>MU</th>
               <th>CU DevEui</th>
               <th>Owner</th>
-              <th>DCC Status{DCC_STATUS_LEGEND}</th>
+              <th>Calibration{DCC_STATUS_LEGEND}</th>
               <th></th>
             </tr>
           </thead>

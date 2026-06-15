@@ -326,14 +326,14 @@ function DccActions({
       {isEffectiveOrArchived ? (
         <>
           <Button size="sm" variant="outline-danger" onClick={() => handleDownload('PDF')} disabled={!dcc.pdfValid}>
-            <BsFiletypePdf className="me-1" />PDF
+            <BsFiletypePdf className="me-1" />DCC PDF
           </Button>
           <Button size="sm" variant="outline-warning" onClick={() => handleDownload('XML')} disabled={!dcc.xmlValid}>
-            <BsFiletypeXml className="me-1" />XML
+            <BsFiletypeXml className="me-1" />DCC XML
           </Button>
           {dcc.calibrationRequestId && (
             <Button size="sm" variant="outline-info" onClick={handleCalibrationResult}>
-              <BsGraphUp className="me-1" />Calibration Result
+              <BsGraphUp className="me-1" />Calibration certificate
             </Button>
           )}
         </>
@@ -341,13 +341,13 @@ function DccActions({
         <>
           {/* Admin actions for non-effective, non-archived DCCs */}
           {role === 'ADMIN' && (
-            <Button size="sm" variant="primary" onClick={() => setShowEdit(true)}>
+            <Button size="sm" variant="outline-info" onClick={() => setShowEdit(true)}>
               <BsPencil className="me-1" />Edit
             </Button>
           )}
           {role === 'ADMIN' && (
             <Button
-              size="sm" variant="info"
+              size="sm" variant="outline-info"
               onClick={(e) =>
                 window.open(`${GEMIMEG_URL}?dccId=${dcc.id}`, e.ctrlKey || e.metaKey ? '_blank' : '_self')
               }
@@ -372,11 +372,16 @@ function DccActions({
             <Button size="sm" variant="danger" onClick={handleDelete}>Delete</Button>
           )}
           <Button size="sm" variant="outline-danger" onClick={() => handleDownload('PDF')} disabled={!dcc.pdfValid}>
-            <BsFiletypePdf className="me-1" />PDF
+            <BsFiletypePdf className="me-1" />DCC PDF
           </Button>
           <Button size="sm" variant="outline-warning" onClick={() => handleDownload('XML')} disabled={!dcc.xmlValid}>
-            <BsFiletypeXml className="me-1" />XML
+            <BsFiletypeXml className="me-1" />DCC XML
           </Button>
+          {dcc.calibrationRequestId && (
+            <Button size="sm" variant="outline-info" onClick={handleCalibrationResult}>
+              <BsGraphUp className="me-1" />Calibration certificate
+            </Button>
+          )}
         </>
       )}
 
