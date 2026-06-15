@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Container, Table, Badge, Spinner } from 'react-bootstrap';
+import { Container, Table, Badge, Spinner, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { useNavigate } from 'react-router';
+import { FiHelpCircle } from 'react-icons/fi';
 import DccNav from '../../components/DccNav';
 import { getSensors, getDccs } from '../../API/DccAPI';
 import { SensorDccDTO, DccDTO, formatDevEui } from '../../API/interfaces';
@@ -16,6 +17,26 @@ function statusBg(status: string) {
     default: return 'secondary';
   }
 }
+
+const DCC_STATUS_LEGEND = (
+  <OverlayTrigger
+    placement="right"
+    overlay={
+      <Tooltip id="dcc-status-legend-tooltip" style={{ maxWidth: '300px' }}>
+        <div style={{ textAlign: 'left', fontSize: '0.8rem', lineHeight: '1.6' }}>
+          <div><span className="badge bg-success me-1">GREEN</span> Valid and within calibration period</div>
+          <div><span className="badge bg-warning text-dark me-1">YELLOW</span> Calibration near expiration or needs attention</div>
+          <div><span className="badge bg-danger me-1">RED</span> Expired or validation failed</div>
+          <div><span className="badge bg-primary me-1">BLUE</span> Published and effective</div>
+          <div><span className="badge bg-secondary me-1">GREY</span> Draft — not yet signed or validated</div>
+          <div><span className="badge bg-dark me-1">ARCHIVED</span> No longer active</div>
+        </div>
+      </Tooltip>
+    }
+  >
+    <FiHelpCircle className="ms-1 text-muted" style={{ cursor: 'help', fontSize: '0.85rem' }} />
+  </OverlayTrigger>
+);
 
 function DccSensors() {
   const navigate = useNavigate();
@@ -70,7 +91,7 @@ function DccSensors() {
               <th>MU</th>
               <th>CU DevEui</th>
               <th>Owner</th>
-              <th>DCC Status</th>
+              <th>DCC Status{DCC_STATUS_LEGEND}</th>
               <th></th>
             </tr>
           </thead>

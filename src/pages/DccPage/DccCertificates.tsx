@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import {
   Container, Table, Badge, Button, Modal, Form,
-  Row, Col, Alert, Spinner,
+  Row, Col, Alert, Spinner, OverlayTrigger, Tooltip,
 } from 'react-bootstrap';
 import {
   BsPencil, BsBoxArrowUpRight, BsShieldCheck, BsCheckCircle,
   BsFiletypePdf, BsFiletypeXml, BsGraphUp,
 } from 'react-icons/bs';
+import { FiHelpCircle } from 'react-icons/fi';
 import { useNavigate, useSearchParams } from 'react-router';
 import { useAuth } from '../../API/AuthContext';
 import DccNav from '../../components/DccNav';
@@ -20,6 +21,26 @@ import {
 } from '../../API/interfaces';
 
 const GEMIMEG_URL = 'https://dev.christiandellisanti.uk/gemimegdcc/dcc/create';
+
+const STATUS_LEGEND = (
+  <OverlayTrigger
+    placement="right"
+    overlay={
+      <Tooltip id="status-legend-tooltip" style={{ maxWidth: '300px' }}>
+        <div style={{ textAlign: 'left', fontSize: '0.8rem', lineHeight: '1.6' }}>
+          <div><span className="badge bg-success me-1">GREEN</span> Valid and within calibration period</div>
+          <div><span className="badge bg-warning text-dark me-1">YELLOW</span> Calibration near expiration or needs attention</div>
+          <div><span className="badge bg-danger me-1">RED</span> Expired or validation failed</div>
+          <div><span className="badge bg-primary me-1">BLUE</span> Published and effective</div>
+          <div><span className="badge bg-secondary me-1">GREY</span> Draft — not yet signed or validated</div>
+          <div><span className="badge bg-dark me-1">ARCHIVED</span> No longer active</div>
+        </div>
+      </Tooltip>
+    }
+  >
+    <FiHelpCircle className="ms-1 text-muted" style={{ cursor: 'help', fontSize: '0.85rem' }} />
+  </OverlayTrigger>
+);
 
 function statusBg(status: string) {
   if (status === 'GREEN') return 'success';
@@ -87,8 +108,7 @@ function DccCertificates() {
 
   const sensorLabel = (sensorId?: number) => {
     if (!sensorId) return '-';
-    const s = sensors.find((x) => x.id === sensorId);
-    return s ? `${s.modelName} (CH ${s.sensorIndex})` : `ID ${sensorId}`;
+    return <code className="small">ID {sensorId}</code>;
   };
 
   return (
@@ -135,7 +155,7 @@ function DccCertificates() {
               <th>ID</th>
               <th>Name</th>
               <th>Sensor</th>
-              <th>Status</th>
+              <th>Status{STATUS_LEGEND}</th>
               <th>Created By</th>
               <th>Created At</th>
               <th>Calibration Date</th>
@@ -154,7 +174,7 @@ function DccCertificates() {
                 <td>{dcc.id}</td>
                 <td>{dcc.name}</td>
                 <td>
-                  <code className="small">{sensorLabel(dcc.sensorId)}</code>
+                  <code className="small">ID {dcc.sensorId || '-'}</code>
                 </td>
                 <td>
                   <Badge bg={statusBg(dcc.status)}>{dcc.status}</Badge>

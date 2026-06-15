@@ -71,6 +71,8 @@ function CalibrationRunPage() {
 
   // ── Parse images list ───────────────────────────────────────────────────
 
+  const cacheBuster = calib ? `?v=${calib.updatedAt || calib.id}` : '';
+
   const images: string[] = (() => {
     try { return calib?.images ? JSON.parse(calib.images) : []; }
     catch { return []; }
@@ -312,7 +314,7 @@ function CalibrationRunPage() {
                       <Row className="g-3 mb-4">
                         {calibImages.map((url) => (
                           <Col key={url} md={6} lg={4}>
-                            <PlotCard url={url} />
+                            <PlotCard url={url} cacheBuster={cacheBuster} />
                           </Col>
                         ))}
                       </Row>
@@ -325,7 +327,7 @@ function CalibrationRunPage() {
                       <Row className="g-3">
                         {conformImages.map((url) => (
                           <Col key={url} md={6} lg={4}>
-                            <PlotCard url={url} />
+                            <PlotCard url={url} cacheBuster={cacheBuster} />
                           </Col>
                         ))}
                       </Row>
@@ -377,17 +379,18 @@ function CalibrationRunPage() {
 
 // ── Sub-components ──────────────────────────────────────────────────────────
 
-function PlotCard({ url }: { url: string }) {
+function PlotCard({ url, cacheBuster }: { url: string; cacheBuster?: string }) {
   const filename = url.split('/').pop() ?? url;
+  const src = cacheBuster ? `${url}${cacheBuster}` : url;
   return (
     <Card className="border shadow-sm h-100">
       <Card.Body className="p-2 text-center">
         <img
-          src={url}
+          src={src}
           alt={filename}
           className="img-fluid rounded"
           style={{ maxHeight: '280px', objectFit: 'contain', cursor: 'pointer' }}
-          onClick={() => window.open(url, '_blank')}
+          onClick={() => window.open(src, '_blank')}
           title="Click to open full size"
         />
         <div className="text-muted mt-1" style={{ fontSize: '0.7rem' }}>{filename}</div>
