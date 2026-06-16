@@ -196,7 +196,7 @@ function DccDetail() {
                   XML {dcc.xmlValid ? 'Valid' : 'Invalid/Missing'}
                 </Badge>
                 <div className="ms-auto d-flex gap-2 flex-wrap">
-                  {role === 'ADMIN' && !isEffectiveOrArchived && !dcc.pdfValid && !dcc.xmlValid && (
+                  {role === 'ADMIN' && !isEffectiveOrArchived && (
                     <Button
                       size="sm" variant="success"
                       onClick={handleSignAndVerify} disabled={validating}
