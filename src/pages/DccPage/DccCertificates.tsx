@@ -321,7 +321,7 @@ function DccActions({
   const isEffectiveOrArchived = dcc.status === 'BLUE' || dcc.status === 'ARCHIVED';
 
   return (
-    <div className="d-flex gap-1 flex-wrap justify-content-center">
+    <div className="d-flex gap-1 flex-wrap justify-content-left">
       {/* Effective or Archived: only download buttons */}
       {isEffectiveOrArchived ? (
         <>
@@ -340,6 +340,18 @@ function DccActions({
       ) : (
         <>
           {/* Admin actions for non-effective, non-archived DCCs */}
+          
+          <Button size="sm" variant="outline-danger" onClick={() => handleDownload('PDF')} disabled={!dcc.pdfValid}>
+            <BsFiletypePdf className="me-1" />DCC PDF
+          </Button>
+          <Button size="sm" variant="outline-warning" onClick={() => handleDownload('XML')} disabled={!dcc.xmlValid}>
+            <BsFiletypeXml className="me-1" />DCC XML
+          </Button>
+          {dcc.calibrationRequestId && (
+            <Button size="sm" variant="outline-info" onClick={handleCalibrationResult}>
+              <BsGraphUp className="me-1" />Calibration certificate
+            </Button>
+          )}
           {role === 'ADMIN' && (
             <Button size="sm" variant="outline-info" onClick={() => setShowEdit(true)}>
               <BsPencil className="me-1" />Edit
@@ -370,17 +382,6 @@ function DccActions({
           )}
           {role === 'ADMIN' && !dcc.publishedAt && (
             <Button size="sm" variant="danger" onClick={handleDelete}>Delete</Button>
-          )}
-          <Button size="sm" variant="outline-danger" onClick={() => handleDownload('PDF')} disabled={!dcc.pdfValid}>
-            <BsFiletypePdf className="me-1" />DCC PDF
-          </Button>
-          <Button size="sm" variant="outline-warning" onClick={() => handleDownload('XML')} disabled={!dcc.xmlValid}>
-            <BsFiletypeXml className="me-1" />DCC XML
-          </Button>
-          {dcc.calibrationRequestId && (
-            <Button size="sm" variant="outline-info" onClick={handleCalibrationResult}>
-              <BsGraphUp className="me-1" />Calibration certificate
-            </Button>
           )}
         </>
       )}
