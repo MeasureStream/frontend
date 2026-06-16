@@ -407,6 +407,7 @@ function ConformitySummary({ conformityJson }: { conformityJson: string }) {
   if (!summary) return null;
 
   const overall: string = summary.overall ?? 'UNKNOWN';
+  const overallNorm = overall === 'CONFORME' ? 'COMPLIANT' : overall === 'NON CONFORME' ? 'NON-COMPLIANT' : overall;
   const checks: { key: string; label: string }[] = [
     { key: 'G', label: 'As-Found vs Tolerance' },
     { key: 'A', label: 'Expanded Uncertainty' },
@@ -419,10 +420,10 @@ function ConformitySummary({ conformityJson }: { conformityJson: string }) {
       <div className="d-flex align-items-center gap-3 mb-3">
         <span className="fw-bold">Conformity Result:</span>
         <Badge
-          bg={overall === 'CONFORME' ? 'success' : overall === 'NON CONFORME' ? 'danger' : 'secondary'}
+          bg={overall === 'CONFORME' || overall === 'COMPLIANT' ? 'success' : overall === 'NON CONFORME' || overall === 'NON-COMPLIANT' ? 'danger' : 'secondary'}
           className="px-3 py-2"
         >
-          {overall}
+          {overallNorm}
         </Badge>
         {summary.calibration_done && (
           <Badge bg="info">{summary.calibration_done}</Badge>

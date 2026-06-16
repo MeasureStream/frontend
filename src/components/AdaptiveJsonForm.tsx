@@ -35,7 +35,7 @@ function AdaptiveJsonForm({ value, onChange, readOnly = false }: AdaptiveJsonFor
       setParsed(JSON.parse(v));
       setParseError(null);
     } catch {
-      setParseError('JSON non valido');
+      setParseError('Invalid JSON');
     }
   }, [value]);
 
@@ -47,7 +47,7 @@ function AdaptiveJsonForm({ value, onChange, readOnly = false }: AdaptiveJsonFor
       setParseError(null);
       onChange(text);
     } catch {
-      setParseError('JSON non valido');
+      setParseError('Invalid JSON');
       onChange(text); // propaga comunque per non perdere la modifica
     }
   };

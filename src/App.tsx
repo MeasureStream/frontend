@@ -128,7 +128,7 @@ function App() {
             <Route path="/dcc/templates" element={<DccTemplates />} />
             <Route path="/dcc/calibrations" element={<DccCalibrations />} />
             <Route path="/dcc/calibrations/:requestId/run" element={<CalibrationRunPage />} />
-            <Route path="/dcc/anagrafica" element={<DccAnagrafica />} />
+            <Route path="/dcc/registry" element={<DccAnagrafica />} />
             <Route path="/dcc/validate" element={<DccValidate />} />
             <Route path="/dcc/conformity" element={<DccConformity />} />
           </Routes>

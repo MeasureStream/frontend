@@ -46,7 +46,7 @@ export function ControlUnitsPage({ controlUnits }: { controlUnits: ControlUnitDT
                   <Col>
                     <BsCpu className="text-warning mb-1" />
                     <div className="small fw-bold">{cu.measurementUnits.length}</div>
-                    <small className="text-muted">MU associate</small>
+                     <small className="text-muted">Associated MUs</small>
                   </Col>
                 </Row>
 

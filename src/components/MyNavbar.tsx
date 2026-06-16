@@ -28,8 +28,8 @@ function MyNavbar({ me }: NavbarProps) {
                   Sensors
                 </Nav.Link>
                 {role === 'ADMIN' && (
-                  <Nav.Link as={Link} to="/dcc/anagrafica" eventKey="/dcc/anagrafica">
-                    Anagrafica
+                  <Nav.Link as={Link} to="/dcc/registry" eventKey="/dcc/registry">
+                    Registry
                   </Nav.Link>
                 )}
                 {role === 'ADMIN' && (

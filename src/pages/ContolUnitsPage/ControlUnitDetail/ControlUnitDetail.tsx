@@ -128,7 +128,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
             </div>
             <div className="d-flex justify-content-between small opacity-75">
               <span>Last contact:</span>
-              <span className="fw-bold">{cu.lastSeen ? new Date(cu.lastSeen.endsWith('Z') ? cu.lastSeen : cu.lastSeen + 'Z').toLocaleString('it-IT', {
+              <span className="fw-bold">{cu.lastSeen ? new Date(cu.lastSeen.endsWith('Z') ? cu.lastSeen : cu.lastSeen + 'Z').toLocaleString('en-US', {
                 day: '2-digit',
                 month: '2-digit',
                 year: 'numeric',
