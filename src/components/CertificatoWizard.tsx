@@ -12,7 +12,10 @@ interface CertificatoWizardProps {
   calibrationRequestId: number;
   calibrationRequestLabel: string;
   onHide: () => void;
-}
+  /** Optional callback: when the user clicks "Save as DCC" on step 5, the
+   *  wizard calls this with the current wizard calibration ID. The parent is
+   *  responsible for calling saveDccBlank and handling the result. */
+  onSaveDcc?: (calibrationId: number) => Promise<void>;
 
 const STEP_LABELS = [
   'Base Input',
@@ -34,7 +37,7 @@ const STEP_LABELS = [
  * Step 4  — review/edit job.json (auto-generato)
  * Step 5  — review output JSON + lancio build
  */
-function CertificatoWizard({ show, calibrationRequestId, calibrationRequestLabel, onHide }: CertificatoWizardProps) {
+function CertificatoWizard({ show, calibrationRequestId, calibrationRequestLabel, onHide, onSaveDcc }: CertificatoWizardProps) {
   const [step, setStep] = useState(0);
   const [wizard, setWizard] = useState<CalibrationWizardDTO | null>(null);
   const [loading, setLoading] = useState(false);
@@ -123,6 +126,19 @@ function CertificatoWizard({ show, calibrationRequestId, calibrationRequestLabel
 
   const handleBack = () => {
     if (step > 0) setStep(s => s - 1);
+  };
+
+  const handleSaveDcc = async () => {
+    if (!wizard || !onSaveDcc) return;
+    setSaving(true);
+    setError(null);
+    try {
+      await onSaveDcc(wizard.id);
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleBuild = async () => {
@@ -273,7 +289,14 @@ function CertificatoWizard({ show, calibrationRequestId, calibrationRequestLabel
           )}
 
           {step === 5 && (
-            <Button variant="primary" onClick={onHide}>Done</Button>
+            <div className="d-flex gap-2">
+              {onSaveDcc && wizard?.certificatoIn && (
+                <Button variant="success" onClick={handleSaveDcc} disabled={saving}>
+                  {saving ? <><Spinner size="sm" animation="border" /> Saving...</> : 'Save as DCC'}
+                </Button>
+              )}
+              <Button variant="primary" onClick={onHide}>Done</Button>
+            </div>
           )}
         </div>
       </Modal.Footer>

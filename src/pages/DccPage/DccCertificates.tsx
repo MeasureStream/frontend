@@ -11,13 +11,16 @@ import { FiHelpCircle } from 'react-icons/fi';
 import { useNavigate, useSearchParams } from 'react-router';
 import { useAuth } from '../../API/AuthContext';
 import DccNav from '../../components/DccNav';
+import CertificatoWizard from '../../components/CertificatoWizard';
 import {
-  getDccs, createDcc, updateDcc, validateDcc,
+  getDccs, updateDcc, validateDcc,
   publishDcc, unpublishDcc, deleteDcc, downloadSignedPdf,
   downloadSignedXml, downloadCalibrationResult, getSensors,
 } from '../../API/DccAPI';
+import { initManualWizard, saveDccBlank } from '../../API/WizardAPI';
 import {
-  DccDTO, DccCreateRequest, DccUpdateRequest, SensorDccDTO,
+  DccDTO, DccUpdateRequest, SensorDccDTO,
+  ManualCertificateRequest,
 } from '../../API/interfaces';
 
 const GEMIMEG_URL = 'https://dev.christiandellisanti.uk/gemimegdcc/dcc/create';
@@ -68,10 +71,16 @@ function DccCertificates() {
   const [filterName, setFilterName] = useState('');
 
   const [showCreate, setShowCreate] = useState(false);
-  const [createForm, setCreateForm] = useState<DccCreateRequest>({
+  const [createForm, setCreateForm] = useState<ManualCertificateRequest>({
     name: '',
-    sensorId: sensorIdParam || undefined,
+    sensorId: sensorIdParam ? Number(sensorIdParam) : undefined,
   });
+  const [creating, setCreating] = useState(false);
+
+  // Wizard mode: opened after manual/init succeeds
+  const [showWizard, setShowWizard] = useState(false);
+  const [wizardRequestId, setWizardRequestId] = useState<number | null>(null);
+  const [wizardLabel, setWizardLabel] = useState('');
 
   useEffect(() => {
     getSensors()
@@ -90,15 +99,26 @@ function DccCertificates() {
 
   const handleCreate = async () => {
     if (!createForm.name) { alert('Name is required'); return; }
+    setCreating(true);
     try {
-      await createDcc(xsrfToken || '', createForm);
-      setCreateForm({ name: '', sensorId: sensorIdParam || undefined });
+      const dto = await initManualWizard(createForm);
       setShowCreate(false);
-      setDirty(true);
+      setCreateForm({ name: '' });
+      setWizardRequestId(dto.calibrationRequestId);
+      setWizardLabel(`ID ${dto.id} — ${createForm.name}`);
+      setShowWizard(true);
     } catch (e) {
       console.error(e);
-      alert('Failed to create DCC.');
+      alert('Failed to init wizard.');
+    } finally {
+      setCreating(false);
     }
+  };
+
+  const handleSaveDcc = async (calibrationId: number) => {
+    await saveDccBlank(calibrationId);
+    setShowWizard(false);
+    setDirty(true);
   };
 
   const filtered = dccs.filter((d) =>
@@ -209,8 +229,11 @@ function DccCertificates() {
             <Form.Group className="mb-3">
               <Form.Label>Sensor (optional)</Form.Label>
               <Form.Select
-                value={createForm.sensorId || ''}
-                onChange={(e) => setCreateForm({ ...createForm, sensorId: e.target.value || undefined })}
+                value={createForm.sensorId?.toString() || ''}
+                onChange={(e) => setCreateForm({
+                  ...createForm,
+                  sensorId: e.target.value ? Number(e.target.value) : undefined,
+                })}
               >
                 <option value="">-- None (Template) --</option>
                 {sensors.map((s) => (
@@ -220,13 +243,38 @@ function DccCertificates() {
                 ))}
               </Form.Select>
             </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Measurement Unit ID (optional)</Form.Label>
+              <Form.Control
+                type="number"
+                value={createForm.muId ?? ''}
+                onChange={(e) => setCreateForm({
+                  ...createForm,
+                  muId: e.target.value ? Number(e.target.value) : undefined,
+                })}
+                placeholder="Leave empty if unknown"
+              />
+            </Form.Group>
           </Form>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowCreate(false)}>Cancel</Button>
-          <Button variant="primary" onClick={handleCreate}>Create</Button>
+          <Button variant="primary" onClick={handleCreate} disabled={creating}>
+            {creating ? <><Spinner size="sm" animation="border" /> Creating...</> : 'Create'}
+          </Button>
         </Modal.Footer>
       </Modal>
+
+      {/* Wizard — opens after manual/init succeeds */}
+      {wizardRequestId != null && (
+        <CertificatoWizard
+          show={showWizard}
+          calibrationRequestId={wizardRequestId}
+          calibrationRequestLabel={wizardLabel}
+          onHide={() => { setShowWizard(false); setWizardRequestId(null); }}
+          onSaveDcc={handleSaveDcc}
+        />
+      )}
     </Container>
   );
 }

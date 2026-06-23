@@ -1,4 +1,4 @@
-import { CalibrationWizardDTO, WizardStepRequest, DccDTO } from './interfaces';
+import { CalibrationWizardDTO, CalibrationStatusDTO, WizardStepRequest, DccDTO, ManualCertificateRequest } from './interfaces';
 
 const BASE = '/api/calibrations';
 
@@ -26,6 +26,31 @@ export async function getCalibrationByRequest(requestId: number): Promise<Calibr
   if (res.status === 404) return null;
   if (!res.ok) throw new Error('Error fetching calibration for request');
   return res.json();
+}
+
+/**
+ * Slim status della Calibration (no wizard JSON). Usato dalla tabella per decidere
+ * quali bottoni mostrare. Ritorna null se non esiste ancora una Calibration.
+ */
+export async function getCalibrationStatusByRequest(requestId: number): Promise<CalibrationStatusDTO | null> {
+  const res = await fetch(`${BASE}/requests/${requestId}/calibration/status`, { credentials: 'include' });
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error('Error fetching calibration status');
+  return res.json();
+}
+
+/**
+ * Deriva uno status slim da un full wizard DTO. Usato per aggiornare lo status locale
+ * dopo wizard close / run complete senza rifare una network call.
+ */
+export function deriveCalibrationStatus(calib: CalibrationWizardDTO): CalibrationStatusDTO {
+  return {
+    id: calib.id,
+    hasCertificatoIn: !!calib.certificatoIn && calib.certificatoIn.length > 0,
+    runStatus: calib.runStatus,
+    hasDccXml: !!calib.dccXml && calib.dccXml.length > 0,
+    runId: calib.runId,
+  };
 }
 
 /** Inizializza o ricarica il wizard per una CalibrationRequest */
@@ -82,6 +107,35 @@ export async function saveDccFromCalibration(calibrationId: number): Promise<Dcc
   if (!res.ok) {
     const msg = await res.text().catch(() => res.statusText);
     throw new Error(`Save DCC failed: ${msg}`);
+  }
+  return res.json();
+}
+
+/** Creates a CalibrationRequest + initialises wizard for a manually created certificate */
+export async function initManualWizard(req: ManualCertificateRequest): Promise<CalibrationWizardDTO> {
+  const res = await fetch(`${BASE}/manual/init`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: getXsrfHeaders(true),
+    body: JSON.stringify(req),
+  });
+  if (!res.ok) {
+    const msg = await res.text().catch(() => res.statusText);
+    throw new Error(`Manual wizard init failed: ${msg}`);
+  }
+  return res.json();
+}
+
+/** Saves a DCC record from certificato_in JSON without requiring a calibration run */
+export async function saveDccBlank(calibrationId: number): Promise<DccDTO> {
+  const res = await fetch(`${BASE}/wizard/${calibrationId}/save-dcc-blank`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: getXsrfHeaders(),
+  });
+  if (!res.ok) {
+    const msg = await res.text().catch(() => res.statusText);
+    throw new Error(`Save DCC blank failed: ${msg}`);
   }
   return res.json();
 }

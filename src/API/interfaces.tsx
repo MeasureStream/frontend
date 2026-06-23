@@ -360,6 +360,32 @@ export interface CalibrationMessageDTO {
   rawJson: string;
 }
 
+export interface CalibrationMessageLiteDTO {
+  id: number;
+  calibId: string;
+  stepIndex: number;
+  target: number;
+  totalSteps: number;
+  assembled: boolean;
+  receivedAt: string;
+}
+
+export interface CalibrationStatusDTO {
+  id: number;
+  hasCertificatoIn: boolean;
+  runStatus?: 'PENDING' | 'RUNNING' | 'SUCCESS' | 'FAILED';
+  hasDccXml: boolean;
+  runId?: string;
+}
+
+export interface PagedResponse<T> {
+  content: T[];
+  page: number;
+  size: number;
+  hasMore: boolean;
+  total: number;
+}
+
 // ─── Verify DCC Conformity interfaces ──────────────────────────────────────
 
 export interface ConformityImageDTO {
@@ -380,4 +406,12 @@ export interface ConformityVerifyRequest {
   mae: number;
   pfaThreshold: number;
   uRef: number;
+}
+
+// ─── Manual certificate creation interfaces ─────────────────────────────────
+
+export interface ManualCertificateRequest {
+  name: string;
+  sensorId?: number;
+  muId?: number;
 }
