@@ -17,9 +17,9 @@ function DccConformity() {
 
   const [sensorTemplates, setSensorTemplates]       = useState<string[]>([]);
   const [selectedSensor, setSelectedSensor]         = useState('ntc_temperature.json');
-  const [mae, setMae]                               = useState(0.10);
-  const [pfaThreshold, setPfaThreshold]             = useState(20.0);
-  const [uRef, setURef]                             = useState(0.065);
+  const [mae, setMae]                               = useState<string>('0.10');
+  const [pfaThreshold, setPfaThreshold]             = useState<string>('20.0');
+  const [uRef, setURef]                             = useState<string>('0.065');
   const [showAdvanced, setShowAdvanced]             = useState(false);
 
   const [conformityRunning, setConformityRunning]   = useState(false);
@@ -40,6 +40,22 @@ function DccConformity() {
       alert('Please select a DCC XML file to verify.');
       return;
     }
+    const parseNum = (s: string, label: string): number | null => {
+      const v = Number(s.trim().replace(',', '.'));
+      if (s.trim() !== '' && (Number.isNaN(v) || v < 0)) return null;
+      return v;
+    };
+    const maeNum = parseNum(mae, 'MAE');
+    const pfaNum = parseNum(pfaThreshold, 'PFA threshold');
+    const uRefNum = parseNum(uRef, 'U_ref');
+    if (maeNum === null || pfaNum === null || uRefNum === null) {
+      setConformityError('MAE, PFA threshold and U_ref must be non-negative numbers (use . or , as decimal separator).');
+      return;
+    }
+    if (pfaNum > 100) {
+      setConformityError('PFA threshold must be between 0 and 100.');
+      return;
+    }
     setConformityRunning(true);
     setConformityResult(null);
     setConformityError(null);
@@ -48,9 +64,9 @@ function DccConformity() {
         xsrfToken || '',
         conformityXmlFile,
         selectedSensor,
-        mae,
-        pfaThreshold,
-        uRef,
+        maeNum,
+        pfaNum,
+        uRefNum,
       );
       setConformityResult(result);
     } catch (e: any) {
@@ -132,9 +148,9 @@ function DccConformity() {
                             <Badge bg="secondary" style={{ fontSize: '0.6rem' }}>--mae</Badge>
                           </Form.Label>
                           <Form.Control
-                            type="number" step="0.001" min="0.001"
+                            type="text" inputMode="decimal"
                             value={mae}
-                            onChange={(e) => setMae(parseFloat(e.target.value) || 0.10)}
+                            onChange={(e) => setMae(e.target.value)}
                             size="sm"
                           />
                         </Form.Group>
@@ -146,9 +162,9 @@ function DccConformity() {
                             <Badge bg="secondary" style={{ fontSize: '0.6rem' }}>--pfa-threshold</Badge>
                           </Form.Label>
                           <Form.Control
-                            type="number" step="0.1" min="0.1" max="100"
+                            type="text" inputMode="decimal"
                             value={pfaThreshold}
-                            onChange={(e) => setPfaThreshold(parseFloat(e.target.value) || 20.0)}
+                            onChange={(e) => setPfaThreshold(e.target.value)}
                             size="sm"
                           />
                         </Form.Group>
@@ -160,9 +176,9 @@ function DccConformity() {
                             <Badge bg="secondary" style={{ fontSize: '0.6rem' }}>--u-ref</Badge>
                           </Form.Label>
                           <Form.Control
-                            type="number" step="0.001" min="0"
+                            type="text" inputMode="decimal"
                             value={uRef}
-                            onChange={(e) => setURef(parseFloat(e.target.value) || 0.065)}
+                            onChange={(e) => setURef(e.target.value)}
                             size="sm"
                           />
                         </Form.Group>
@@ -236,7 +252,7 @@ function DccConformity() {
                 </Badge>
               </div>
               <div className="small mt-1 opacity-75">
-                Parameters: MAE={mae} °C | PFA threshold={pfaThreshold}% | U_ref={uRef} °C | Sensor={selectedSensor}
+                Parameters: MAE={Number(mae.replace(',', '.'))} °C | PFA threshold={Number(pfaThreshold.replace(',', '.'))}% | U_ref={Number(uRef.replace(',', '.'))} °C | Sensor={selectedSensor}
               </div>
             </div>
           </Alert>

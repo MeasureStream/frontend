@@ -65,6 +65,12 @@ function CalibrationRunModal({
 
   const handleRun = async () => {
     setError(null);
+    const tolTrim = tolerance.trim().replace(',', '.');
+    const tolNum = tolTrim === '' ? undefined : Number(tolTrim);
+    if (tolTrim !== '' && (Number.isNaN(tolNum) || (tolNum as number) < 0)) {
+      setError('Tolerance must be a non-negative number (use . or , as decimal separator).');
+      return;
+    }
     setRunning(true);
     const config: CalibrationRunConfig = {
       sensorJson,
@@ -73,7 +79,7 @@ function CalibrationRunModal({
       charts,
       verbose,
       updateIfOutRange,
-      tolerance: tolerance.trim() === '' ? undefined : Number(tolerance),
+      tolerance: tolNum,
       convertUnits,
     };
     try {
@@ -147,7 +153,7 @@ function CalibrationRunModal({
                   <Form.Label className="fw-semibold">Procedure</Form.Label>
                   <Form.Select value={procedure} onChange={(e) => setProcedure(e.target.value)}>
                     <option value="">Default (from sensor JSON)</option>
-                    {(opts?.procedures ?? []).filter(p => p === 'linear' || p === 'cubic').map((p) => (
+                    {(opts?.procedures ?? [])                              .filter(p => p === 'linear' || p === 'cubic' || p === 'quadratic' || p === 'steinhart').map((p) => (
                       <option key={p} value={p}>{p}</option>
                     ))}
                   </Form.Select>
@@ -229,20 +235,19 @@ function CalibrationRunModal({
                         onChange={(e) => setConvertUnits(e.target.checked)}
                       />
                     </Col>
-                    <Col md={6}>
-                      <Form.Group>
-                        <Form.Label className="small text-muted mb-1">Tolerance override (Check G)</Form.Label>
-                        <Form.Control
-                          type="number"
-                          step="any"
-                          min="0"
-                          value={tolerance}
-                          onChange={(e) => setTolerance(e.target.value)}
-                          placeholder="leave empty to use sensor default"
-                        />
-                        <Form.Text className="text-muted">Same unit as the sensor JSON (typically °C).</Form.Text>
-                      </Form.Group>
-                    </Col>
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label className="small text-muted mb-1">Tolerance override (Check G)</Form.Label>
+                  <Form.Control
+                    type="text"
+                    inputMode="decimal"
+                    value={tolerance}
+                    onChange={(e) => setTolerance(e.target.value)}
+                    placeholder="leave empty to use sensor default"
+                  />
+                  <Form.Text className="text-muted">Same unit as the sensor JSON (typically °C). Use . or , as decimal separator.</Form.Text>
+                </Form.Group>
+              </Col>
                   </Row>
                 </Accordion.Body>
               </Accordion.Item>

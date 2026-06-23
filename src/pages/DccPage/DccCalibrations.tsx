@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Container, Table, Badge, Button, Modal, Form,
   Row, Col, Spinner, Nav, Tab, Accordion, Dropdown,
@@ -9,13 +9,38 @@ import { BsThreeDotsVertical } from 'react-icons/bs';
 import DccNav from '../../components/DccNav';
 import CertificatoWizard from '../../components/CertificatoWizard';
 import CalibrationRunModal from '../../components/CalibrationRunModal';
+import MessageJsonPreviewModal from './MessageJsonPreviewModal';
 import {
   getCalibrationRequests, getCalibrationRequest, getCalibrationMessages,
+  listCalibrationMessagesPaged, countCalibrationMessages,
   deleteCalibrationRequest,
 } from '../../API/CalibrationAPI';
-import { getCalibrationByRequest, saveDccFromCalibration } from '../../API/WizardAPI';
-import { CalibrationRequestDTO, CalibrationMessageDTO, CalibrationWizardDTO } from '../../API/interfaces';
+import {
+  getCalibrationByRequest, getCalibrationStatusByRequest,
+  saveDccFromCalibration, deriveCalibrationStatus,
+} from '../../API/WizardAPI';
+import {
+  CalibrationRequestDTO, CalibrationMessageLiteDTO, CalibrationWizardDTO, CalibrationStatusDTO,
+} from '../../API/interfaces';
 import { useAuth } from '../../API/AuthContext';
+
+const STATUS_FANOUT_CONCURRENCY = 8;
+const MESSAGES_PAGE_SIZE = 200;
+const LOAD_MORE_DEBOUNCE_MS = 500;
+
+/** Bounded-concurrency pool — runs at most `concurrency` tasks in parallel. */
+async function pMap<T, R>(items: T[], fn: (t: T) => Promise<R>, concurrency: number): Promise<R[]> {
+  const out: R[] = new Array(items.length);
+  let i = 0;
+  const workers = Array.from({ length: Math.min(concurrency, items.length) }, async () => {
+    while (i < items.length) {
+      const idx = i++;
+      out[idx] = await fn(items[idx]);
+    }
+  });
+  await Promise.all(workers);
+  return out;
+}
 
 function DccCalibrations() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -24,40 +49,55 @@ function DccCalibrations() {
   const sensorIdParam = searchParams.get('sensorId');
   const muIdParam = searchParams.get('muId');
 
+  // ── Calibration Measurements ─────────────────────────────────────────────
   const [requests, setRequests] = useState<CalibrationRequestDTO[]>([]);
-  const [messages, setMessages] = useState<CalibrationMessageDTO[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadingMsgs, setLoadingMsgs] = useState(false);
+  const [statusMap, setStatusMap] = useState<Record<number, CalibrationStatusDTO>>({});
+  const [statusLoading, setStatusLoading] = useState<Record<number, boolean>>({});
+  // Full wizard DTO cache — populated only when user opens wizard/run/save/preview actions
+  const [wizardCache, setWizardCache] = useState<Record<number, CalibrationWizardDTO>>({});
 
+  // ── Raw Messages ─────────────────────────────────────────────────────────
+  const [messagesCount, setMessagesCount] = useState<number | null>(null);
+  const [messages, setMessages] = useState<CalibrationMessageLiteDTO[]>([]);
+  const [messagesLoading, setMessagesLoading] = useState(false);
+  const [messagesHasMore, setMessagesHasMore] = useState(false);
+  const [messagesCursor, setMessagesCursor] = useState<string | null>(null);
+  const [messagesOpened, setMessagesOpened] = useState(false);
+  const [rawMessageId, setRawMessageId] = useState<number | null>(null);
+  const lastLoadMoreAt = useRef(0);
+
+  // ── Filters ──────────────────────────────────────────────────────────────
   const [filterCalibId, setFilterCalibId] = useState('');
   const [filterSensorId, setFilterSensorId] = useState(sensorIdParam || '');
   const [filterMuId, setFilterMuId] = useState(muIdParam || '');
 
-  // Detail modal — loads full record (with JSON) only on demand
+  // ── Detail modal — loads full record (with JSON) only on demand ──────────
   const [selectedReq, setSelectedReq] = useState<CalibrationRequestDTO | null>(null);
-  const [reqMessages, setReqMessages] = useState<CalibrationMessageDTO[]>([]);
+  const [reqMessages, setReqMessages] = useState<CalibrationMessageLiteDTO[]>([]);
   const [showDetail, setShowDetail] = useState(false);
   const [detailTab, setDetailTab] = useState('processed');
   const [loadingDetail, setLoadingDetail] = useState(false);
 
-  // Wizard modal
+  // ── Wizard modal ─────────────────────────────────────────────────────────
   const [wizardReq, setWizardReq] = useState<CalibrationRequestDTO | null>(null);
   const [showWizard, setShowWizard] = useState(false);
 
-  // Map requestId → Calibration (to know which rows have a certificato_in / run results)
-  const [calibrationMap, setCalibrationMap] = useState<Record<number, CalibrationWizardDTO>>({});
-
-  // Certificato Base JSON viewer modal
+  // ── Certificato Base JSON viewer modal ───────────────────────────────────
   const [showCertModal, setCertModal] = useState(false);
   const [certJson, setCertJson] = useState<string | null>(null);
 
-  // Calibration Run modal
+  // ── Calibration Run modal ────────────────────────────────────────────────
   const [runModalReq, setRunModalReq] = useState<{ req: CalibrationRequestDTO; calib: CalibrationWizardDTO } | null>(null);
   const [showRunModal, setShowRunModal] = useState(false);
 
-  // Save DCC state (per-row)
+  // ── Per-row action state ─────────────────────────────────────────────────
   const [savingDcc, setSavingDcc] = useState<Record<number, boolean>>({});
   const [deletingRow, setDeletingRow] = useState<Record<number, boolean>>({});
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Fetchers
+  // ─────────────────────────────────────────────────────────────────────────
 
   const fetchRequests = async () => {
     setLoading(true);
@@ -67,8 +107,7 @@ function DccCalibrations() {
         muId: filterMuId ? parseInt(filterMuId) : undefined,
       });
       setRequests(data);
-      // Load calibration status for each request in parallel (fire-and-forget, non-blocking)
-      loadCalibrationMap(data);
+      loadStatusMap(data);
     } catch (e) {
       console.error('Error fetching calibration requests:', e);
     } finally {
@@ -76,35 +115,86 @@ function DccCalibrations() {
     }
   };
 
-  const loadCalibrationMap = async (reqs: CalibrationRequestDTO[]) => {
-    const results = await Promise.allSettled(
-      reqs.map(r => getCalibrationByRequest(r.id).then(c => ({ id: r.id, calib: c })))
-    );
-    const map: Record<number, CalibrationWizardDTO> = {};
-    for (const r of results) {
-      if (r.status === 'fulfilled' && r.value.calib) {
-        map[r.value.id] = r.value.calib;
+  const loadStatusMap = async (reqs: CalibrationRequestDTO[]) => {
+    // Mark all as loading up-front so the spinner is visible immediately
+    setStatusLoading(prev => {
+      const next = { ...prev };
+      for (const r of reqs) next[r.id] = true;
+      return next;
+    });
+
+    // Bounded fan-out: 8 concurrent slim-status fetches
+    await pMap(reqs, async (r) => {
+      try {
+        const s = await getCalibrationStatusByRequest(r.id);
+        if (s) {
+          setStatusMap(prev => ({ ...prev, [r.id]: s }));
+        } else {
+          // 404 → no wizard yet → no Analyze/Results/Save buttons for this row
+          setStatusMap(prev => ({ ...prev, [r.id]: { id: 0, hasCertificatoIn: false, hasDccXml: false } }));
+        }
+      } catch (e) {
+        console.error(`Error fetching status for request ${r.id}:`, e);
+      } finally {
+        setStatusLoading(prev => ({ ...prev, [r.id]: false }));
       }
-    }
-    setCalibrationMap(map);
+    }, STATUS_FANOUT_CONCURRENCY);
   };
 
-  const fetchMessages = async () => {
-    setLoadingMsgs(true);
+  const fetchMessagesCount = async () => {
     try {
-      const data = await getCalibrationMessages();
-      setMessages(data);
+      const total = await countCalibrationMessages();
+      setMessagesCount(total);
     } catch (e) {
-      console.error('Error fetching calibration messages:', e);
-    } finally {
-      setLoadingMsgs(false);
+      console.error('Error fetching message count:', e);
     }
   };
 
+  const loadFirstMessagesPage = async () => {
+    setMessagesLoading(true);
+    try {
+      const data = await listCalibrationMessagesPaged({ page: 0, size: MESSAGES_PAGE_SIZE });
+      setMessages(data.content);
+      setMessagesHasMore(data.hasMore);
+      setMessagesCursor(data.content.length > 0 ? data.content[data.content.length - 1].receivedAt : null);
+    } catch (e) {
+      console.error('Error fetching messages:', e);
+    } finally {
+      setMessagesLoading(false);
+    }
+  };
+
+  const loadMoreMessages = async () => {
+    const now = Date.now();
+    if (now - lastLoadMoreAt.current < LOAD_MORE_DEBOUNCE_MS) return;
+    lastLoadMoreAt.current = now;
+    if (!messagesCursor) return;
+
+    setMessagesLoading(true);
+    try {
+      const data = await listCalibrationMessagesPaged({ before: messagesCursor, size: MESSAGES_PAGE_SIZE });
+      setMessages(prev => [...prev, ...data.content]);
+      setMessagesHasMore(data.hasMore);
+      if (data.content.length > 0) {
+        setMessagesCursor(data.content[data.content.length - 1].receivedAt);
+      }
+    } catch (e) {
+      console.error('Error loading more messages:', e);
+    } finally {
+      setMessagesLoading(false);
+    }
+  };
+
+  // Initial mount
   useEffect(() => {
     fetchRequests();
-    fetchMessages();
+    fetchMessagesCount();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Handlers
+  // ─────────────────────────────────────────────────────────────────────────
 
   const handleFilter = () => {
     const p: Record<string, string> = {};
@@ -118,7 +208,7 @@ function DccCalibrations() {
   const openDetail = async (row: CalibrationRequestDTO) => {
     setShowDetail(true);
     setDetailTab('processed');
-    setSelectedReq(row);   // show modal immediately with metadata
+    setSelectedReq(row);
     setLoadingDetail(true);
     try {
       const [full, msgs] = await Promise.all([
@@ -141,21 +231,44 @@ function DccCalibrations() {
 
   const closeWizard = () => {
     setShowWizard(false);
-    // Refresh calibration map so the new button appears immediately after build
     if (wizardReq) {
-      getCalibrationByRequest(wizardReq.id).then(c => {
-        if (c) setCalibrationMap(prev => ({ ...prev, [wizardReq.id]: c }));
-      }).catch(console.error);
+      // Refresh slim status for this single row
+      getCalibrationStatusByRequest(wizardReq.id)
+        .then(s => {
+          if (s) setStatusMap(prev => ({ ...prev, [wizardReq.id]: s }));
+        })
+        .catch(console.error);
     }
     setWizardReq(null);
   };
 
-  const openCertJson = (calib: CalibrationWizardDTO) => {
+  /** Lazily fetch the full wizard DTO (and cache it) when needed. */
+  const ensureWizardCached = async (req: CalibrationRequestDTO): Promise<CalibrationWizardDTO | null> => {
+    const cached = wizardCache[req.id];
+    if (cached) return cached;
+    const fetched = await getCalibrationByRequest(req.id);
+    if (fetched) {
+      setWizardCache(prev => ({ ...prev, [req.id]: fetched }));
+    }
+    return fetched;
+  };
+
+  const openCertJson = async (req: CalibrationRequestDTO) => {
+    const calib = await ensureWizardCached(req);
+    if (!calib) {
+      alert('Wizard not initialized yet.');
+      return;
+    }
     setCertJson(calib.certificatoIn ?? null);
     setCertModal(true);
   };
 
-  const openRunModal = (req: CalibrationRequestDTO, calib: CalibrationWizardDTO) => {
+  const openRunModal = async (req: CalibrationRequestDTO) => {
+    const calib = await ensureWizardCached(req);
+    if (!calib) {
+      alert('Wizard not initialized yet.');
+      return;
+    }
     setRunModalReq({ req, calib });
     setShowRunModal(true);
   };
@@ -165,15 +278,23 @@ function DccCalibrations() {
     setRunModalReq(null);
   };
 
-  const handleSaveDcc = async (reqId: number, calib: CalibrationWizardDTO) => {
-    setSavingDcc(prev => ({ ...prev, [reqId]: true }));
+  const handleSaveDcc = async (req: CalibrationRequestDTO) => {
+    const calib = await ensureWizardCached(req);
+    if (!calib) {
+      alert('Wizard not initialized yet.');
+      return;
+    }
+    setSavingDcc(prev => ({ ...prev, [req.id]: true }));
     try {
       await saveDccFromCalibration(calib.id);
+      // Refresh slim status to pick up the new dccXml presence
+      const fresh = await getCalibrationStatusByRequest(req.id);
+      if (fresh) setStatusMap(prev => ({ ...prev, [req.id]: fresh }));
       alert('DCC saved successfully.');
     } catch (e: any) {
       alert('Save DCC failed: ' + e.message);
     } finally {
-      setSavingDcc(prev => ({ ...prev, [reqId]: false }));
+      setSavingDcc(prev => ({ ...prev, [req.id]: false }));
     }
   };
 
@@ -183,7 +304,12 @@ function DccCalibrations() {
     try {
       await deleteCalibrationRequest(reqId);
       setRequests(prev => prev.filter(r => r.id !== reqId));
-      setCalibrationMap(prev => {
+      setStatusMap(prev => {
+        const next = { ...prev };
+        delete next[reqId];
+        return next;
+      });
+      setWizardCache(prev => {
         const next = { ...prev };
         delete next[reqId];
         return next;
@@ -195,6 +321,29 @@ function DccCalibrations() {
     }
   };
 
+  const handleRefresh = () => {
+    // Reset state, keep detail modal as-is
+    setMessages([]);
+    setMessagesHasMore(false);
+    setMessagesCursor(null);
+    setMessagesOpened(false);
+    setStatusMap({});
+    setWizardCache({});
+    fetchRequests();
+    fetchMessagesCount();
+  };
+
+  const handleAccordionSelect = (eventKey: string | string[] | null | undefined) => {
+    if (eventKey === 'messages' && !messagesOpened) {
+      setMessagesOpened(true);
+      loadFirstMessagesPage();
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Derived
+  // ─────────────────────────────────────────────────────────────────────────
+
   const filteredRequests = requests.filter(r =>
     (!filterCalibId || r.calibrationId.toLowerCase().includes(filterCalibId.toLowerCase()))
   );
@@ -204,6 +353,10 @@ function DccCalibrations() {
     try { return JSON.stringify(JSON.parse(jsonStr), null, 2); }
     catch { return jsonStr; }
   };
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Render
+  // ─────────────────────────────────────────────────────────────────────────
 
   return (
     <Container fluid>
@@ -245,11 +398,16 @@ function DccCalibrations() {
             <Button variant="outline-secondary" size="sm" className="ms-2" onClick={() => {
               setFilterCalibId(''); setFilterSensorId(''); setFilterMuId('');
               setSearchParams({});
-              getCalibrationRequests().then(setRequests).catch(console.error);
+              setRequests([]);
+              setStatusMap({});
+              getCalibrationRequests().then(data => {
+                setRequests(data);
+                loadStatusMap(data);
+              }).catch(console.error);
             }}>Clear</Button>
           </Col>
           <Col md="auto" className="ms-auto">
-            <Button variant="outline-primary" size="sm" onClick={() => { fetchRequests(); fetchMessages(); }}>
+            <Button variant="outline-primary" size="sm" onClick={handleRefresh}>
               <FiRefreshCcw className="me-1" />Refresh
             </Button>
           </Col>
@@ -280,163 +438,198 @@ function DccCalibrations() {
             {filteredRequests.length === 0 && (
               <tr><td colSpan={8} className="calib-empty text-center py-4">No calibration requests found.</td></tr>
             )}
-            {filteredRequests.map((r, i) => (
-              <tr key={r.id}
-                style={{
-                  borderLeft: `4px solid ${r.processed ? '#198754' : '#ffc107'}`,
-                  backgroundColor: i % 2 === 0 ? 'rgba(0,0,0,0.01)' : undefined,
-                }}
-              >
-                <td className="fw-bold text-muted">#{r.id}</td>
-                <td><code className="small">{r.calibrationId}</code></td>
-                <td>{r.calibratorId}</td>
-                <td>{r.muId}</td>
-                <td>{r.sensorId}</td>
-                <td>
-                  <Badge
-                    bg={r.processed ? 'success' : 'warning'}
-                    text={r.processed ? undefined : 'dark'}
-                    className="calib-status-badge"
-                  >
-                    {r.processed ? 'Processed' : 'Pending'}
-                  </Badge>
-                </td>
-                <td className="text-muted small">{new Date(r.createdAt).toLocaleString()}</td>
-                <td>
-                  <div className="d-flex gap-2 flex-wrap calib-actions align-items-center">
-                    <Button size="sm" variant="outline-primary" onClick={() => openWizard(r)} title="Build certificate step-by-step">
-                      <FiFileText className="me-1" />Compile Administrative Data
-                    </Button>
-                    {calibrationMap[r.id]?.certificatoIn && (
-                      <Button
-                        size="sm"
-                        variant={
-                          calibrationMap[r.id]?.runStatus === 'SUCCESS' ? 'warning'
-                            : calibrationMap[r.id]?.runStatus === 'FAILED' ? 'danger'
-                            : 'success'
-                        }
-                        onClick={() => openRunModal(r, calibrationMap[r.id])}
-                        title="Run calibration pipeline (analisi_calib_data.py)"
-                      >
-                        {calibrationMap[r.id]?.runStatus ? (
-                          <FiRefreshCw className="me-1" />
-                        ) : (
-                          <FiPlay className="me-1" />
-                        )}
-                        Analyze
+            {filteredRequests.map((r, i) => {
+              const status = statusMap[r.id];
+              const isStatusLoading = statusLoading[r.id];
+              return (
+                <tr key={r.id}
+                  style={{
+                    borderLeft: `4px solid ${r.processed ? '#198754' : '#ffc107'}`,
+                    backgroundColor: i % 2 === 0 ? 'rgba(0,0,0,0.01)' : undefined,
+                  }}
+                >
+                  <td className="fw-bold text-muted">#{r.id}</td>
+                  <td><code className="small">{r.calibrationId}</code></td>
+                  <td>{r.calibratorId}</td>
+                  <td>{r.muId}</td>
+                  <td>{r.sensorId}</td>
+                  <td>
+                    <Badge
+                      bg={r.processed ? 'success' : 'warning'}
+                      text={r.processed ? undefined : 'dark'}
+                      className="calib-status-badge"
+                    >
+                      {r.processed ? 'Processed' : 'Pending'}
+                    </Badge>
+                  </td>
+                  <td className="text-muted small">{new Date(r.createdAt).toLocaleString()}</td>
+                  <td>
+                    <div className="d-flex gap-2 flex-wrap calib-actions align-items-center">
+                      <Button size="sm" variant="outline-primary" onClick={() => openWizard(r)} title="Build certificate step-by-step">
+                        <FiFileText className="me-1" />Compile Administrative Data
                       </Button>
-                    )}
-                    {calibrationMap[r.id]?.runStatus && (
-                      <Button
-                        size="sm"
-                        variant="info"
-                        onClick={() => navigate(`/dcc/calibrations/${r.id}/run`)}
-                        title="View run results"
-                      >
-                        <FiBarChart2 className="me-1" />Results
-                      </Button>
-                    )}
-                    {calibrationMap[r.id]?.runStatus === 'SUCCESS' && calibrationMap[r.id]?.dccXml && (
-                      <Button
-                        size="sm"
-                        variant="success"
-                        disabled={savingDcc[r.id]}
-                        onClick={() => handleSaveDcc(r.id, calibrationMap[r.id])}
-                        title="Save DCC from calibration XML"
-                      >
-                        {savingDcc[r.id] ? (
-                          <Spinner as="span" size="sm" animation="border" className="me-1" />
-                        ) : (
-                          <FiSave className="me-1" />
-                        )}
-                        Save DCC
-                      </Button>
-                    )}
-                    <div className="ms-auto">
-                      <Dropdown>
-                        <Dropdown.Toggle variant="light" size="sm" id={`calib-menu-${r.id}`} className="p-1">
-                          <BsThreeDotsVertical />
-                        </Dropdown.Toggle>
-                        <Dropdown.Menu>
-                          <Dropdown.Item onClick={() => openDetail(r)}>
-                            <FiCode className="me-2" />View Raw Data
-                          </Dropdown.Item>
-                          {calibrationMap[r.id]?.certificatoIn && (
-                            <Dropdown.Item onClick={() => openCertJson(calibrationMap[r.id])} title="View compiled administrative data (certificato_in)">
-                              <FiCode className="me-2" />Preview Administrative Data
+                      {isStatusLoading ? (
+                        <Spinner as="span" size="sm" animation="border" variant="secondary" />
+                      ) : status?.hasCertificatoIn ? (
+                        <Button
+                          size="sm"
+                          variant={
+                            status.runStatus === 'SUCCESS' ? 'warning'
+                              : status.runStatus === 'FAILED' ? 'danger'
+                              : 'success'
+                          }
+                          onClick={() => openRunModal(r)}
+                          title="Run calibration pipeline (analisi_calib_data.py)"
+                        >
+                          {status.runStatus ? (
+                            <FiRefreshCw className="me-1" />
+                          ) : (
+                            <FiPlay className="me-1" />
+                          )}
+                          Analyze
+                        </Button>
+                      ) : null}
+                      {status?.runStatus && (
+                        <Button
+                          size="sm"
+                          variant="info"
+                          onClick={() => navigate(`/dcc/calibrations/${r.id}/run`)}
+                          title="View run results"
+                        >
+                          <FiBarChart2 className="me-1" />Results
+                        </Button>
+                      )}
+                      {status?.runStatus === 'SUCCESS' && status.hasDccXml && (
+                        <Button
+                          size="sm"
+                          variant="success"
+                          disabled={savingDcc[r.id]}
+                          onClick={() => handleSaveDcc(r)}
+                          title="Save DCC from calibration XML"
+                        >
+                          {savingDcc[r.id] ? (
+                            <Spinner as="span" size="sm" animation="border" className="me-1" />
+                          ) : (
+                            <FiSave className="me-1" />
+                          )}
+                          Save DCC
+                        </Button>
+                      )}
+                      <div className="ms-auto">
+                        <Dropdown>
+                          <Dropdown.Toggle variant="light" size="sm" id={`calib-menu-${r.id}`} className="p-1">
+                            <BsThreeDotsVertical />
+                          </Dropdown.Toggle>
+                          <Dropdown.Menu>
+                            <Dropdown.Item onClick={() => openDetail(r)}>
+                              <FiCode className="me-2" />View Raw Data
                             </Dropdown.Item>
-                          )}
-                          {role === 'ADMIN' && (
-                            <>
-                              <Dropdown.Divider />
-                              <Dropdown.Item
-                                className="text-danger"
-                                disabled={deletingRow[r.id]}
-                                onClick={() => handleDelete(r.id)}
-                              >
-                                {deletingRow[r.id] ? (
-                                  <><Spinner as="span" size="sm" animation="border" className="me-2" />Deleting...</>
-                                ) : (
-                                  <><FiTrash2 className="me-2" />Delete</>
-                                )}
+                            {status?.hasCertificatoIn && (
+                              <Dropdown.Item onClick={() => openCertJson(r)} title="View compiled administrative data (certificato_in)">
+                                <FiCode className="me-2" />Preview Administrative Data
                               </Dropdown.Item>
-                            </>
-                          )}
-                        </Dropdown.Menu>
-                      </Dropdown>
+                            )}
+                            {role === 'ADMIN' && (
+                              <>
+                                <Dropdown.Divider />
+                                <Dropdown.Item
+                                  className="text-danger"
+                                  disabled={deletingRow[r.id]}
+                                  onClick={() => handleDelete(r.id)}
+                                >
+                                  {deletingRow[r.id] ? (
+                                    <><Spinner as="span" size="sm" animation="border" className="me-2" />Deleting...</>
+                                  ) : (
+                                    <><FiTrash2 className="me-2" />Delete</>
+                                  )}
+                                </Dropdown.Item>
+                              </>
+                            )}
+                          </Dropdown.Menu>
+                        </Dropdown>
+                      </div>
                     </div>
-                  </div>
-                </td>
-              </tr>
-            ))}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </Table>
       )}
 
-      {/* Raw Messages — collapsed by default */}
-      <Accordion className="mb-4">
+      {/* Raw Messages — collapsed by default, lazy load on first open */}
+      <Accordion className="mb-4" onSelect={handleAccordionSelect}>
         <Accordion.Item eventKey="messages">
           <Accordion.Header>
             Raw Messages
-            <Badge bg="secondary" className="calib-status-badge ms-2">{messages.length}</Badge>
+            <Badge bg="secondary" className="calib-status-badge ms-2">
+              {messagesCount ?? '–'}
+            </Badge>
           </Accordion.Header>
           <Accordion.Body>
-            {loadingMsgs ? (
+            {messagesLoading && messages.length === 0 ? (
               <div className="text-center py-4"><Spinner animation="border" variant="secondary" /></div>
             ) : (
-              <Table responsive hover className="calib-table" style={{ fontSize: '0.85rem' }}>
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Calib ID</th>
-                    <th>Step</th>
-                    <th>Target (°C)</th>
-                    <th>Total Steps</th>
-                    <th>Assembled</th>
-                    <th>Received At</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {messages.length === 0 && (
-                    <tr><td colSpan={7} className="calib-empty text-center py-3">No messages received yet.</td></tr>
-                  )}
-                  {messages.map(m => (
-                    <tr key={m.id}>
-                      <td className="text-muted small">#{m.id}</td>
-                      <td><code className="small">{m.calibId}</code></td>
-                      <td><Badge bg="info" pill>{m.stepIndex} / {(m.totalSteps ?? 1) - 1}</Badge></td>
-                      <td>{m.target?.toFixed(1)}</td>
-                      <td>{m.totalSteps}</td>
-                      <td>
-                        <Badge bg={m.assembled ? 'success' : 'secondary'}>
-                          {m.assembled ? 'Yes' : 'No'}
-                        </Badge>
-                      </td>
-                      <td className="text-muted small">{new Date(m.receivedAt).toLocaleString()}</td>
+              <>
+                <Table responsive hover className="calib-table" style={{ fontSize: '0.85rem' }}>
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Calib ID</th>
+                      <th>Step</th>
+                      <th>Target (°C)</th>
+                      <th>Total Steps</th>
+                      <th>Assembled</th>
+                      <th>Received At</th>
+                      <th style={{ width: 70 }}></th>
                     </tr>
-                  ))}
-                </tbody>
-              </Table>
+                  </thead>
+                  <tbody>
+                    {messages.length === 0 && (
+                      <tr><td colSpan={8} className="calib-empty text-center py-3">No messages received yet.</td></tr>
+                    )}
+                    {messages.map(m => (
+                      <tr key={m.id}>
+                        <td className="text-muted small">#{m.id}</td>
+                        <td><code className="small">{m.calibId}</code></td>
+                        <td><Badge bg="info" pill>{m.stepIndex} / {(m.totalSteps ?? 1) - 1}</Badge></td>
+                        <td>{m.target?.toFixed(1)}</td>
+                        <td>{m.totalSteps}</td>
+                        <td>
+                          <Badge bg={m.assembled ? 'success' : 'secondary'}>
+                            {m.assembled ? 'Yes' : 'No'}
+                          </Badge>
+                        </td>
+                        <td className="text-muted small">{new Date(m.receivedAt).toLocaleString()}</td>
+                        <td>
+                          <Button
+                            size="sm" variant="outline-secondary"
+                            title="Show raw JSON"
+                            onClick={() => setRawMessageId(m.id)}
+                          >
+                            <FiCode />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+                {messagesHasMore && (
+                  <div className="text-center">
+                    <Button
+                      variant="outline-primary" size="sm"
+                      disabled={messagesLoading}
+                      onClick={loadMoreMessages}
+                    >
+                      {messagesLoading ? (
+                        <><Spinner as="span" size="sm" animation="border" className="me-2" />Loading…</>
+                      ) : (
+                        'Load more'
+                      )}
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
           </Accordion.Body>
         </Accordion.Item>
@@ -461,11 +654,17 @@ function DccCalibrations() {
           calibrationLabel={runModalReq.req.calibrationId}
           onHide={closeRunModal}
           onRunComplete={(result) => {
-            // Update the calibration map so the badge refreshes immediately
-            setCalibrationMap((prev) => ({ ...prev, [runModalReq.req.id]: result }));
+            setWizardCache(prev => ({ ...prev, [runModalReq.req.id]: result }));
+            setStatusMap(prev => ({ ...prev, [runModalReq.req.id]: deriveCalibrationStatus(result) }));
           }}
         />
       )}
+
+      {/* Per-message JSON preview modal (lazy on-demand) */}
+      <MessageJsonPreviewModal
+        messageId={rawMessageId}
+        onHide={() => setRawMessageId(null)}
+      />
 
       {/* Detail Modal — JSON loaded on demand */}
       <Modal show={showDetail} onHide={() => setShowDetail(false)} size="xl" scrollable>
@@ -557,6 +756,7 @@ function DccCalibrations() {
           <Button variant="secondary" onClick={() => setShowDetail(false)}>Close</Button>
         </Modal.Footer>
       </Modal>
+
       {/* Certificate Base JSON viewer */}
       <Modal show={showCertModal} onHide={() => setCertModal(false)} size="xl" scrollable>
         <Modal.Header closeButton>
