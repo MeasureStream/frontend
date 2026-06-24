@@ -16,6 +16,7 @@ interface CertificatoWizardProps {
    *  wizard calls this with the current wizard calibration ID. The parent is
    *  responsible for calling saveDccBlank and handling the result. */
   onSaveDcc?: (calibrationId: number) => Promise<void>;
+}
 
 const STEP_LABELS = [
   'Base Input',
