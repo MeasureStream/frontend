@@ -269,8 +269,46 @@ async function ControlTransmission(xsrfToken: string | null, command: CUTransmis
   return true;
 }
 
+
+/**
+ * Aggiorna parzialmente i metadati (nome e/o locazione semantica) di una Control Unit.
+ * Endpoint: /API/controlunits/metadata
+ */
+async function UpdateCuMetadata(
+  xsrfToken: string | null,
+  id: number,
+  name?: string | null,
+  semanticLocation?: string | null
+) {
+  const url = `${API_URL}/metadata`;
+
+  // Costruiamo il payload inviando solo i campi necessari
+  const bodyPayload = {
+    id: id,
+    ...(name !== undefined && { name }),
+    ...(semanticLocation !== undefined && { semanticLocation })
+  };
+
+  const response = await fetch(url, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-XSRF-TOKEN': xsrfToken || '',
+    },
+    body: JSON.stringify(bodyPayload),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Metadata Update Error: ${response.status} - ${errorText}`);
+  }
+
+  // L'endpoint restituisce la ControlUnitDTO aggiornata
+  return await response.json() as ControlUnitDTO;
+}
+
 export {
   CreateCu, EditCu, getAllAvailableCuList, getAllCu, DeleteCu,
   getfirstavailableCU, CreateCuAdmin, ConfigureCu, UpdateSensorsConfig,
-  ControlTransmission
+  ControlTransmission, UpdateCuMetadata
 }

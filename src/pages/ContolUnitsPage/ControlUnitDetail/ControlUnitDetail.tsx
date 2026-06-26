@@ -1,5 +1,5 @@
 import { Container, Row, Col, Card, Badge, ListGroup, ProgressBar, Button } from "react-bootstrap";
-import { BsCpu, BsGear, BsThermometerHalf, BsDroplet, BsSpeedometer, BsToggles, BsActivity, BsBroadcast } from "react-icons/bs";
+import { BsCpu, BsGear, BsPencil, BsThermometerHalf, BsDroplet, BsSpeedometer, BsToggles, BsActivity, BsBroadcast } from "react-icons/bs";
 import { ControlUnitDTO, formatDevEui, CUTransmissionCommandDTO } from "../../../API/interfaces";
 import { useParams } from "react-router";
 import { useEffect, useState } from "react";
@@ -8,6 +8,7 @@ import { getControlUnitById, ControlTransmission } from "../../../API/ControlUni
 import { ConfigCUModal } from "../../../components/ConfigCUModal";
 import { SensorConfigModal } from "../../../components/SensorConfigModal";
 import { useAuth } from "../../../API/AuthContext";
+import { EditMetadataModal } from "../../../components/EditMetadataModal";
 
 export function ControlUnitDetail({ allControlUnits }: { allControlUnits: ControlUnitDTO[] }) {
   const { id } = useParams<{ id: string }>();
@@ -19,6 +20,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
   const [showConfig, setShowConfig] = useState(false);
   const [showSensorConfig, setShowSensorConfig] = useState(false);
   const [acqIndex, setAcqIndex] = useState(0);
+  const [showEditMetadata, setShowEditMetadata] = useState(false);
 
   // Inizializzazione: se allControlUnits cambia o l'ID cambia, cerchiamo la CU
   useEffect(() => {
@@ -93,6 +95,13 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
         <div>
           <div className="d-flex align-items-center gap-2 mb-1">
             <h2 className="fw-bold mb-0" style={{ letterSpacing: '-0.5px' }}>{cu.name}</h2>
+            <BsPencil
+              className="text-muted text-primary-hover"
+              style={{ cursor: "pointer", fontSize: "1.1rem", marginLeft: "4px" }}
+              onClick={() => setShowEditMetadata(true)}
+              title="Modifica nome e locazione"
+            />
+
             <Badge pill bg={cu.lastSeen ? "success" : "secondary"} style={{ fontSize: '0.65rem', verticalAlign: 'middle' }}>
               {cu.lastSeen ? "ACTIVE" : "INACTIVE"}
             </Badge>
@@ -299,6 +308,12 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
         onHide={() => setShowSensorConfig(false)}
         controlUnit={cu}
       />
+
+      <EditMetadataModal
+        show={showEditMetadata}
+        onHide={() => setShowEditMetadata(false)}
+        cu={cu}
+        onSuccess={refreshSingleCU} />
 
     </Container>
 
