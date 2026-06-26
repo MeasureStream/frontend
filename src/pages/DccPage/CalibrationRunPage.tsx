@@ -191,8 +191,8 @@ function CalibrationRunPage() {
             </Nav.Link>
           </Nav.Item>
           <Nav.Item>
-            <Nav.Link eventKey="plots" disabled={images.length === 0}>
-              Plots ({images.length})
+            <Nav.Link eventKey="plots" disabled={calibImages.length + conformImages.length === 0}>
+              Plots ({calibImages.length + conformImages.length})
             </Nav.Link>
           </Nav.Item>
         </Nav>
