@@ -290,7 +290,7 @@ async function UpdateCuMetadata(
   };
 
   const response = await fetch(url, {
-    method: 'PATCH',
+    method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'X-XSRF-TOKEN': xsrfToken || '',
