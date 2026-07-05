@@ -9,6 +9,17 @@ import { ConfigCUModal } from "../../../components/ConfigCUModal";
 import { SensorConfigModal } from "../../../components/SensorConfigModal";
 import { useAuth } from "../../../API/AuthContext";
 import { EditMetadataModal } from "../../../components/EditMetadataModal";
+import { RangeTicks } from "../../../components/RangeTicks";
+
+// Tacche posizionate sul valore REALE dell'indice (1 step = 15 min, 255 = 1 min):
+// idx 24 = 6 h, idx 48 = 12 h, idx 96 = 24 h, idx 240 = 7 g
+const TRANSMISSION_TICKS = [
+  { value: 0, label: "OFF" },
+  { value: 24, label: "6h" },
+  { value: 48, label: "12h" },
+  { value: 96, label: "24h" },
+  { value: 240, label: "7g" },
+];
 
 export function ControlUnitDetail({ allControlUnits }: { allControlUnits: ControlUnitDTO[] }) {
   const { id } = useParams<{ id: string }>();
@@ -102,8 +113,9 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
               title="Modifica nome e locazione"
             />
 
-            <Badge pill bg={cu.lastSeen ? "success" : "secondary"} style={{ fontSize: '0.65rem', verticalAlign: 'middle' }}>
-              {cu.lastSeen ? "ACTIVE" : "INACTIVE"}
+            {/* Stato coerente con la landing: deriva da cu.status calcolato dal backend su lastSeen */}
+            <Badge pill bg={cu.status === 1 ? "success" : "secondary"} style={{ fontSize: '0.65rem', verticalAlign: 'middle' }}>
+              {cu.status === 1 ? "ACTIVE" : "INACTIVE"}
             </Badge>
           </div>
           <small className="text-muted font-monospace">
@@ -232,12 +244,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
                   value={acqIndex}
                   onChange={(e) => setAcqIndex(parseInt(e.target.value))}
                 />
-                <div className="d-flex justify-content-between mt-1 text-muted small">
-                  <span>OFF</span>
-                  <span>1s</span>
-                  <span>1h</span>
-                  <span>+24h</span>
-                </div>
+                <RangeTicks max={255} ticks={TRANSMISSION_TICKS} />
               </Col>
 
               <Col lg={5} md={12} className="d-flex gap-2 justify-content-lg-end">

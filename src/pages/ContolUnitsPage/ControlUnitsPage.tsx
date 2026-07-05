@@ -2,12 +2,18 @@ import { Container, Row, Col, Card, Badge, ProgressBar } from "react-bootstrap";
 import { BsSignal, BsBatteryFull, BsCpu, BsArrowRight } from "react-icons/bs";
 import { Link } from "react-router";
 import { ControlUnitDTO, formatDevEui } from "../../API/interfaces";
+import { EmptyDevicesLanding } from "./EmptyDevicesLanding";
 
 export function ControlUnitsPage({ controlUnits }: { controlUnits: ControlUnitDTO[] }) {
+  // Nessun dispositivo associato: landing informativa al posto della pagina vuota
+  if (controlUnits.length === 0) {
+    return <EmptyDevicesLanding />;
+  }
+
   return (
     <Container className="py-4">
       <header className="mb-4">
-        <h1>Benvenuto, ecco le tue Control Units</h1>
+        <h1>Benvenuto, ecco i tuoi dispositivi</h1>
         <p className="text-muted">Monitoraggio in tempo reale del network LoRaWAN</p>
       </header>
 

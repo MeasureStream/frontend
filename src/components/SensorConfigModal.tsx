@@ -4,6 +4,18 @@ import { Modal, Button, Accordion, ListGroup, Stack, Alert, Badge, Form } from '
 import { ControlUnitDTO, CUConfigurationDTO } from "../API/interfaces";
 import { UpdateSensorsConfig } from "../API/ControlUnitAPI";
 import { useAuth } from "../API/AuthContext";
+import { RangeTicks } from "./RangeTicks";
+
+// Tacche di riferimento posizionate sul valore REALE dell'indice (scala non lineare):
+// idx 46 = 1 s, idx 65 = 1 m, idx 84 = 1 h, idx 222 = 24 h, idx 246 = 48 h
+const SAMPLING_TICKS = [
+  { value: 0, label: "OFF" },
+  { value: 46, label: "1s" },
+  { value: 65, label: "1m" },
+  { value: 84, label: "1h" },
+  { value: 222, label: "24h" },
+  { value: 246, label: "48h" },
+];
 
 
 const decodeIndexToLabel = (idx: number): string => {
@@ -136,12 +148,25 @@ export function SensorConfigModal({ show, onHide, controlUnit }: Props) {
                           ?.sensors.find(s => s.sensorIndex === sensor.sensorIndex)
                           ?.samplingPeriod || 0;
 
+                        // Sensore oltre il limite di 48 per CU: slider bloccato e grigio,
+                        // il backend forza comunque il campionamento a OFF
+                        const disabled = sensor.configurable === false;
+
                         return (
-                          <ListGroup.Item key={sensor.id} className="py-3">
+                          <ListGroup.Item
+                            key={sensor.id}
+                            className="py-3"
+                            style={disabled ? { backgroundColor: '#f8f9fa', opacity: 0.65 } : undefined}
+                          >
                             <div className="d-flex justify-content-between align-items-center mb-2">
-                              <div className="fw-bold">{sensor.modelName}</div>
-                              <Badge bg={currentIdx === 0 ? "secondary" : "primary"} style={{ fontSize: '1rem' }}>
-                                {decodeIndexToLabel(currentIdx)}
+                              <div className={disabled ? "fw-bold text-secondary" : "fw-bold"}>
+                                {sensor.modelName}
+                              </div>
+                              <Badge
+                                bg={disabled || currentIdx === 0 ? "secondary" : "primary"}
+                                style={{ fontSize: '1rem' }}
+                              >
+                                {disabled ? "BLOCCATO" : decodeIndexToLabel(currentIdx)}
                               </Badge>
                             </div>
 
@@ -149,16 +174,16 @@ export function SensorConfigModal({ show, onHide, controlUnit }: Props) {
                               min={0}
                               max={246}
                               step={1}
-                              value={currentIdx}
+                              value={disabled ? 0 : currentIdx}
+                              disabled={disabled}
                               onChange={(e) => handlePeriodChange(mu.localId, sensor.sensorIndex, parseInt(e.target.value))}
                             />
-                            <div className="d-flex justify-content-between mt-1 small text-muted">
-                              <span>OFF</span>
-                              <span>1s</span>
-                              <span>1h</span>
-                              <span>24h</span>
-                              <span>48h</span>
-                            </div>
+                            <RangeTicks max={246} ticks={SAMPLING_TICKS} />
+                            {disabled && (
+                              <small className="text-secondary d-block mt-1">
+                                Superato il limite di 48 sensori configurabili per Control Unit: campionamento forzato a OFF.
+                              </small>
+                            )}
                           </ListGroup.Item>
                         );
                       })}
