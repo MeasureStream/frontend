@@ -43,73 +43,53 @@ export function MeasurementUnitCard({ mu, handleSetDirty }: Props) {
         {mu.sensors
           .slice() // o [...mu.sensors] per non mutare l'array originale
           .sort((a, b) => a.sensorIndex - b.sensorIndex)
-          .map((sensor) => {
-            // Sensore oltre il limite di 48 per CU: visibile ma disabilitato
-            const disabled = sensor.configurable === false;
-            return (
+          .map((sensor) => (
             <Col key={sensor.id}>
-              {/* Card in stile "offerta": tag in alto, valore al centro, footer con azioni */}
               <Card
-                className="border rounded-4 shadow-sm bg-white h-100 position-relative overflow-hidden"
-                style={{ minHeight: '180px', borderColor: '#e9ecef' }}
-              >
-                {disabled && (
-                  <div
-                    className="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center gap-1"
-                    style={{ backgroundColor: 'rgba(233, 236, 239, 0.72)', zIndex: 2 }}
-                    title="Superato il limite di 48 sensori configurabili per Control Unit"
-                  >
-                    <span className="ms-badge ms-badge-muted bg-white">Disabilitato</span>
-                    <small className="text-secondary fw-bold" style={{ fontSize: '0.6rem' }}>
-                      Oltre il limite di 48 sensori
-                    </small>
-                  </div>
-                )}
-                <Card.Body
-                  className="d-flex flex-column justify-content-between p-3"
-                  style={disabled ? { filter: 'grayscale(1)', opacity: 0.6 } : undefined}
-                >
+                className="border-0 bg-light rounded-4 shadow-xs position-relative overflow-hidden"
+                style={{
+                  aspectRatio: '1 / 1',
+                  minHeight: '180px',
+                  display: 'flex',
+                  flexDirection: 'column'
+                }}
+              >              <Card.Body className="d-flex flex-column justify-content-between p-3">
 
-                  {/* TOP: tag tipo sensore + canale */}
-                  <div className="d-flex justify-content-between align-items-center gap-2">
-                    <span
-                      className="d-inline-flex align-items-center gap-1 px-2 py-1 rounded-pill text-secondary text-truncate"
-                      style={{ backgroundColor: 'var(--ms-offwhite)', fontSize: '0.65rem', fontWeight: 600 }}
-                    >
+                  {/* TOP: Icona e Canale */}
+                  <div className="d-flex justify-content-between align-items-start">
+                    <div className="p-2 bg-white rounded-3 shadow-sm">
                       {getSensorIcon(sensor.sensorTemplate.type)}
-                      <span className="text-truncate">{sensor.sensorTemplate.type}</span>
-                    </span>
+                    </div>
                     <Badge bg="white" className="text-primary border border-primary-subtle px-2 py-1" style={{ fontSize: '0.6rem' }}>
                       CH {sensor.sensorIndex}
                     </Badge>
                   </div>
 
-                  {/* CENTER: valore misurato */}
-                  <div className="my-2">
-                    <div className="h3 mb-0 fw-bold" style={{ color: 'var(--ms-teal)' }}>
-                      {sensor.physVal.toFixed(1)}{' '}
-                      <small className="text-muted fw-normal" style={{ fontSize: '0.9rem' }}>
-                        {sensor.sensorTemplate.unit}
-                      </small>
+                  {/* CENTER: Valore (Grosso e centrato) */}
+                  <div className="text-center my-2">
+                    <div className="h2 mb-0 fw-bold text-primary tracking-tight">
+                      {sensor.physVal.toFixed(1)}
                     </div>
-                    <div className="text-muted text-truncate" style={{ fontSize: '0.7rem' }}>
-                      {sensor.modelName}
+                    <div className="text-muted text-uppercase fw-bold" style={{ fontSize: '0.65rem', letterSpacing: '1px' }}>
+                      {sensor.sensorTemplate.unit}
                     </div>
                   </div>
 
-                  {/* BOTTOM: azioni */}
-                  <div className="d-flex justify-content-between align-items-center pt-2 border-top" style={{ borderColor: '#f1f3f5' }}>
-                    <button
-                      className="btn btn-link p-0 text-muted hover-primary d-flex align-items-center gap-1"
-                      style={{ fontSize: '0.7rem', textDecoration: 'none' }}
-                      onClick={() => setSelectedSensor(sensor)}
-                    >
-                      <BsInfoCircle size={14} /> Dettagli
-                    </button>
-                    <div
-                      className="d-inline-flex align-items-center justify-content-center rounded-3"
-                      style={{ width: '34px', height: '34px', backgroundColor: 'var(--ms-teal-tint)', color: 'var(--ms-teal)' }}
-                    >
+                  {/* BOTTOM: Azioni e Nome Modello */}
+                  <div className="d-flex justify-content-between align-items-center pt-2">
+                    <div className="small text-truncate text-muted pe-2" style={{ fontSize: '0.6rem', maxWidth: '60%' }}>
+                      {sensor.sensorTemplate.type}
+                      {
+                        //sensor.modelName.split('_')[0]
+                      }
+                    </div>
+                    <div className="d-flex gap-1">
+                      <button
+                        className="btn btn-link p-0 text-muted hover-primary"
+                        onClick={() => setSelectedSensor(sensor)}
+                      >
+                        <BsInfoCircle size={14} />
+                      </button>
                       <ChartModalButton
                         nodeId={mu.extendedId}
                         unit={sensor.sensorTemplate.unit || ""}
@@ -120,8 +100,7 @@ export function MeasurementUnitCard({ mu, handleSetDirty }: Props) {
                 </Card.Body>
               </Card>
             </Col>
-            );
-          })}
+          ))}
       </Row>
 
       <SensorInfoModal

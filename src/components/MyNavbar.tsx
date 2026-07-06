@@ -63,12 +63,7 @@ function MyNavbar({ me }: NavbarProps) {
               <>
                 <Navbar.Text style={{ padding: "5px", textTransform: "capitalize", fontWeight: "bold" }} >{me.name}</Navbar.Text>
 
-                <Button
-                  variant="outline-secondary"
-                  className="fw-bold"
-                  style={{ color: "var(--ms-teal)", borderColor: "var(--ms-powder)", backgroundColor: "transparent" }}
-                  onClick={() => window.location.href = me.logoutUrl}
-                >Logout</Button>
+                <Button variant="warning" onClick={() => window.location.href = me.logoutUrl} >Logout</Button>
               </>
               :
 

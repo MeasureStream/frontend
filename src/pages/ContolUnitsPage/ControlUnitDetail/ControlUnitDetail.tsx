@@ -9,18 +9,6 @@ import { ConfigCUModal } from "../../../components/ConfigCUModal";
 import { SensorConfigModal } from "../../../components/SensorConfigModal";
 import { useAuth } from "../../../API/AuthContext";
 import { EditMetadataModal } from "../../../components/EditMetadataModal";
-import { RangeTicks } from "../../../components/RangeTicks";
-import { AcquisitionScheduler } from "../../../components/AcquisitionScheduler";
-
-// Tacche posizionate sul valore REALE dell'indice (1 step = 15 min, 255 = 1 min):
-// idx 24 = 6 h, idx 48 = 12 h, idx 96 = 24 h, idx 240 = 7 g
-const TRANSMISSION_TICKS = [
-  { value: 0, label: "OFF" },
-  { value: 24, label: "6h" },
-  { value: 48, label: "12h" },
-  { value: 96, label: "24h" },
-  { value: 240, label: "7g" },
-];
 
 export function ControlUnitDetail({ allControlUnits }: { allControlUnits: ControlUnitDTO[] }) {
   const { id } = useParams<{ id: string }>();
@@ -123,10 +111,9 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
               title="Modifica nome e locazione"
             />
 
-            {/* Stato coerente con la landing: deriva da cu.status calcolato dal backend su lastSeen */}
-            <span className={`ms-badge ${cu.status === 1 ? "ms-badge-safe" : "ms-badge-muted"}`} style={{ verticalAlign: 'middle' }}>
-              {cu.status === 1 ? "ACTIVE" : "INACTIVE"}
-            </span>
+            <Badge pill bg={cu.lastSeen ? "success" : "secondary"} style={{ fontSize: '0.65rem', verticalAlign: 'middle' }}>
+              {cu.lastSeen ? "ACTIVE" : "INACTIVE"}
+            </Badge>
           </div>
           <small className="text-muted font-monospace">
             EUI: {cu.devEui ? formatDevEui(cu.devEui) : "N/D"} • {cu.semanticLocation || "No Location"}
@@ -255,7 +242,12 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
                   value={acqIndex}
                   onChange={(e) => setAcqIndex(parseInt(e.target.value))}
                 />
-                <RangeTicks max={255} ticks={TRANSMISSION_TICKS} />
+                <div className="d-flex justify-content-between mt-1 text-muted small">
+                  <span>OFF</span>
+                  <span>1s</span>
+                  <span>1h</span>
+                  <span>+24h</span>
+                </div>
               </Col>
 
               {/* Programmazione della sessione: calendario + immissione manuale */}
