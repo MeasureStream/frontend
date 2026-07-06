@@ -60,6 +60,12 @@ export interface SensorDTO {
   measLocId?: number;
   calInitials?: string;
   sensorTemplate: SensorTemplate; // Il template completo dal backend
+  /**
+   * False se il sensore è oltre il limite di 48 sensori per CU:
+   * visibile in UI ma non configurabile (campionamento forzato a OFF dal backend).
+   * Opzionale per compatibilità con backend precedenti (assente = configurabile).
+   */
+  configurable?: boolean;
 }
 
 export interface SensorTemplate {
