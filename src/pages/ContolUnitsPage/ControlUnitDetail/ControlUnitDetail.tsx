@@ -250,11 +250,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
                 </div>
               </Col>
 
-              {/* Programmazione della sessione: calendario + immissione manuale */}
-              <Col lg={5} md={8}>
-                <label className="fw-bold small text-uppercase text-muted mb-2 d-block">Programmazione</label>
-                <AcquisitionScheduler onChange={setSchedule} />
-              </Col>
+
 
               <Col lg={3} md={4} className="d-flex flex-column gap-2 justify-content-lg-center align-self-lg-center">
                 <Button
