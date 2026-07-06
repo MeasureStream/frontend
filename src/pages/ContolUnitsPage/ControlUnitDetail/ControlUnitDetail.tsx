@@ -1,6 +1,6 @@
 import { Container, Row, Col, Card, Badge, ListGroup, ProgressBar, Button } from "react-bootstrap";
-import { BsCpu, BsGear, BsPencil, BsThermometerHalf, BsDroplet, BsSpeedometer, BsToggles, BsActivity, BsBroadcast } from "react-icons/bs";
-import { ControlUnitDTO, formatDevEui, CUTransmissionCommandDTO } from "../../../API/interfaces";
+import { BsCpu, BsGear, BsPencil, BsThermometerHalf, BsDroplet, BsSpeedometer, BsToggles, BsActivity, BsBroadcast, BsPlayFill, BsStopFill } from "react-icons/bs";
+import { ControlUnitDTO, formatDevEui, CUTransmissionCommandDTO, AcquisitionSchedule } from "../../../API/interfaces";
 import { useParams } from "react-router";
 import { useEffect, useState } from "react";
 import { MeasurementUnitCard } from "../../../components/MeasurementUnitCard";
@@ -10,6 +10,7 @@ import { SensorConfigModal } from "../../../components/SensorConfigModal";
 import { useAuth } from "../../../API/AuthContext";
 import { EditMetadataModal } from "../../../components/EditMetadataModal";
 import { RangeTicks } from "../../../components/RangeTicks";
+import { AcquisitionScheduler } from "../../../components/AcquisitionScheduler";
 
 // Tacche posizionate sul valore REALE dell'indice (1 step = 15 min, 255 = 1 min):
 // idx 24 = 6 h, idx 48 = 12 h, idx 96 = 24 h, idx 240 = 7 g
@@ -32,6 +33,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
   const [showSensorConfig, setShowSensorConfig] = useState(false);
   const [acqIndex, setAcqIndex] = useState(0);
   const [showEditMetadata, setShowEditMetadata] = useState(false);
+  const [schedule, setSchedule] = useState<AcquisitionSchedule | null>(null);
 
   // Inizializzazione: se allControlUnits cambia o l'ID cambia, cerchiamo la CU
   useEffect(() => {
@@ -64,8 +66,16 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
 
   const handleStartAcquisition = async () => {
     if (!currentCU) return;
+    if (schedule && !schedule.valid) return;
 
     try {
+      // TODO backend: quando sensor-manager supporterà le acquisizioni
+      // programmate, includere qui schedule (startDate/startTime/endDate).
+      // Il server assorbe i minuti residui e invia all'end device un
+      // ritardo di avvio in ore intere.
+      if (schedule?.complete) {
+        console.log("Sessione programmata (solo UI per ora):", schedule);
+      }
       await ControlTransmission(xsrfToken, { // Metti il token se lo gestisci
         devEui: currentCU.devEui,
         transmissionIndex: acqIndex
@@ -114,9 +124,9 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
             />
 
             {/* Stato coerente con la landing: deriva da cu.status calcolato dal backend su lastSeen */}
-            <Badge pill bg={cu.status === 1 ? "success" : "secondary"} style={{ fontSize: '0.65rem', verticalAlign: 'middle' }}>
+            <span className={`ms-badge ${cu.status === 1 ? "ms-badge-safe" : "ms-badge-muted"}`} style={{ verticalAlign: 'middle' }}>
               {cu.status === 1 ? "ACTIVE" : "INACTIVE"}
-            </Badge>
+            </span>
           </div>
           <small className="text-muted font-monospace">
             EUI: {cu.devEui ? formatDevEui(cu.devEui) : "N/D"} • {cu.semanticLocation || "No Location"}
@@ -208,13 +218,13 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
             </div>
             <div className="d-flex justify-content-between align-items-center mb-2">
               <span className="small text-muted">Polling Interval:</span>
-              <Badge bg="light" className="text-dark border font-monospace">{cu.pollingInterval} h</Badge>
+              <span className="ms-badge ms-badge-accent font-monospace">{cu.pollingInterval} h</span>
             </div>
             <div className="d-flex justify-content-between align-items-center">
               <span className="small text-muted">GPS Module:</span>
-              <Badge bg={cu.hasGPS ? "info" : "light"} className={cu.hasGPS ? "text-white" : "text-muted border"}>
+              <span className={`ms-badge ${cu.hasGPS ? "ms-badge-accent" : "ms-badge-muted"}`}>
                 {cu.hasGPS ? "ENABLED" : "DISABLED"}
-              </Badge>
+              </span>
             </div>
           </div>
         </Col>
@@ -227,13 +237,14 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
         </h4>
         <Card className="border-0 shadow-sm overflow-hidden">
           <Card.Body className="p-4 bg-white">
-            <Row className="align-items-center">
-              <Col lg={7} md={12} className="mb-3 mb-lg-0">
+            <Row className="align-items-start g-4">
+              {/* Slider intervallo di trasmissione (larghezza ridotta) */}
+              <Col lg={4} md={12}>
                 <div className="d-flex justify-content-between align-items-end mb-2">
                   <label className="fw-bold small text-uppercase text-muted">Transmission Interval</label>
-                  <Badge bg={acqIndex === 0 ? "secondary" : "danger"} className="p-2 font-monospace" style={{ fontSize: '1rem' }}>
+                  <span className={`ms-badge font-monospace ${acqIndex === 0 ? "ms-badge-muted" : "ms-badge-alert"}`} style={{ fontSize: '0.85rem' }}>
                     {decodeIndexToLabel(acqIndex)}
-                  </Badge>
+                  </span>
                 </div>
                 <input
                   type="range"
@@ -247,21 +258,27 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
                 <RangeTicks max={255} ticks={TRANSMISSION_TICKS} />
               </Col>
 
-              <Col lg={5} md={12} className="d-flex gap-2 justify-content-lg-end">
+              {/* Programmazione della sessione: calendario + immissione manuale */}
+              <Col lg={5} md={8}>
+                <label className="fw-bold small text-uppercase text-muted mb-2 d-block">Programmazione</label>
+                <AcquisitionScheduler onChange={setSchedule} />
+              </Col>
+
+              <Col lg={3} md={4} className="d-flex flex-column gap-2 justify-content-lg-center align-self-lg-center">
                 <Button
-                  variant="outline-danger"
-                  className="fw-bold px-4 py-2 d-flex align-items-center gap-2"
-                  onClick={handleStopAcquisition}
-                >
-                  STOP
-                </Button>
-                <Button
-                  variant="danger"
-                  className="fw-bold px-4 py-2 d-flex align-items-center gap-2 shadow-sm"
-                  disabled={acqIndex === 0}
+                  variant="outline-primary"
+                  className="fw-bold px-4 py-2 d-flex align-items-center justify-content-center gap-2"
+                  disabled={acqIndex === 0 || (schedule !== null && !schedule.valid)}
                   onClick={handleStartAcquisition}
                 >
-                  <BsBroadcast size={18} /> START SESSION
+                  <BsPlayFill size={20} /> START SESSION
+                </Button>
+                <Button
+                  variant="outline-danger"
+                  className="fw-bold px-4 py-2 d-flex align-items-center justify-content-center gap-2"
+                  onClick={handleStopAcquisition}
+                >
+                  <BsStopFill size={18} /> STOP
                 </Button>
               </Col>
             </Row>

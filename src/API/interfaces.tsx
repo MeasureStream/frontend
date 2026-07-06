@@ -197,3 +197,19 @@ export interface CUTransmissionCommandDTO {
   devEui: string;
   transmissionIndex: number; // 0 per STOP, 1-246 per START
 }
+
+/**
+ * Programmazione di una sessione di acquisizione (solo UI per ora:
+ * il supporto lato sensor-manager non è ancora implementato).
+ * Vincoli: avvio entro 22 mesi da oggi, stop entro 33 mesi dall'avvio.
+ * L'orario è impostabile solo per l'avvio: l'end device gestisce ritardi in
+ * ore intere, i minuti residui verranno assorbiti dal server prima dell'invio.
+ * Per lo stop contano solo i giorni.
+ */
+export interface AcquisitionSchedule {
+  startDate: string | null; // "YYYY-MM-DD" (ora locale)
+  startTime: string | null; // "HH:MM", null = mezzanotte / non impostato
+  endDate: string | null;   // "YYYY-MM-DD"
+  complete: boolean;        // entrambe le date selezionate e valide
+  valid: boolean;           // nessun errore di validazione
+}

@@ -7,7 +7,7 @@ const LandingPage = () => {
 
 
             {/* Hero Section */}
-            <header style={{ backgroundColor: '#0078d4', padding: '60px 0', textAlign: 'center', color: 'white' }}>
+            <header style={{ backgroundColor: 'var(--ms-teal)', padding: '60px 0', textAlign: 'center', color: 'white' }}>
                 <Container>
                     <h1 style={{ fontSize: '3rem' }}>Gestisci i tuoi sensori e monitora l'andamento in tempo reale!</h1>
                     <p style={{ fontSize: '1.25rem' }}>

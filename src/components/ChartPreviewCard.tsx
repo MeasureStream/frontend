@@ -85,7 +85,7 @@ export function ChartPreviewCard({ nodeId, unit, setDirty }: { nodeId: number, u
       <Card
         className="mb-3 shadow-sm hover-shadow transition-all"
         onClick={handleShow}
-        style={{ cursor: 'pointer', borderLeft: '5px solid #007bff' }}
+        style={{ cursor: 'pointer', borderLeft: '5px solid var(--ms-sky)' }}
       >
         <Card.Body className="p-2">
           <div className="d-flex justify-content-between align-items-center mb-2 px-2">

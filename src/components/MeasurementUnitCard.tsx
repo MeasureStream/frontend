@@ -59,7 +59,7 @@ export function MeasurementUnitCard({ mu, handleSetDirty }: Props) {
                     style={{ backgroundColor: 'rgba(233, 236, 239, 0.72)', zIndex: 2 }}
                     title="Superato il limite di 48 sensori configurabili per Control Unit"
                   >
-                    <Badge bg="secondary" className="text-uppercase">Disabilitato</Badge>
+                    <span className="ms-badge ms-badge-muted bg-white">Disabilitato</span>
                     <small className="text-secondary fw-bold" style={{ fontSize: '0.6rem' }}>
                       Oltre il limite di 48 sensori
                     </small>
@@ -74,7 +74,7 @@ export function MeasurementUnitCard({ mu, handleSetDirty }: Props) {
                   <div className="d-flex justify-content-between align-items-center gap-2">
                     <span
                       className="d-inline-flex align-items-center gap-1 px-2 py-1 rounded-pill text-secondary text-truncate"
-                      style={{ backgroundColor: '#f1f3f5', fontSize: '0.65rem', fontWeight: 600 }}
+                      style={{ backgroundColor: 'var(--ms-offwhite)', fontSize: '0.65rem', fontWeight: 600 }}
                     >
                       {getSensorIcon(sensor.sensorTemplate.type)}
                       <span className="text-truncate">{sensor.sensorTemplate.type}</span>
@@ -86,7 +86,7 @@ export function MeasurementUnitCard({ mu, handleSetDirty }: Props) {
 
                   {/* CENTER: valore misurato */}
                   <div className="my-2">
-                    <div className="h3 mb-0 fw-bold" style={{ color: '#1c3d6e' }}>
+                    <div className="h3 mb-0 fw-bold" style={{ color: 'var(--ms-teal)' }}>
                       {sensor.physVal.toFixed(1)}{' '}
                       <small className="text-muted fw-normal" style={{ fontSize: '0.9rem' }}>
                         {sensor.sensorTemplate.unit}
@@ -108,7 +108,7 @@ export function MeasurementUnitCard({ mu, handleSetDirty }: Props) {
                     </button>
                     <div
                       className="d-inline-flex align-items-center justify-content-center rounded-3"
-                      style={{ width: '34px', height: '34px', backgroundColor: '#e7f1ff', color: '#0d6efd' }}
+                      style={{ width: '34px', height: '34px', backgroundColor: 'var(--ms-teal-tint)', color: 'var(--ms-teal)' }}
                     >
                       <ChartModalButton
                         nodeId={mu.extendedId}

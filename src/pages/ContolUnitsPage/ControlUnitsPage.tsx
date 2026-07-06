@@ -29,9 +29,9 @@ export function ControlUnitsPage({ controlUnits }: { controlUnits: ControlUnitDT
                     <code className="text-primary small" style={{ fontSize: '0.85rem' }}>
                       {formatDevEui(cu.devEui)}
                     </code>                  </div>
-                  <Badge pill bg={cu.status === 1 ? "success" : "secondary"}>
+                  <span className={`ms-badge ${cu.status === 1 ? "ms-badge-safe" : "ms-badge-muted"}`}>
                     {cu.status === 1 ? "Online" : "Offline"}
-                  </Badge>
+                  </span>
                 </div>
 
                 <Row className="text-center mb-3">

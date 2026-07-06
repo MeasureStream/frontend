@@ -66,7 +66,7 @@ function MyNavbar({ me }: NavbarProps) {
                 <Button
                   variant="outline-secondary"
                   className="fw-bold"
-                  style={{ color: "#0d6efd", borderColor: "#adb5bd", backgroundColor: "transparent" }}
+                  style={{ color: "var(--ms-teal)", borderColor: "var(--ms-powder)", backgroundColor: "transparent" }}
                   onClick={() => window.location.href = me.logoutUrl}
                 >Logout</Button>
               </>

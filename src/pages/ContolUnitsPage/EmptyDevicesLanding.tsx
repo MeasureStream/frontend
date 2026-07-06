@@ -11,7 +11,7 @@ import {
 /**
  * Landing mostrata quando l'utente non ha ancora dispositivi associati.
  * Layout ispirato a una landing "services + about + numbers".
- * Palette: bianco, grigi, blu e azzurro. Contenuti segnaposto.
+ * Palette MeasureStream (variabili --ms-* in App.css). Contenuti segnaposto.
  */
 
 const services = [
@@ -51,7 +51,7 @@ export function EmptyDevicesLanding() {
         <div className="text-center mx-auto" style={{ maxWidth: "640px" }}>
           <div
             className="text-uppercase fw-bold small mb-2"
-            style={{ color: "#0d6efd", letterSpacing: "2px" }}
+            style={{ color: "var(--ms-teal)", letterSpacing: "2px" }}
           >
             MeasureStream
           </div>
@@ -85,8 +85,8 @@ export function EmptyDevicesLanding() {
                     style={{
                       width: "44px",
                       height: "44px",
-                      backgroundColor: "#e7f1ff",
-                      color: "#0d6efd",
+                      backgroundColor: "var(--ms-teal-tint)",
+                      color: "var(--ms-teal)",
                     }}
                   >
                     {s.icon}
@@ -101,7 +101,7 @@ export function EmptyDevicesLanding() {
       </Container>
 
       {/* ABOUT */}
-      <div style={{ backgroundColor: "#f8f9fa" }}>
+      <div style={{ backgroundColor: "var(--ms-offwhite)" }}>
         <Container className="py-5">
           <Row className="align-items-center g-4">
             <Col md={6}>
@@ -112,7 +112,7 @@ export function EmptyDevicesLanding() {
                 Come funziona
               </div>
               <h3 className="fw-bold mb-3">
-                Dalla misura al dato, <span style={{ color: "#0d6efd" }}>senza fili</span>.
+                Dalla misura al dato, <span style={{ color: "var(--ms-sky)" }}>senza fili</span>.
               </h3>
               <p className="text-muted">
                 Le Measurement Unit campionano i sensori e trasmettono i dati
@@ -130,8 +130,8 @@ export function EmptyDevicesLanding() {
                 className="rounded-4 d-flex align-items-center justify-content-center"
                 style={{
                   minHeight: "260px",
-                  background: "linear-gradient(135deg, #e7f1ff 0%, #cfe2ff 60%, #9ec5fe 100%)",
-                  color: "#0d6efd",
+                  background: "linear-gradient(135deg, var(--ms-teal-tint) 0%, var(--ms-powder) 60%, var(--ms-sky) 100%)",
+                  color: "var(--ms-teal)",
                 }}
               >
                 <BsSpeedometer2 size={84} style={{ opacity: 0.5 }} />
@@ -144,20 +144,20 @@ export function EmptyDevicesLanding() {
       {/* NUMBERS */}
       <Container className="py-5">
         <Row className="g-0 rounded-4 overflow-hidden shadow-sm">
-          <Col md={4} className="p-4 text-white" style={{ backgroundColor: "#1c3d6e" }}>
+          <Col md={4} className="p-4 text-white" style={{ backgroundColor: "var(--ms-teal)" }}>
             <div
               className="text-uppercase fw-bold small mb-2"
-              style={{ color: "#9ec5fe", letterSpacing: "2px" }}
+              style={{ color: "var(--ms-powder)", letterSpacing: "2px" }}
             >
               Qualche numero
             </div>
             <h4 className="fw-bold mb-0">Cosa misuriamo finora</h4>
           </Col>
-          <Col md={8} className="p-4" style={{ backgroundColor: "#274f8d" }}>
+          <Col md={8} className="p-4" style={{ backgroundColor: "var(--ms-sky)" }}>
             <Row className="text-center h-100 align-items-center g-3">
               {stats.map((st) => (
                 <Col key={st.label} xs={4}>
-                  <div className="fw-bold h3 mb-1" style={{ color: "#9ec5fe" }}>
+                  <div className="fw-bold h3 mb-1" style={{ color: "var(--ms-offwhite)" }}>
                     {st.value}
                   </div>
                   <div className="text-white-50 small text-uppercase">{st.label}</div>
