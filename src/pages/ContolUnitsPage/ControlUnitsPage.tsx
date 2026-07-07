@@ -4,6 +4,7 @@ import { Link } from "react-router";
 import { useState } from "react";
 import { ControlUnitDTO, formatDevEui } from "../../API/interfaces";
 import { DeleteCUModal } from "../../components/DeleteCUModal";
+import { EmptyDevicesLanding } from "./EmptyDevicesLanding";
 function isControlUnitOnline(lastSeen: string | null, transmissionInterval: number): boolean {
   if (!lastSeen) return false;
 
@@ -26,6 +27,11 @@ export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPagePr
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedCU, setSelectedCU] = useState<ControlUnitDTO | null>(null);
 
+  // Nessun dispositivo associato: landing informativa al posto della pagina vuota
+  if (controlUnits.length === 0) {
+    return <EmptyDevicesLanding />;
+  }
+
   const openDeleteModal = (cu: ControlUnitDTO) => {
     setSelectedCU(cu);
     setShowDeleteModal(true);
@@ -43,7 +49,7 @@ export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPagePr
   return (
     <Container className="py-4">
       <header className="mb-4">
-        <h1>Benvenuto, ecco le tue Control Units</h1>
+        <h1>Benvenuto, ecco i tuoi dispositivi</h1>
         <p className="text-muted">Monitoraggio in tempo reale del network LoRaWAN</p>
       </header>
 
@@ -101,7 +107,7 @@ export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPagePr
                     </Link>
                   </div>
                 </Card.Body>
-                <Card.Footer className="bg-white border-0 py-2 d-flex justify-content-between align-items-center">
+                <Card.Footer className="border-0 py-2 d-flex justify-content-between align-items-center" style={{ backgroundColor: "transparent" }}>
                   <small className="text-muted">Località: {cu.semanticLocation || "Non specificata"}</small>
 
                   <span className={`ms-badge ${isOnline ? "ms-badge-safe" : "ms-badge-muted"}`}>

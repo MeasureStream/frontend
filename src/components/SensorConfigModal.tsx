@@ -4,6 +4,18 @@ import { Modal, Button, Accordion, ListGroup, Stack, Alert, Badge, Form } from '
 import { ControlUnitDTO, CUConfigurationDTO } from "../API/interfaces";
 import { UpdateSensorsConfig } from "../API/ControlUnitAPI";
 import { useAuth } from "../API/AuthContext";
+import { RangeTicks } from "./RangeTicks";
+
+// Tacche posizionate sul valore REALE dell'indice (scala non lineare):
+// 1s = idx 46, 1m = idx 65, 1h = idx 84, 24h = idx 222, 48h = idx 246
+const SAMPLING_TICKS = [
+  { value: 0, label: "OFF" },
+  { value: 46, label: "1s" },
+  { value: 65, label: "1m" },
+  { value: 84, label: "1h" },
+  { value: 222, label: "24h" },
+  { value: 246, label: "48h" },
+];
 
 
 const decodeIndexToLabel = (idx: number): string => {
@@ -152,13 +164,7 @@ export function SensorConfigModal({ show, onHide, controlUnit }: Props) {
                               value={currentIdx}
                               onChange={(e) => handlePeriodChange(mu.localId, sensor.sensorIndex, parseInt(e.target.value))}
                             />
-                            <div className="d-flex justify-content-between mt-1 small text-muted">
-                              <span>OFF</span>
-                              <span>1s</span>
-                              <span>1h</span>
-                              <span>24h</span>
-                              <span>48h</span>
-                            </div>
+                            <RangeTicks max={246} ticks={SAMPLING_TICKS} />
                           </ListGroup.Item>
                         );
                       })}

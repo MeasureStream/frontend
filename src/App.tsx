@@ -107,7 +107,7 @@ function App() {
             <Route path="/" element={
               me.name ?
                 <ControlUnitsPage controlUnits={controlUnits} /> :
-                <LandingPageENG />} />
+                <LandingPageENG loginUrl={me.loginUrl} />} />
 
             <Route path="/cus/:id" element={<ControlUnitDetail allControlUnits={controlUnits} />} />
 

@@ -10,6 +10,17 @@ import { ConfigCUModal } from "../../../components/ConfigCUModal";
 import { SensorConfigModal } from "../../../components/SensorConfigModal";
 import { useAuth } from "../../../API/AuthContext";
 import { EditMetadataModal } from "../../../components/EditMetadataModal";
+import { RangeTicks } from "../../../components/RangeTicks";
+
+// Tacche posizionate sul valore REALE dell'indice (1 step = 15 min):
+// idx 24 = 6 h, idx 48 = 12 h, idx 96 = 24 h, idx 240 = 7 g
+const TRANSMISSION_TICKS = [
+  { value: 0, label: "OFF" },
+  { value: 24, label: "6h" },
+  { value: 48, label: "12h" },
+  { value: 96, label: "24h" },
+  { value: 240, label: "7g" },
+];
 
 // Helper per calcolare lo stato online in tempo reale
 function isControlUnitOnline(lastSeen: string | null, transmissionInterval: number): boolean {
@@ -110,14 +121,16 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
 
 
 
-  const updateSchedule = (sd: string | null, st: string | null, ed: string | null, et: string | null) => {
+  // L'orario è impostabile solo per l'avvio: per lo stop contano i giorni
+  // interi (l'end device gestisce solo ore intere), quindi niente endTime.
+  const updateSchedule = (sd: string | null, st: string | null, ed: string | null) => {
     const isComplete = !!(sd && ed);
     let isValid = true;
 
     if (isComplete) {
-      const startTimestamp = new Date(`${sd}T${st || "00:00"}`).getTime();
-      const endTimestamp = new Date(`${ed}T${et || "00:00"}`).getTime();
-      isValid = startTimestamp < endTimestamp;
+      // Confronto per solo giorno: stop lo stesso giorno dell'avvio è valido
+      // ("stop in giornata"), lo stop PRIMA del giorno di avvio no.
+      isValid = ed! >= sd!;
     }
 
     setSchedule({
@@ -144,9 +157,9 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
             />
 
             {/* Badge guidato dal calcolo di timeout reale */}
-            <Badge pill bg={isOnline ? "success" : "secondary"} style={{ fontSize: '0.65rem', verticalAlign: 'middle' }}>
+            <span className={`ms-badge ${isOnline ? "ms-badge-safe" : "ms-badge-muted"}`} style={{ verticalAlign: 'middle' }}>
               {isOnline ? "ACTIVE" : "INACTIVE"}
-            </Badge>
+            </span>
           </div>
           <small className="text-muted font-monospace">
             EUI: {cu.devEui ? formatDevEui(cu.devEui) : "N/D"} • {cu.semanticLocation || "No Location"}
@@ -165,7 +178,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
       <Row className="g-3 mb-5">
         {/* Network Health */}
         <Col md={4}>
-          <div className="p-3 bg-white rounded shadow-sm border-0 h-100">
+          <div className="p-3 ms-tile rounded shadow-sm border-0 h-100">
             <div className="d-flex align-items-center gap-2 mb-3 text-primary">
               <BsActivity size={18} />
               <span className="fw-bold small text-uppercase">Network Health</span>
@@ -195,7 +208,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
 
         {/* Radio Params */}
         <Col md={4}>
-          <div className="p-3 bg-white rounded shadow-sm border-0 h-100">
+          <div className="p-3 ms-tile rounded shadow-sm border-0 h-100">
             <div className="d-flex align-items-center gap-2 mb-3 text-success">
               <BsBroadcast size={18} />
               <span className="fw-bold small text-uppercase">Radio Signals</span>
@@ -219,7 +232,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
 
         {/* Config Summary */}
         <Col md={4}>
-          <div className="p-3 bg-white rounded shadow-sm border-0 h-100 position-relative">
+          <div className="p-3 ms-tile rounded shadow-sm border-0 h-100 position-relative">
             <div className="d-flex align-items-center justify-content-between mb-3 text-secondary">
               <div className="d-flex align-items-center gap-2">
                 <BsGear size={18} />
@@ -257,7 +270,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
           <BsActivity className="text-danger" /> Live Acquisition
         </h4>
         <Card className="border-0 shadow-sm overflow-hidden">
-          <Card.Body className="p-4 bg-white">
+          <Card.Body className="p-4">
             <Row className="align-items-center g-4">
               {/* 1. SELEZIONE INTERVALLO (SLIDER) */}
               <Col lg={3} md={12}>
@@ -276,12 +289,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
                   value={acqIndex}
                   onChange={(e) => setAcqIndex(parseInt(e.target.value))}
                 />
-                <div className="d-flex justify-content-between mt-1 text-muted small">
-                  <span>OFF</span>
-                  <span>1s</span>
-                  <span>1h</span>
-                  <span>7g (Max)</span>
-                </div>
+                <RangeTicks max={240} ticks={TRANSMISSION_TICKS} />
               </Col>
 
               {/* 2. CALENDARIO STRUTTURATO (MAPPATO SU ACQUISITIONSCHEDULE) */}
@@ -303,8 +311,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
                         value={schedule?.startDate || ""}
                         onChange={(e) => {
                           const d = e.target.value || null;
-                          const t = schedule?.startTime || null;
-                          updateSchedule(d, t, schedule?.endDate || null, schedule?.startTime || null);
+                          updateSchedule(d, schedule?.startTime || null, schedule?.endDate || null);
                         }}
                       />
                       <Form.Control
@@ -315,16 +322,16 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
                         value={schedule?.startTime || ""}
                         onChange={(e) => {
                           const t = e.target.value || null;
-                          const d = schedule?.startDate || null;
-                          updateSchedule(d, t, schedule?.endDate || null, schedule?.startTime || null);
+                          updateSchedule(schedule?.startDate || null, t, schedule?.endDate || null);
                         }}
                       />
                     </div>
                   </Col>
 
-                  {/* SEZIONE FINE */}
+                  {/* SEZIONE FINE — solo giorno: per lo stop l'orario non è
+                      supportato (l'end device gestisce solo ore intere) */}
                   <Col sm={6}>
-                    <span className="text-muted tiny d-block mb-1 fw-bold" style={{ fontSize: '0.7rem' }}>END SESSION</span>
+                    <span className="text-muted tiny d-block mb-1 fw-bold" style={{ fontSize: '0.7rem' }}>END SESSION (SOLO GIORNO)</span>
                     <div className="d-flex gap-1">
                       <Form.Control
                         type="date"
@@ -333,19 +340,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
                         value={schedule?.endDate || ""}
                         onChange={(e) => {
                           const d = e.target.value || null;
-                          updateSchedule(schedule?.startDate || null, schedule?.startTime || null, d, schedule?.startTime || null);
-                        }}
-                      />
-                      {/* Opzionale: se serve il time anche per la fine, altrimenti puoi ometterlo */}
-                      <Form.Control
-                        type="time"
-                        size="sm"
-                        className="border-light-subtle bg-light-subtle"
-                        style={{ width: '110px' }}
-                        value={schedule?.startTime || ""} // o una proprietà endTime se deciderai di estendere l'interfaccia
-                        onChange={(e) => {
-                          const t = e.target.value || null;
-                          updateSchedule(schedule?.startDate || null, schedule?.startTime || null, schedule?.endDate || null, t);
+                          updateSchedule(schedule?.startDate || null, schedule?.startTime || null, d);
                         }}
                       />
                     </div>
@@ -354,7 +349,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
 
                 {schedule !== null && !schedule.valid && (
                   <div className="text-danger small mt-2 fw-semibold" style={{ fontSize: '0.75rem' }}>
-                    * Controlla la validità e l'ordine cronologico delle date inserite.
+                    * La data di stop non può precedere il giorno di avvio.
                   </div>
                 )}
               </Col>

@@ -24,7 +24,7 @@ export function MeasurementUnitCard({ mu, handleSetDirty }: Props) {
   };
 
   return (
-    <div className="mb-5 p-4 rounded-4 shadow-sm border-0 bg-white">
+    <div className="mb-5 p-4 rounded-4 shadow-sm border-0 ms-tile">
       {/* HEADER MU */}
       <div className="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom">
         <div className="d-flex align-items-center gap-3">
@@ -46,7 +46,7 @@ export function MeasurementUnitCard({ mu, handleSetDirty }: Props) {
           .map((sensor) => (
             <Col key={sensor.id}>
               <Card
-                className="border-0 bg-light rounded-4 shadow-xs position-relative overflow-hidden"
+                className="border-0 bg-white rounded-4 shadow-xs position-relative overflow-hidden"
                 style={{
                   aspectRatio: '1 / 1',
                   minHeight: '180px',

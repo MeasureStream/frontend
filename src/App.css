@@ -55,6 +55,23 @@
   --bs-btn-active-bg: var(--ms-brick);
   --bs-btn-active-border-color: var(--ms-brick);
 }
+.btn-warning {
+  --bs-btn-bg: var(--ms-orange);
+  --bs-btn-border-color: var(--ms-orange);
+  --bs-btn-hover-bg: #e8941f;
+  --bs-btn-hover-border-color: #e8941f;
+  --bs-btn-active-bg: #e8941f;
+  --bs-btn-active-border-color: #e8941f;
+}
+.btn-outline-warning {
+  --bs-btn-color: #c77e13;
+  --bs-btn-border-color: var(--ms-orange);
+  --bs-btn-hover-bg: var(--ms-orange);
+  --bs-btn-hover-border-color: var(--ms-orange);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-active-bg: var(--ms-orange);
+  --bs-btn-active-border-color: var(--ms-orange);
+}
 .text-primary { color: var(--ms-teal) !important; }
 .text-info { color: var(--ms-sky) !important; }
 .text-warning { color: var(--ms-orange) !important; }
@@ -163,47 +180,20 @@ input.ms-input-invalid.form-control {
   border-color: var(--ms-brick) !important;
 }
 
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-}
+/* --- Sfondi: pagine in bianco sporco, card in verde chiaro --- */
+body { background-color: var(--ms-offwhite); }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
+/* Card Bootstrap in verde chiaro (le card con classe esplicita
+   .bg-white restano bianche, es. le card sensore dentro le MU) */
+.card { --bs-card-bg: var(--ms-green); }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
+/* Pannelli/tile non-Card (metriche del dettaglio CU, wrapper MU) */
+.ms-tile { background-color: var(--ms-green) !important; }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
+/* Navbar bianca con bordo in palette per staccare dallo sfondo */
+.navbar.bg-body-tertiary {
+  background-color: #fff !important;
+  border-bottom: 1px solid var(--ms-powder);
 }
 
 
