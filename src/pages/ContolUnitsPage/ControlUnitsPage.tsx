@@ -1,25 +1,45 @@
-import { Container, Row, Col, Card, Badge, ProgressBar } from "react-bootstrap";
-import { BsSignal, BsBatteryFull, BsCpu, BsArrowRight } from "react-icons/bs";
+import { Container, Row, Col, Card, ProgressBar } from "react-bootstrap";
+import { BsSignal, BsBatteryFull, BsCpu, BsArrowRight, BsTrash } from "react-icons/bs";
 import { Link } from "react-router";
+import { useState } from "react";
 import { ControlUnitDTO, formatDevEui } from "../../API/interfaces";
-
-// Helper per determinare se la CU è effettivamente attiva in questo momento
+import { DeleteCUModal } from "../../components/DeleteCUModal";
 function isControlUnitOnline(lastSeen: string | null, transmissionInterval: number): boolean {
   if (!lastSeen) return false;
 
   const lastSeenDate = new Date(lastSeen).getTime();
   const now = Date.now();
 
-  // Calcola i minuti trascorsi dall'ultimo contatto
   const minutesElapsed = (now - lastSeenDate) / (1000 * 60);
-
-  // Soglia: massimo tra 30 minuti e il doppio del transmissionInterval
   const maxTimeout = Math.max(30, transmissionInterval * 2);
 
   return minutesElapsed <= maxTimeout;
 }
 
-export function ControlUnitsPage({ controlUnits }: { controlUnits: ControlUnitDTO[] }) {
+interface ControlUnitsPageProps {
+  controlUnits: ControlUnitDTO[];
+  onRefresh?: () => void; // Utile per far scattare un getAllCu() dal componente padre
+}
+
+export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPageProps) {
+  // Stati per la gestione del modal di cancellazione
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedCU, setSelectedCU] = useState<ControlUnitDTO | null>(null);
+
+  const openDeleteModal = (cu: ControlUnitDTO) => {
+    setSelectedCU(cu);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteSuccess = () => {
+    if (onRefresh) {
+      onRefresh(); // Esegue il refresh se passato
+    } else {
+      // Alternativa locale se gestisci lo stato altrove, rinfresca la finestra corrente
+      window.location.reload();
+    }
+  };
+
   return (
     <Container className="py-4">
       <header className="mb-4">
@@ -29,7 +49,6 @@ export function ControlUnitsPage({ controlUnits }: { controlUnits: ControlUnitDT
 
       <Row>
         {controlUnits.map((cu) => {
-          // Calcoliamo lo stato online dinamicamente per ogni CU
           const isOnline = isControlUnitOnline(cu.lastSeen, cu.transmissionInterval);
 
           return (
@@ -39,15 +58,19 @@ export function ControlUnitsPage({ controlUnits }: { controlUnits: ControlUnitDT
                   <div className="d-flex justify-content-between align-items-start mb-3">
                     <div>
                       <Card.Title className="h5 mb-0">{cu.name}</Card.Title>
-                      {/* Visualizzazione HEX formattata */}
                       <code className="text-primary small" style={{ fontSize: '0.85rem' }}>
                         {formatDevEui(cu.devEui)}
                       </code>
                     </div>
-                    {/* Badge dinamico basato sul calcolo del timeout */}
-                    <span className={`ms-badge ${isOnline ? "ms-badge-safe" : "ms-badge-muted"}`}>
-                      {isOnline ? "Active" : "Inactive"}
-                    </span>
+                    {/* Icona della spazzatura posizionata in alto a destra */}
+                    <button
+                      className="btn btn-link text-muted text-danger-hover p-1 border-0"
+                      onClick={() => openDeleteModal(cu)}
+                      title={`Elimina ${cu.name}`}
+                      style={{ background: 'none' }}
+                    >
+                      <BsTrash size={18} />
+                    </button>
                   </div>
 
                   <Row className="text-center mb-3">
@@ -81,12 +104,23 @@ export function ControlUnitsPage({ controlUnits }: { controlUnits: ControlUnitDT
                 <Card.Footer className="bg-white border-0 py-2 d-flex justify-content-between align-items-center">
                   <small className="text-muted">Località: {cu.semanticLocation || "Non specificata"}</small>
 
+                  <span className={`ms-badge ${isOnline ? "ms-badge-safe" : "ms-badge-muted"}`}>
+                    {isOnline ? "Active" : "Inactive"}
+                  </span>
                 </Card.Footer>
               </Card>
             </Col>
           );
         })}
       </Row>
+
+      {/* Rendering Dichiarativo del Modal */}
+      <DeleteCUModal
+        show={showDeleteModal}
+        onHide={() => setShowDeleteModal(false)}
+        controlUnit={selectedCU}
+        onSuccess={handleDeleteSuccess}
+      />
     </Container>
   );
 }
