@@ -10,12 +10,24 @@ import { SensorConfigModal } from "../../../components/SensorConfigModal";
 import { useAuth } from "../../../API/AuthContext";
 import { EditMetadataModal } from "../../../components/EditMetadataModal";
 
+// Helper per calcolare lo stato online in tempo reale
+function isControlUnitOnline(lastSeen: string | null, transmissionInterval: number): boolean {
+  if (!lastSeen) return false;
+
+  const lastSeenDate = new Date(lastSeen.endsWith('Z') ? lastSeen : lastSeen + 'Z').getTime();
+  const now = Date.now();
+
+  const minutesElapsed = (now - lastSeenDate) / (1000 * 60);
+  const maxTimeout = Math.max(30, transmissionInterval * 2);
+
+  return minutesElapsed <= maxTimeout;
+}
+
 export function ControlUnitDetail({ allControlUnits }: { allControlUnits: ControlUnitDTO[] }) {
   const { id } = useParams<{ id: string }>();
   const cuId = Number(id);
   const { xsrfToken } = useAuth();
 
-  // Stato locale per gestire l'aggiornamento della singola CU
   const [currentCU, setCurrentCU] = useState<ControlUnitDTO | null>(null);
   const [showConfig, setShowConfig] = useState(false);
   const [showSensorConfig, setShowSensorConfig] = useState(false);
@@ -23,14 +35,14 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
   const [showEditMetadata, setShowEditMetadata] = useState(false);
   const [schedule, setSchedule] = useState<AcquisitionSchedule | null>(null);
 
-  // Inizializzazione: se allControlUnits cambia o l'ID cambia, cerchiamo la CU
   useEffect(() => {
     const found = allControlUnits.find(unit => unit.id === cuId);
-    if (found) { setCurrentCU(found); setAcqIndex(found.transmissionInterval) }
-
+    if (found) {
+      setCurrentCU(found);
+      setAcqIndex(found.transmissionInterval);
+    }
   }, [allControlUnits, cuId]);
 
-  // Funzione di refresh specifica per QUESTA unità
   const refreshSingleCU = async () => {
     try {
       const updatedCU = await getControlUnitById(cuId);
@@ -47,7 +59,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
     const interval = setInterval(refreshSingleCU, 60000);
     return () => clearInterval(interval);
   }, [cuId]);
-  // Stub per la funzione setDirty richiesta dalla card
+
   const handleSetDirty = () => {
     console.log("Data marked as dirty");
   };
@@ -57,14 +69,10 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
     if (schedule && !schedule.valid) return;
 
     try {
-      // TODO backend: quando sensor-manager supporterà le acquisizioni
-      // programmate, includere qui schedule (startDate/startTime/endDate).
-      // Il server assorbe i minuti residui e invia all'end device un
-      // ritardo di avvio in ore intere.
       if (schedule?.complete) {
         console.log("Sessione programmata (solo UI per ora):", schedule);
       }
-      await ControlTransmission(xsrfToken, { // Metti il token se lo gestisci
+      await ControlTransmission(xsrfToken, {
         devEui: currentCU.devEui,
         transmissionIndex: acqIndex
       });
@@ -80,9 +88,9 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
     try {
       await ControlTransmission(xsrfToken, {
         devEui: currentCU.devEui,
-        transmissionIndex: 0 // Forza lo STOP
+        transmissionIndex: 0
       });
-      setAcqIndex(0); // Reset dello slider in UI
+      setAcqIndex(0);
       console.log("Sessione fermata");
     } catch (err) {
       console.error("Errore nel fermare la sessione:", err);
@@ -93,13 +101,15 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
 
   if (!cu) return <Container className="py-5"><h1>CU non trovata</h1></Container>;
 
+  // Calcolo dello stato online dinamico
+  const isOnline = isControlUnitOnline(cu.lastSeen, cu.transmissionInterval);
+
   const airtimeLimit = 30000;
   const airtimePercentage = Math.min((cu.usedDailyAirtime / airtimeLimit) * 100, 100);
 
   return (
     <Container className="py-4">
       {/* --- HEADER CU --- */}
-      {/* --- HEADER MINIMAL --- */}
       <div className="d-flex justify-content-between align-items-end mb-4 px-2">
         <div>
           <div className="d-flex align-items-center gap-2 mb-1">
@@ -111,8 +121,9 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
               title="Modifica nome e locazione"
             />
 
-            <Badge pill bg={cu.lastSeen ? "success" : "secondary"} style={{ fontSize: '0.65rem', verticalAlign: 'middle' }}>
-              {cu.lastSeen ? "ACTIVE" : "INACTIVE"}
+            {/* Badge guidato dal calcolo di timeout reale */}
+            <Badge pill bg={isOnline ? "success" : "secondary"} style={{ fontSize: '0.65rem', verticalAlign: 'middle' }}>
+              {isOnline ? "ACTIVE" : "INACTIVE"}
             </Badge>
           </div>
           <small className="text-muted font-monospace">
@@ -128,7 +139,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
         </div>
       </div>
 
-      {/* --- METRICS GRID (PIÙ PULITA) --- */}
+      {/* --- METRICS GRID --- */}
       <Row className="g-3 mb-5">
         {/* Network Health */}
         <Col md={4}>
@@ -142,18 +153,20 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
                 <span className="text-muted">Airtime Limit</span>
                 <span className="fw-bold">{(cu.usedDailyAirtime / 1000).toFixed(2)}s / 30s</span>
               </div>
-              <ProgressBar now={airtimePercentage} variant={airtimePercentage > 80 ? "danger" : "info"} style={{ height: '6px' }} rounded-pill />
+              <ProgressBar now={airtimePercentage} variant={airtimePercentage > 80 ? "danger" : "info"} style={{ height: '6px' }} />
             </div>
             <div className="d-flex justify-content-between small opacity-75">
               <span>Last contact:</span>
-              <span className="fw-bold">{cu.lastSeen ? new Date(cu.lastSeen.endsWith('Z') ? cu.lastSeen : cu.lastSeen + 'Z').toLocaleString('it-IT', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-              }) : "N/D"}</span>
+              <span className="fw-bold">
+                {cu.lastSeen ? new Date(cu.lastSeen.endsWith('Z') ? cu.lastSeen : cu.lastSeen + 'Z').toLocaleString('it-IT', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  second: '2-digit'
+                }) : "N/D"}
+              </span>
             </div>
           </div>
         </Col>
@@ -182,7 +195,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
           </div>
         </Col>
 
-        {/* Config Summary - CON ICONA CLICCABILE */}
+        {/* Config Summary */}
         <Col md={4}>
           <div className="p-3 bg-white rounded shadow-sm border-0 h-100 position-relative">
             <div className="d-flex align-items-center justify-content-between mb-3 text-secondary">
@@ -190,9 +203,8 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
                 <BsGear size={18} />
                 <span className="fw-bold small text-uppercase">Configuration</span>
               </div>
-              {/* ICONA CHE APRE IL MODAL */}
               <BsGear
-                className="text-primary cursor-pointer hover-rotate"
+                className="text-primary cursor-pointer"
                 style={{
                   cursor: 'pointer',
                   transition: 'transform 0.3s ease',
@@ -225,7 +237,6 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
         <Card className="border-0 shadow-sm overflow-hidden">
           <Card.Body className="p-4 bg-white">
             <Row className="align-items-start g-4">
-              {/* Slider intervallo di trasmissione (larghezza ridotta) */}
               <Col lg={4} md={12}>
                 <div className="d-flex justify-content-between align-items-end mb-2">
                   <label className="fw-bold small text-uppercase text-muted">Transmission Interval</label>
@@ -237,7 +248,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
                   type="range"
                   className="form-range custom-range"
                   min="0"
-                  max="255"
+                  max="240" /* Forzato a 240 max come da richiesta per blocco a 7 giorni */
                   step="1"
                   value={acqIndex}
                   onChange={(e) => setAcqIndex(parseInt(e.target.value))}
@@ -246,11 +257,9 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
                   <span>OFF</span>
                   <span>1s</span>
                   <span>1h</span>
-                  <span>+24h</span>
+                  <span>7g (Max)</span>
                 </div>
               </Col>
-
-
 
               <Col lg={3} md={4} className="d-flex flex-column gap-2 justify-content-lg-center align-self-lg-center">
                 <Button
@@ -279,8 +288,6 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
         </Card>
       </div>
 
-
-
       <div className="d-flex justify-content-between align-items-center mb-4 mt-5">
         <h4 className="mb-0 d-flex align-items-center gap-2">
           <BsToggles className="text-primary" /> Measurement Units
@@ -295,10 +302,9 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
         </Button>
       </div>
 
-
       {/* --- CICLO MEASUREMENT UNITS --- */}
       {cu.measurementUnits
-        .slice() // o [...mu.sensors] per non mutare l'array originale
+        .slice()
         .sort((a, b) => a.localId - b.localId)
         .map((mu: any) => (
           <MeasurementUnitCard
@@ -325,10 +331,9 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
         show={showEditMetadata}
         onHide={() => setShowEditMetadata(false)}
         cu={cu}
-        onSuccess={refreshSingleCU} />
-
+        onSuccess={refreshSingleCU}
+      />
     </Container>
-
   );
 }
 
@@ -336,8 +341,8 @@ const decodeIndexToLabel = (idx: number): string => {
   if (idx === 0) return "OFF (Stop)";
   if (idx <= 4) return `${idx * 15} min`;
   if (idx <= 96) return `${Math.trunc(idx * 15 / 60)} h ${(idx * 15) % 60} min`;
-  //AGGIUNGERE che il massimo valore è 240 per fermarlo ad esattamente 7gg
-  if (idx <= 254) return `${1 + Math.trunc((idx - 96) / 24)} g ${(idx - 96) % 24} h`;
-  if (idx === 255) return `${1} min`;
+  if (idx <= 240) return `${1 + Math.trunc((idx - 96) / 24)} g ${(idx - 96) % 24} h`;
+  if (idx > 240) return "OUT OF RANGE (Max 7gg)";
+  if (idx === 255) return `1 min`;
   return "OUT OF RANGE";
 };
