@@ -1,6 +1,7 @@
-import { Container, Row, Col, Card, Badge, ListGroup, ProgressBar, Button } from "react-bootstrap";
-import { BsCpu, BsGear, BsPencil, BsThermometerHalf, BsDroplet, BsSpeedometer, BsToggles, BsActivity, BsBroadcast, BsPlayFill, BsStopFill } from "react-icons/bs";
 import { ControlUnitDTO, formatDevEui, CUTransmissionCommandDTO, AcquisitionSchedule } from "../../../API/interfaces";
+import { Container, Row, Col, Card, Badge, ListGroup, ProgressBar, Button, Form } from "react-bootstrap";
+import { BsCpu, BsGear, BsPencil, BsThermometerHalf, BsDroplet, BsSpeedometer, BsToggles, BsActivity, BsBroadcast, BsPlayFill, BsStopFill, BsCalendarEvent } from "react-icons/bs";
+
 import { useParams } from "react-router";
 import { useEffect, useState } from "react";
 import { MeasurementUnitCard } from "../../../components/MeasurementUnitCard";
@@ -106,6 +107,27 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
 
   const airtimeLimit = 30000;
   const airtimePercentage = Math.min((cu.usedDailyAirtime / airtimeLimit) * 100, 100);
+
+
+
+  const updateSchedule = (sd: string | null, st: string | null, ed: string | null, et: string | null) => {
+    const isComplete = !!(sd && ed);
+    let isValid = true;
+
+    if (isComplete) {
+      const startTimestamp = new Date(`${sd}T${st || "00:00"}`).getTime();
+      const endTimestamp = new Date(`${ed}T${et || "00:00"}`).getTime();
+      isValid = startTimestamp < endTimestamp;
+    }
+
+    setSchedule({
+      startDate: sd,
+      startTime: st,
+      endDate: ed,
+      complete: isComplete,
+      valid: isValid
+    });
+  };
 
   return (
     <Container className="py-4">
@@ -236,8 +258,9 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
         </h4>
         <Card className="border-0 shadow-sm overflow-hidden">
           <Card.Body className="p-4 bg-white">
-            <Row className="align-items-start g-4">
-              <Col lg={4} md={12}>
+            <Row className="align-items-center g-4">
+              {/* 1. SELEZIONE INTERVALLO (SLIDER) */}
+              <Col lg={3} md={12}>
                 <div className="d-flex justify-content-between align-items-end mb-2">
                   <label className="fw-bold small text-uppercase text-muted">Transmission Interval</label>
                   <span className={`ms-badge font-monospace ${acqIndex === 0 ? "ms-badge-muted" : "ms-badge-alert"}`} style={{ fontSize: '0.85rem' }}>
@@ -248,7 +271,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
                   type="range"
                   className="form-range custom-range"
                   min="0"
-                  max="240" /* Forzato a 240 max come da richiesta per blocco a 7 giorni */
+                  max="240"
                   step="1"
                   value={acqIndex}
                   onChange={(e) => setAcqIndex(parseInt(e.target.value))}
@@ -261,10 +284,86 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
                 </div>
               </Col>
 
-              <Col lg={3} md={4} className="d-flex flex-column gap-2 justify-content-lg-center align-self-lg-center">
+              {/* 2. CALENDARIO STRUTTURATO (MAPPATO SU ACQUISITIONSCHEDULE) */}
+              <Col lg={6} md={8} className="border-start-lg ps-lg-4">
+                <div className="d-flex align-items-center gap-2 mb-2 text-muted">
+                  <BsCalendarEvent size={16} className="text-primary" />
+                  <label className="fw-bold small text-uppercase mb-0">Schedule Session (Optional)</label>
+                </div>
+
+                <Row className="g-3">
+                  {/* SEZIONE INIZIO */}
+                  <Col sm={6}>
+                    <span className="text-muted tiny d-block mb-1 fw-bold" style={{ fontSize: '0.7rem' }}>START SESSION</span>
+                    <div className="d-flex gap-1">
+                      <Form.Control
+                        type="date"
+                        size="sm"
+                        className="border-light-subtle bg-light-subtle"
+                        value={schedule?.startDate || ""}
+                        onChange={(e) => {
+                          const d = e.target.value || null;
+                          const t = schedule?.startTime || null;
+                          updateSchedule(d, t, schedule?.endDate || null, schedule?.startTime || null);
+                        }}
+                      />
+                      <Form.Control
+                        type="time"
+                        size="sm"
+                        className="border-light-subtle bg-light-subtle"
+                        style={{ width: '110px' }}
+                        value={schedule?.startTime || ""}
+                        onChange={(e) => {
+                          const t = e.target.value || null;
+                          const d = schedule?.startDate || null;
+                          updateSchedule(d, t, schedule?.endDate || null, schedule?.startTime || null);
+                        }}
+                      />
+                    </div>
+                  </Col>
+
+                  {/* SEZIONE FINE */}
+                  <Col sm={6}>
+                    <span className="text-muted tiny d-block mb-1 fw-bold" style={{ fontSize: '0.7rem' }}>END SESSION</span>
+                    <div className="d-flex gap-1">
+                      <Form.Control
+                        type="date"
+                        size="sm"
+                        className="border-light-subtle bg-light-subtle"
+                        value={schedule?.endDate || ""}
+                        onChange={(e) => {
+                          const d = e.target.value || null;
+                          updateSchedule(schedule?.startDate || null, schedule?.startTime || null, d, schedule?.startTime || null);
+                        }}
+                      />
+                      {/* Opzionale: se serve il time anche per la fine, altrimenti puoi ometterlo */}
+                      <Form.Control
+                        type="time"
+                        size="sm"
+                        className="border-light-subtle bg-light-subtle"
+                        style={{ width: '110px' }}
+                        value={schedule?.startTime || ""} // o una proprietà endTime se deciderai di estendere l'interfaccia
+                        onChange={(e) => {
+                          const t = e.target.value || null;
+                          updateSchedule(schedule?.startDate || null, schedule?.startTime || null, schedule?.endDate || null, t);
+                        }}
+                      />
+                    </div>
+                  </Col>
+                </Row>
+
+                {schedule !== null && !schedule.valid && (
+                  <div className="text-danger small mt-2 fw-semibold" style={{ fontSize: '0.75rem' }}>
+                    * Controlla la validità e l'ordine cronologico delle date inserite.
+                  </div>
+                )}
+              </Col>
+
+              {/* 3. PULSANTI DI AZIONE */}
+              <Col lg={3} md={4} className="d-flex flex-column gap-2 justify-content-center">
                 <Button
                   variant="outline-primary"
-                  className="fw-bold px-4 py-2 d-flex align-items-center justify-content-center gap-2"
+                  className="fw-bold px-4 py-2 d-flex align-items-center justify-content-center gap-2 shadow-sm"
                   disabled={acqIndex === 0 || (schedule !== null && !schedule.valid)}
                   onClick={handleStartAcquisition}
                 >
