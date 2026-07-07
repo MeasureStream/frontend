@@ -46,7 +46,7 @@ export function ControlUnitsPage({ controlUnits }: { controlUnits: ControlUnitDT
                     </div>
                     {/* Badge dinamico basato sul calcolo del timeout */}
                     <span className={`ms-badge ${isOnline ? "ms-badge-safe" : "ms-badge-muted"}`}>
-                      {isOnline ? "ACTIVE" : "INACTIVE"}
+                      {isOnline ? "Active" : "Inactive"}
                     </span>
                   </div>
 
@@ -80,11 +80,7 @@ export function ControlUnitsPage({ controlUnits }: { controlUnits: ControlUnitDT
                 </Card.Body>
                 <Card.Footer className="bg-white border-0 py-2 d-flex justify-content-between align-items-center">
                   <small className="text-muted">Località: {cu.semanticLocation || "Non specificata"}</small>
-                  {cu.lastSeen && !isOnline && (
-                    <small className="text-danger style={{ fontSize: '0.75rem' }}">
-                      Inattiva
-                    </small>
-                  )}
+
                 </Card.Footer>
               </Card>
             </Col>
