@@ -28,11 +28,11 @@ export function MeasurementUnitCard({ mu, handleSetDirty }: Props) {
       {/* HEADER MU */}
       <div className="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom">
         <div className="d-flex align-items-center gap-3">
-          <div className="p-2 bg-primary bg-opacity-10 rounded-3 text-primary">
+          <div className="p-2  bg-opacity-10 rounded-3 text-primary">
             <BsCpu size={24} />
           </div>
           <div>
-            <h5 className="mb-0 fw-bold">MU #0x{Number(mu.extendedId).toString(16).toUpperCase()}</h5>
+            <h5 className="mb-0 fw-bold">MU 0x{Number(mu.extendedId).toString(16).toUpperCase()}</h5>
             <small className="text-muted font-monospace opacity-75">Model: {mu.model}</small>
           </div>
         </div>
