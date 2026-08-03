@@ -13,7 +13,6 @@ import { EditMetadataModal } from "../../../components/EditMetadataModal";
 import { RangeTicks } from "../../../components/RangeTicks";
 
 // Tacche posizionate sul valore REALE dell'indice (1 step = 15 min):
-// idx 24 = 6 h, idx 48 = 12 h, idx 96 = 24 h, idx 240 = 7 g
 const TRANSMISSION_TICKS = [
   { value: 0, label: "OFF" },
   { value: 24, label: "6h" },
@@ -22,7 +21,6 @@ const TRANSMISSION_TICKS = [
   { value: 240, label: "7g" },
 ];
 
-// Helper per calcolare lo stato online in tempo reale
 function isControlUnitOnline(lastSeen: string | null, transmissionInterval: number): boolean {
   if (!lastSeen) return false;
 
@@ -66,7 +64,6 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
     }
   };
 
-  // Polling ogni minuto
   useEffect(() => {
     const interval = setInterval(refreshSingleCU, 60000);
     return () => clearInterval(interval);
@@ -113,23 +110,16 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
 
   if (!cu) return <Container className="py-5"><h1>CU non trovata</h1></Container>;
 
-  // Calcolo dello stato online dinamico
   const isOnline = isControlUnitOnline(cu.lastSeen, cu.transmissionInterval);
 
   const airtimeLimit = 30000;
   const airtimePercentage = Math.min((cu.usedDailyAirtime / airtimeLimit) * 100, 100);
 
-
-
-  // L'orario è impostabile solo per l'avvio: per lo stop contano i giorni
-  // interi (l'end device gestisce solo ore intere), quindi niente endTime.
   const updateSchedule = (sd: string | null, st: string | null, ed: string | null) => {
     const isComplete = !!(sd && ed);
     let isValid = true;
 
     if (isComplete) {
-      // Confronto per solo giorno: stop lo stesso giorno dell'avvio è valido
-      // ("stop in giornata"), lo stop PRIMA del giorno di avvio no.
       isValid = ed! >= sd!;
     }
 
@@ -143,20 +133,19 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
   };
 
   return (
-    <Container className="py-4">
+    <Container className="py-4 fade-in-up">
       {/* --- HEADER CU --- */}
       <div className="d-flex justify-content-between align-items-end mb-4 px-2">
         <div>
           <div className="d-flex align-items-center gap-2 mb-1">
             <h2 className="fw-bold mb-0" style={{ letterSpacing: '-0.5px' }}>{cu.name}</h2>
             <BsPencil
-              className="text-muted text-primary-hover"
+              className="text-muted text-primary-hover hover-slide-right"
               style={{ cursor: "pointer", fontSize: "1.1rem", marginLeft: "4px" }}
               onClick={() => setShowEditMetadata(true)}
               title="Modifica nome e locazione"
             />
 
-            {/* Badge guidato dal calcolo di timeout reale */}
             <span className={`ms-badge ${isOnline ? "ms-badge-safe" : "ms-badge-muted"}`} style={{ verticalAlign: 'middle' }}>
               {isOnline ? "ACTIVE" : "INACTIVE"}
             </span>
@@ -174,11 +163,11 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
         </div>
       </div>
 
-      {/* --- METRICS GRID --- */}
+      {/* --- METRICS GRID CON HOVER-LIFT E OMBRE --- */}
       <Row className="g-3 mb-5">
         {/* Network Health */}
         <Col md={4}>
-          <div className="p-3 ms-tile rounded shadow-sm border-0 h-100">
+          <div className="p-3 ms-tile rounded shadow-sm border-0 h-100 hover-lift">
             <div className="d-flex align-items-center gap-2 mb-3 text-primary">
               <BsActivity size={18} />
               <span className="fw-bold small text-uppercase">Network Health</span>
@@ -208,7 +197,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
 
         {/* Radio Params */}
         <Col md={4}>
-          <div className="p-3 ms-tile rounded shadow-sm border-0 h-100">
+          <div className="p-3 ms-tile rounded shadow-sm border-0 h-100 hover-lift">
             <div className="d-flex align-items-center gap-2 mb-3 text-success">
               <BsBroadcast size={18} />
               <span className="fw-bold small text-uppercase">Radio Signals</span>
@@ -232,7 +221,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
 
         {/* Config Summary */}
         <Col md={4}>
-          <div className="p-3 ms-tile rounded shadow-sm border-0 h-100 position-relative">
+          <div className="p-3 ms-tile rounded shadow-sm border-0 h-100 position-relative hover-lift">
             <div className="d-flex align-items-center justify-content-between mb-3 text-secondary">
               <div className="d-flex align-items-center gap-2">
                 <BsGear size={18} />
@@ -266,10 +255,10 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
 
       {/* --- ACQUISITION CONTROL SECTION --- */}
       <div className="mb-5 mt-4">
-        <h4 className="mb-3 d-flex align-items-center gap-2">
+        <h4 className="mb-3 d-flex align-items-center gap-2 fw-bold">
           <BsActivity className="text-danger" /> Live Acquisition
         </h4>
-        <Card className="border-0 shadow-sm overflow-hidden">
+        <Card className="border-0 shadow hover-lift overflow-hidden">
           <Card.Body className="p-4">
             <Row className="align-items-center g-4">
               {/* 1. SELEZIONE INTERVALLO (SLIDER) */}
@@ -292,7 +281,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
                 <RangeTicks max={240} ticks={TRANSMISSION_TICKS} />
               </Col>
 
-              {/* 2. CALENDARIO STRUTTURATO (MAPPATO SU ACQUISITIONSCHEDULE) */}
+              {/* 2. CALENDARIO STRUTTURATO */}
               <Col lg={6} md={8} className="border-start-lg ps-lg-4">
                 <div className="d-flex align-items-center gap-2 mb-2 text-muted">
                   <BsCalendarEvent size={16} className="text-primary" />
@@ -307,7 +296,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
                       <Form.Control
                         type="date"
                         size="sm"
-                        className="border-light-subtle bg-light-subtle"
+                        className="border-light-subtle bg-light-subtle shadow-sm"
                         value={schedule?.startDate || ""}
                         onChange={(e) => {
                           const d = e.target.value || null;
@@ -317,7 +306,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
                       <Form.Control
                         type="time"
                         size="sm"
-                        className="border-light-subtle bg-light-subtle"
+                        className="border-light-subtle bg-light-subtle shadow-sm"
                         style={{ width: '110px' }}
                         value={schedule?.startTime || ""}
                         onChange={(e) => {
@@ -328,15 +317,14 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
                     </div>
                   </Col>
 
-                  {/* SEZIONE FINE — solo giorno: per lo stop l'orario non è
-                      supportato (l'end device gestisce solo ore intere) */}
+                  {/* SEZIONE FINE */}
                   <Col sm={6}>
                     <span className="text-muted tiny d-block mb-1 fw-bold" style={{ fontSize: '0.7rem' }}>END SESSION (SOLO GIORNO)</span>
                     <div className="d-flex gap-1">
                       <Form.Control
                         type="date"
                         size="sm"
-                        className="border-light-subtle bg-light-subtle"
+                        className="border-light-subtle bg-light-subtle shadow-sm"
                         value={schedule?.endDate || ""}
                         onChange={(e) => {
                           const d = e.target.value || null;
@@ -354,11 +342,11 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
                 )}
               </Col>
 
-              {/* 3. PULSANTI DI AZIONE */}
+              {/* 3. PULSANTI DI AZIONE CON EFFETTO HOVER-SLIDE */}
               <Col lg={3} md={4} className="d-flex flex-column gap-2 justify-content-center">
                 <Button
                   variant="outline-primary"
-                  className="fw-bold px-4 py-2 d-flex align-items-center justify-content-center gap-2 shadow-sm"
+                  className="fw-bold px-4 py-2 d-flex align-items-center justify-content-center gap-2 shadow-sm hover-slide-right"
                   disabled={acqIndex === 0 || (schedule !== null && !schedule.valid)}
                   onClick={handleStartAcquisition}
                 >
@@ -366,7 +354,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
                 </Button>
                 <Button
                   variant="outline-danger"
-                  className="fw-bold px-4 py-2 d-flex align-items-center justify-content-center gap-2"
+                  className="fw-bold px-4 py-2 d-flex align-items-center justify-content-center gap-2 hover-slide-right"
                   onClick={handleStopAcquisition}
                 >
                   <BsStopFill size={18} /> STOP
@@ -383,29 +371,30 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
       </div>
 
       <div className="d-flex justify-content-between align-items-center mb-4 mt-5">
-        <h4 className="mb-0 d-flex align-items-center gap-2">
+        <h4 className="mb-0 d-flex align-items-center gap-2 fw-bold">
           <BsToggles className="text-primary" /> Measurement Units
         </h4>
         <Button
           variant="outline-primary"
           size="sm"
-          className="d-flex align-items-center gap-2 shadow-sm"
+          className="d-flex align-items-center gap-2 shadow-sm hover-slide-right"
           onClick={() => setShowSensorConfig(true)}
         >
           <BsCpu size={16} /> Configura Sampling Sensori
         </Button>
       </div>
 
-      {/* --- CICLO MEASUREMENT UNITS --- */}
+      {/* --- CICLO MEASUREMENT UNITS CON HOVER-LIFT --- */}
       {cu.measurementUnits
         .slice()
         .sort((a, b) => a.localId - b.localId)
         .map((mu: any) => (
-          <MeasurementUnitCard
-            key={mu.id}
-            mu={mu}
-            handleSetDirty={handleSetDirty}
-          />
+          <div key={mu.id} className="mb-3 hover-lift">
+            <MeasurementUnitCard
+              mu={mu}
+              handleSetDirty={handleSetDirty}
+            />
+          </div>
         ))}
 
       <ConfigCUModal

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { ControlUnitDTO, formatDevEui } from "../../API/interfaces";
 import { DeleteCUModal } from "../../components/DeleteCUModal";
 import { EmptyDevicesLanding } from "./EmptyDevicesLanding";
+
 function isControlUnitOnline(lastSeen: string | null, transmissionInterval: number): boolean {
   if (!lastSeen) return false;
 
@@ -19,15 +20,13 @@ function isControlUnitOnline(lastSeen: string | null, transmissionInterval: numb
 
 interface ControlUnitsPageProps {
   controlUnits: ControlUnitDTO[];
-  onRefresh?: () => void; // Utile per far scattare un getAllCu() dal componente padre
+  onRefresh?: () => void;
 }
 
 export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPageProps) {
-  // Stati per la gestione del modal di cancellazione
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedCU, setSelectedCU] = useState<ControlUnitDTO | null>(null);
 
-  // Nessun dispositivo associato: landing informativa al posto della pagina vuota
   if (controlUnits.length === 0) {
     return <EmptyDevicesLanding />;
   }
@@ -39,17 +38,16 @@ export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPagePr
 
   const handleDeleteSuccess = () => {
     if (onRefresh) {
-      onRefresh(); // Esegue il refresh se passato
+      onRefresh();
     } else {
-      // Alternativa locale se gestisci lo stato altrove, rinfresca la finestra corrente
       window.location.reload();
     }
   };
 
   return (
-    <Container className="py-4">
+    <Container className="py-4 fade-in-up">
       <header className="mb-4">
-        <h1>Benvenuto, ecco i tuoi dispositivi</h1>
+        <h1 className="fw-bold">Benvenuto, ecco i tuoi dispositivi</h1>
         <p className="text-muted">Monitoraggio in tempo reale del network LoRaWAN</p>
       </header>
 
@@ -59,54 +57,60 @@ export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPagePr
 
           return (
             <Col key={cu.id} xs={12} lg={6} xl={4} className="mb-4">
-              <Card className="shadow-sm border-0 hover-ggVGshadow transition">
-                <Card.Body>
-                  <div className="d-flex justify-content-between align-items-start mb-3">
-                    <div>
-                      <Card.Title className="h5 mb-0">{cu.name}</Card.Title>
-                      <code className="text-primary small" style={{ fontSize: '0.85rem' }}>
-                        {formatDevEui(cu.devEui)}
-                      </code>
+              {/* Applicata la classe `hover-lift` per ombra + elevazione al passaggio del mouse */}
+              <Card className="shadow-sm border-0 hover-lift h-100">
+                <Card.Body className="d-flex flex-column justify-content-between">
+                  <div>
+                    <div className="d-flex justify-content-between align-items-start mb-3">
+                      <div>
+                        <Card.Title className="h5 mb-0 fw-bold">{cu.name}</Card.Title>
+                        <code className="text-primary small" style={{ fontSize: '0.85rem' }}>
+                          {formatDevEui(cu.devEui)}
+                        </code>
+                      </div>
+
+                      {/* Tasto eliminazione con animazione slide */}
+                      <button
+                        className="btn btn-link text-muted p-1 border-0 hover-slide-right"
+                        onClick={() => openDeleteModal(cu)}
+                        title={`Elimina ${cu.name}`}
+                        style={{ background: 'none' }}
+                      >
+                        <BsTrash size={18} className="text-danger" />
+                      </button>
                     </div>
-                    {/* Icona della spazzatura posizionata in alto a destra */}
-                    <button
-                      className="btn btn-link text-muted text-danger-hover p-1 border-0"
-                      onClick={() => openDeleteModal(cu)}
-                      title={`Elimina ${cu.name}`}
-                      style={{ background: 'none' }}
-                    >
-                      <BsTrash size={18} />
-                    </button>
+
+                    <Row className="text-center mb-3">
+                      <Col>
+                        <BsBatteryFull className="text-primary mb-1" size={20} />
+                        <div className="small fw-bold">{cu.remainingBattery}%</div>
+                        <ProgressBar
+                          now={cu.remainingBattery}
+                          variant={cu.remainingBattery < 20 ? "danger" : "primary"}
+                          style={{ height: '4px' }}
+                          className="mt-1"
+                        />
+                      </Col>
+                      <Col>
+                        <BsSignal className="text-info mb-1" size={20} />
+                        <div className="small fw-bold">{cu.rssi} dBm</div>
+                        <small className="text-muted">Segnale</small>
+                      </Col>
+                      <Col>
+                        <BsCpu className="text-warning mb-1" size={20} />
+                        <div className="small fw-bold">{cu.measurementUnits.length}</div>
+                        <small className="text-muted">MU associate</small>
+                      </Col>
+                    </Row>
                   </div>
 
-                  <Row className="text-center mb-3">
-                    <Col>
-                      <BsBatteryFull className="text-primary mb-1" />
-                      <div className="small fw-bold">{cu.remainingBattery}%</div>
-                      <ProgressBar
-                        now={cu.remainingBattery}
-                        variant={cu.remainingBattery < 20 ? "danger" : "primary"}
-                        style={{ height: '4px' }}
-                      />
-                    </Col>
-                    <Col>
-                      <BsSignal className="text-info mb-1" />
-                      <div className="small fw-bold">{cu.rssi} dBm</div>
-                      <small className="text-muted">Segnale</small>
-                    </Col>
-                    <Col>
-                      <BsCpu className="text-warning mb-1" />
-                      <div className="small fw-bold">{cu.measurementUnits.length}</div>
-                      <small className="text-muted">MU associate</small>
-                    </Col>
-                  </Row>
-
-                  <div className="d-grid">
+                  <div className="d-grid mt-3">
                     <Link to={`/cus/${cu.id}`} className="btn btn-outline-primary btn-sm d-flex align-items-center justify-content-center gap-2">
                       Dettaglio Sensori <BsArrowRight />
                     </Link>
                   </div>
                 </Card.Body>
+
                 <Card.Footer className="border-0 py-2 d-flex justify-content-between align-items-center" style={{ backgroundColor: "transparent" }}>
                   <small className="text-muted">Località: {cu.semanticLocation || "Non specificata"}</small>
 
@@ -120,7 +124,6 @@ export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPagePr
         })}
       </Row>
 
-      {/* Rendering Dichiarativo del Modal */}
       <DeleteCUModal
         show={showDeleteModal}
         onHide={() => setShowDeleteModal(false)}
