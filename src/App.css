@@ -1,22 +1,65 @@
-/* ============================================================
-   Palette MeasureStream — unica fonte di verità per i colori.
-   Usare SEMPRE queste variabili (o le utility Bootstrap
-   ri-mappate qui sotto), mai hex hardcodati nei componenti.
-   ============================================================ */
 :root {
   --ms-teal: #16697A;        /* Ottanio scuro — colore primario */
-  --ms-sky: #489FB5;         /* Azzurro cielo — secondario / hover */
+  --ms-sky: #489FB5;          /* Azzurro cielo — secondario / hover */
   --ms-powder: #82C0CC;      /* Azzurro polvere — bordi, accenti soft */
   --ms-offwhite: #EDE7E3;    /* Bianco sporco — sfondi neutri */
   --ms-orange: #FFA62B;      /* Arancione oro — warning / highlight */
   --ms-green: #D6EAD4;       /* Verde chiaro — sfondo condizioni safe */
   --ms-sage: #97A675;        /* Verde salvia scuro — bordo/testo safe */
-  --ms-sage-text: #5f6b45;   /* Salvia scurito per testo leggibile su sfondo chiaro */
-  --ms-brick: #B04A3A;       /* Rosso mattone — casi limite (confermato) */
-  --ms-teal-tint: #e6f2f5;   /* Tinta chiarissima dell'ottanio per chip/sfondi */
+  --ms-sage-text: #5f6b45;   /* Salvia scurito per testo leggibile */
+  --ms-brick: #B04A3A;       /* Rosso mattone — casi limite */
+  --ms-teal-tint: #e6f2f5;   /* Tinta chiarissima ottanio */
+
+  /* ----------------------------------------------------
+     Mappatura delle variabili native di Bootstrap 5
+     ---------------------------------------------------- */
+  --bs-primary: var(--ms-teal);
+  --bs-primary-rgb: 22, 105, 122;
+  --bs-primary-bg-subtle: var(--ms-teal-tint);
+  --bs-primary-border-subtle: var(--ms-powder);
+
+  --bs-secondary: var(--ms-sky);
+  --bs-secondary-rgb: 72, 159, 181;
+
+  --bs-warning: var(--ms-orange);
+  --bs-warning-rgb: 255, 166, 43;
+
+  --bs-danger: var(--ms-brick);
+  --bs-danger-rgb: 176, 74, 58;
+
+  --bs-success: var(--ms-sage);
+  --bs-success-rgb: 151, 166, 117;
 }
 
-/* --- Rimappatura utility Bootstrap sulla palette --- */
+
+/* Primary */
+.text-primary { color: var(--ms-teal) !important; }
+.bg-primary { background-color: var(--ms-teal) !important; }
+.border-primary { border-color: var(--ms-teal) !important; }
+.bg-primary-subtle { background-color: var(--ms-teal-tint) !important; }
+.border-primary-subtle { border-color: var(--ms-powder) !important; }
+
+/* Secondary & Info */
+.text-secondary, .text-info { color: var(--ms-sky) !important; }
+.bg-secondary, .bg-info { background-color: var(--ms-sky) !important; }
+.border-secondary, .border-info { border-color: var(--ms-sky) !important; }
+
+/* Warning */
+.text-warning { color: var(--ms-orange) !important; }
+.bg-warning { background-color: var(--ms-orange) !important; }
+.bg-warning-subtle { background-color: #fff2dd !important; }
+.text-warning-emphasis { color: #a86b12 !important; }
+.border-warning-subtle { border-color: #f4d9ac !important; }
+
+/* Success */
+.text-success { color: var(--ms-sage) !important; }
+.bg-success { background-color: var(--ms-sage) !important; }
+
+/* Danger */
+.text-danger { color: var(--ms-brick) !important; }
+.bg-danger { background-color: var(--ms-brick) !important; }
+
+/* --- Bottoni Bootstrap --- */
 .btn-primary {
   --bs-btn-bg: var(--ms-teal);
   --bs-btn-border-color: var(--ms-teal);
@@ -27,6 +70,7 @@
   --bs-btn-disabled-bg: var(--ms-powder);
   --bs-btn-disabled-border-color: var(--ms-powder);
 }
+
 .btn-outline-primary {
   --bs-btn-color: var(--ms-teal);
   --bs-btn-border-color: var(--ms-teal);
@@ -37,6 +81,7 @@
   --bs-btn-disabled-color: var(--ms-powder);
   --bs-btn-disabled-border-color: var(--ms-powder);
 }
+
 .btn-danger {
   --bs-btn-bg: var(--ms-brick);
   --bs-btn-border-color: var(--ms-brick);
@@ -47,6 +92,7 @@
   --bs-btn-disabled-bg: #d8b0a8;
   --bs-btn-disabled-border-color: #d8b0a8;
 }
+
 .btn-outline-danger {
   --bs-btn-color: var(--ms-brick);
   --bs-btn-border-color: var(--ms-brick);
@@ -55,6 +101,7 @@
   --bs-btn-active-bg: var(--ms-brick);
   --bs-btn-active-border-color: var(--ms-brick);
 }
+
 .btn-warning {
   --bs-btn-bg: var(--ms-orange);
   --bs-btn-border-color: var(--ms-orange);
@@ -63,6 +110,7 @@
   --bs-btn-active-bg: #e8941f;
   --bs-btn-active-border-color: #e8941f;
 }
+
 .btn-outline-warning {
   --bs-btn-color: #c77e13;
   --bs-btn-border-color: var(--ms-orange);
@@ -72,20 +120,6 @@
   --bs-btn-active-bg: var(--ms-orange);
   --bs-btn-active-border-color: var(--ms-orange);
 }
-.text-primary { color: var(--ms-teal) !important; }
-.text-info { color: var(--ms-sky) !important; }
-.text-warning { color: var(--ms-orange) !important; }
-.text-success { color: var(--ms-sage) !important; }
-.text-danger { color: var(--ms-brick) !important; }
-.bg-primary { background-color: var(--ms-teal) !important; }
-.bg-info { background-color: var(--ms-sky) !important; }
-.bg-success { background-color: var(--ms-sage) !important; }
-.bg-danger { background-color: var(--ms-brick) !important; }
-.bg-warning { background-color: var(--ms-orange) !important; }
-.border-primary-subtle { border-color: var(--ms-powder) !important; }
-.bg-warning-subtle { background-color: #fff2dd !important; }
-.text-warning-emphasis { color: #a86b12 !important; }
-.border-warning-subtle { border-color: #f4d9ac !important; }
 
 /* Cursore degli slider in palette */
 .form-range::-webkit-slider-thumb { background-color: var(--ms-teal); }
@@ -93,7 +127,7 @@
 .form-range:disabled::-webkit-slider-thumb { background-color: var(--ms-powder); }
 .form-range:disabled::-moz-range-thumb { background-color: var(--ms-powder); }
 
-/* --- Badge di stato: rettangoli outlined (stile preferito) --- */
+/* --- Badge di stato: rettangoli outlined --- */
 .ms-badge {
   display: inline-flex;
   align-items: center;
@@ -136,7 +170,6 @@
   margin: 1px auto;
 }
 .ms-cal-day:hover:not(.ms-cal-disabled):not(.ms-cal-endpoint) { border-color: var(--ms-sky); }
-/* Giorni non selezionabili: sfondo grigio come feedback */
 .ms-cal-disabled {
   color: #b4aca6;
   background-color: var(--ms-offwhite);
@@ -173,31 +206,25 @@
 }
 .ms-cal-nav:hover { color: var(--ms-teal); }
 
-/* Input data/ora non validi: sfondo grigio come feedback */
+/* Input data/ora non validi */
 .ms-input-invalid,
 input.ms-input-invalid.form-control {
   background-color: var(--ms-offwhite) !important;
   border-color: var(--ms-brick) !important;
 }
 
-/* --- Sfondi: pagine in bianco sporco, card in verde chiaro --- */
+/* Sfondi */
 body { background-color: var(--ms-offwhite); }
-
-/* Card Bootstrap in verde chiaro (le card con classe esplicita
-   .bg-white restano bianche, es. le card sensore dentro le MU) */
 .card { --bs-card-bg: var(--ms-green); }
-
-/* Pannelli/tile non-Card (metriche del dettaglio CU, wrapper MU) */
 .ms-tile { background-color: var(--ms-green) !important; }
 
-/* Navbar bianca con bordo in palette per staccare dallo sfondo */
+/* Navbar */
 .navbar.bg-body-tertiary {
   background-color: #fff !important;
   border-bottom: 1px solid var(--ms-powder);
 }
 
-
-
+/* Hover Shadow per la landing */
 .hover-shadow:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
