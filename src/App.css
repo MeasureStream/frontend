@@ -1,65 +1,22 @@
 :root {
   --ms-teal: #16697A;        /* Ottanio scuro — colore primario */
-  --ms-sky: #489FB5;          /* Azzurro cielo — secondario / hover */
-  --ms-powder: #82C0CC;      /* Azzurro polvere — bordi, accenti soft */
-  --ms-offwhite: #EDE7E3;    /* Bianco sporco — sfondi neutri */
-  --ms-orange: #FFA62B;      /* Arancione oro — warning / highlight */
-  --ms-green: #D6EAD4;       /* Verde chiaro — sfondo condizioni safe */
-  --ms-sage: #97A675;        /* Verde salvia scuro — bordo/testo safe */
-  --ms-sage-text: #5f6b45;   /* Salvia scurito per testo leggibile */
-  --ms-brick: #B04A3A;       /* Rosso mattone — casi limite */
+  --ms-sky: #489FB5;          /* Azzurro cielo — hover */
+  --ms-powder: #82C0CC;      /* Azzurro polvere — bordi / disabilitato */
   --ms-teal-tint: #e6f2f5;   /* Tinta chiarissima ottanio */
 
-  /* ----------------------------------------------------
-     Mappatura delle variabili native di Bootstrap 5
-     ---------------------------------------------------- */
+
   --bs-primary: var(--ms-teal);
   --bs-primary-rgb: 22, 105, 122;
   --bs-primary-bg-subtle: var(--ms-teal-tint);
   --bs-primary-border-subtle: var(--ms-powder);
-
-  --bs-secondary: var(--ms-sky);
-  --bs-secondary-rgb: 72, 159, 181;
-
-  --bs-warning: var(--ms-orange);
-  --bs-warning-rgb: 255, 166, 43;
-
-  --bs-danger: var(--ms-brick);
-  --bs-danger-rgb: 176, 74, 58;
-
-  --bs-success: var(--ms-sage);
-  --bs-success-rgb: 151, 166, 117;
 }
 
-
-/* Primary */
 .text-primary { color: var(--ms-teal) !important; }
 .bg-primary { background-color: var(--ms-teal) !important; }
 .border-primary { border-color: var(--ms-teal) !important; }
 .bg-primary-subtle { background-color: var(--ms-teal-tint) !important; }
 .border-primary-subtle { border-color: var(--ms-powder) !important; }
 
-/* Secondary & Info */
-.text-secondary, .text-info { color: var(--ms-sky) !important; }
-.bg-secondary, .bg-info { background-color: var(--ms-sky) !important; }
-.border-secondary, .border-info { border-color: var(--ms-sky) !important; }
-
-/* Warning */
-.text-warning { color: var(--ms-orange) !important; }
-.bg-warning { background-color: var(--ms-orange) !important; }
-.bg-warning-subtle { background-color: #fff2dd !important; }
-.text-warning-emphasis { color: #a86b12 !important; }
-.border-warning-subtle { border-color: #f4d9ac !important; }
-
-/* Success */
-.text-success { color: var(--ms-sage) !important; }
-.bg-success { background-color: var(--ms-sage) !important; }
-
-/* Danger */
-.text-danger { color: var(--ms-brick) !important; }
-.bg-danger { background-color: var(--ms-brick) !important; }
-
-/* --- Bottoni Bootstrap --- */
 .btn-primary {
   --bs-btn-bg: var(--ms-teal);
   --bs-btn-border-color: var(--ms-teal);
@@ -82,147 +39,11 @@
   --bs-btn-disabled-border-color: var(--ms-powder);
 }
 
-.btn-danger {
-  --bs-btn-bg: var(--ms-brick);
-  --bs-btn-border-color: var(--ms-brick);
-  --bs-btn-hover-bg: #9a4033;
-  --bs-btn-hover-border-color: #9a4033;
-  --bs-btn-active-bg: #9a4033;
-  --bs-btn-active-border-color: #9a4033;
-  --bs-btn-disabled-bg: #d8b0a8;
-  --bs-btn-disabled-border-color: #d8b0a8;
-}
-
-.btn-outline-danger {
-  --bs-btn-color: var(--ms-brick);
-  --bs-btn-border-color: var(--ms-brick);
-  --bs-btn-hover-bg: var(--ms-brick);
-  --bs-btn-hover-border-color: var(--ms-brick);
-  --bs-btn-active-bg: var(--ms-brick);
-  --bs-btn-active-border-color: var(--ms-brick);
-}
-
-.btn-warning {
-  --bs-btn-bg: var(--ms-orange);
-  --bs-btn-border-color: var(--ms-orange);
-  --bs-btn-hover-bg: #e8941f;
-  --bs-btn-hover-border-color: #e8941f;
-  --bs-btn-active-bg: #e8941f;
-  --bs-btn-active-border-color: #e8941f;
-}
-
-.btn-outline-warning {
-  --bs-btn-color: #c77e13;
-  --bs-btn-border-color: var(--ms-orange);
-  --bs-btn-hover-bg: var(--ms-orange);
-  --bs-btn-hover-border-color: var(--ms-orange);
-  --bs-btn-hover-color: #fff;
-  --bs-btn-active-bg: var(--ms-orange);
-  --bs-btn-active-border-color: var(--ms-orange);
-}
-
 /* Cursore degli slider in palette */
 .form-range::-webkit-slider-thumb { background-color: var(--ms-teal); }
 .form-range::-moz-range-thumb { background-color: var(--ms-teal); }
 .form-range:disabled::-webkit-slider-thumb { background-color: var(--ms-powder); }
 .form-range:disabled::-moz-range-thumb { background-color: var(--ms-powder); }
-
-/* --- Badge di stato: rettangoli outlined --- */
-.ms-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.3rem 0.6rem;
-  border: 1.5px solid;
-  border-radius: 0.375rem;
-  background-color: transparent;
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  line-height: 1;
-  white-space: nowrap;
-}
-.ms-badge-safe { color: var(--ms-sage-text); border-color: var(--ms-sage); background-color: var(--ms-green); }
-.ms-badge-alert { color: var(--ms-brick); border-color: var(--ms-brick); }
-.ms-badge-accent { color: var(--ms-teal); border-color: var(--ms-powder); }
-.ms-badge-warn { color: #a86b12; border-color: var(--ms-orange); }
-.ms-badge-muted { color: #6c757d; border-color: #ced4da; }
-
-/* --- Calendario di programmazione acquisizioni --- */
-.ms-cal {
-  background-color: #fff;
-  border: 1px solid var(--ms-powder);
-  border-radius: 0.75rem;
-  padding: 0.75rem;
-}
-.ms-cal-day {
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.72rem;
-  border: 1.5px solid transparent;
-  border-radius: 0.375rem;
-  cursor: pointer;
-  user-select: none;
-  margin: 1px auto;
-}
-.ms-cal-day:hover:not(.ms-cal-disabled):not(.ms-cal-endpoint) { border-color: var(--ms-sky); }
-.ms-cal-disabled {
-  color: #b4aca6;
-  background-color: var(--ms-offwhite);
-  cursor: not-allowed;
-  border-radius: 0;
-}
-.ms-cal-other-month { opacity: 0.4; }
-.ms-cal-in-range { background-color: var(--ms-teal-tint); border-radius: 0; }
-.ms-cal-endpoint {
-  border-color: var(--ms-teal);
-  color: var(--ms-teal);
-  font-weight: 700;
-  background-color: #fff;
-}
-.ms-cal-quick {
-  font-size: 0.72rem;
-  color: var(--ms-teal);
-  cursor: pointer;
-  padding: 0.15rem 0;
-  background: none;
-  border: none;
-  text-align: left;
-  display: block;
-  width: 100%;
-}
-.ms-cal-quick:hover { color: var(--ms-sky); text-decoration: underline; }
-.ms-cal-nav {
-  background: none;
-  border: none;
-  color: var(--ms-sky);
-  cursor: pointer;
-  padding: 0 0.4rem;
-  font-size: 0.9rem;
-}
-.ms-cal-nav:hover { color: var(--ms-teal); }
-
-/* Input data/ora non validi */
-.ms-input-invalid,
-input.ms-input-invalid.form-control {
-  background-color: var(--ms-offwhite) !important;
-  border-color: var(--ms-brick) !important;
-}
-
-/* Sfondi */
-body { background-color: var(--ms-offwhite); }
-.card { --bs-card-bg: var(--ms-green); }
-.ms-tile { background-color: var(--ms-green) !important; }
-
-/* Navbar */
-.navbar.bg-body-tertiary {
-  background-color: #fff !important;
-  border-bottom: 1px solid var(--ms-powder);
-}
 
 /* Hover Shadow per la landing */
 .hover-shadow:hover {
