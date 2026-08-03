@@ -3,8 +3,8 @@ import { BsBroadcast, BsArrowRight, BsBoxArrowInRight, BsGraphUp, BsEnvelope } f
 
 /**
  * Landing anonima (home pre-login e pagina vista dopo il logout).
- * Hero in stile "split": pannello ottanio a sinistra, opzioni come
- * rettangoli outlined a destra. Palette --ms-* (App.css).
+ * Hero in stile "split": pannello primary a sinistra, opzioni outlined a destra.
+ * Basato esclusivamente sui colori e le classi di utilità standard di Bootstrap 5.
  */
 
 interface Props {
@@ -39,16 +39,16 @@ const LandingPageENG = ({ loginUrl }: Props) => {
   return (
     <div>
 
-      {/* Hero Section: split panel (stile "idea_logout") */}
+      {/* Hero Section: split panel */}
       <Container className="py-5">
         <Row className="g-0 rounded-4 overflow-hidden shadow-sm" style={{ minHeight: '420px' }}>
-          {/* Pannello sinistro: claim su fondo ottanio */}
-          <Col md={5} className="p-5  d-flex flex-column justify-content-between">
+          {/* Pannello sinistro: fondo Primary Bootstrap */}
+          <Col md={5} className="bg-primary text-white p-5 d-flex flex-column justify-content-between">
             <div>
               <h1 className="fw-bold mb-3" style={{ lineHeight: 1.15 }}>
                 A few clicks away from your sensors.
               </h1>
-              <p className="mb-0" style={{ fontSize: '1.05rem' }}>
+              <p className="mb-0 text-white-50" style={{ fontSize: '1.05rem' }}>
                 Real-time LoRaWAN monitoring: calibrations, certificates
                 and live sensor data, always at hand.
               </p>
@@ -56,8 +56,8 @@ const LandingPageENG = ({ loginUrl }: Props) => {
             <BsBroadcast size={56} style={{ opacity: 0.35 }} />
           </Col>
 
-          {/* Pannello destro: opzioni come rettangoli outlined */}
-          <Col md={7} className="p-5" style={{ backgroundColor: '#fff' }}>
+          {/* Pannello destro: opzioni standard Bootstrap */}
+          <Col md={7} className="bg-white p-5">
             <h3 className="fw-bold mb-1">Welcome to MeasureStream</h3>
             <p className="text-muted mb-4">
               Sign in to access your devices, or discover what the platform can do.
@@ -69,30 +69,26 @@ const LandingPageENG = ({ loginUrl }: Props) => {
                   key={o.title}
                   role="button"
                   onClick={o.onClick}
-                  className="d-flex align-items-center gap-3 p-3 rounded-3 hover-shadow"
-                  style={{
-                    border: `1.5px solid ${o.highlighted ? 'var(--ms-teal)' : 'var(--ms-powder)'}`,
-                    backgroundColor: o.highlighted ? 'var(--ms-teal-tint)' : 'transparent',
-                    cursor: 'pointer',
-                  }}
+                  className={`d-flex align-items-center gap-3 p-3 rounded-3 border ${o.highlighted
+                      ? 'border-primary bg-primary-subtle'
+                      : 'border-secondary-subtle bg-transparent'
+                    }`}
+                  style={{ cursor: 'pointer' }}
                 >
                   <div
-                    className="d-inline-flex align-items-center justify-content-center rounded-3 text-white flex-shrink-0"
-                    style={{
-                      width: '44px',
-                      height: '44px',
-                      backgroundColor: o.highlighted ? 'var(--ms-teal)' : 'var(--ms-sky)',
-                    }}
+                    className={`d-inline-flex align-items-center justify-content-center rounded-3 text-white flex-shrink-0 ${o.highlighted ? 'bg-primary' : 'bg-secondary'
+                      }`}
+                    style={{ width: '44px', height: '44px' }}
                   >
                     {o.icon}
                   </div>
                   <div className="flex-grow-1">
-                    <div className="fw-bold text-uppercase" style={{ fontSize: '0.8rem', letterSpacing: '0.5px' }}>
+                    <div className="fw-bold text-uppercase text-dark" style={{ fontSize: '0.8rem', letterSpacing: '0.5px' }}>
                       {o.title}
                     </div>
                     <div className="text-muted small">{o.text}</div>
                   </div>
-                  <BsArrowRight style={{ color: 'var(--ms-teal)' }} />
+                  <BsArrowRight className={o.highlighted ? 'text-primary' : 'text-secondary'} />
                 </div>
               ))}
             </div>
@@ -101,16 +97,16 @@ const LandingPageENG = ({ loginUrl }: Props) => {
       </Container>
 
       {/* Features */}
-      <section id="features" style={{ padding: '40px 0' }}>
+      <section id="features" className="py-5 bg-light">
         <Container>
-          <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Features</h2>
-          <Row>
+          <h2 className="text-center mb-4 fw-bold">Features</h2>
+          <Row className="g-4">
             <Col md={4}>
               <Card className="border-0 shadow-sm rounded-4 overflow-hidden h-100">
                 <Card.Img variant="top" src="https://picsum.photos/id/180/1020" />
                 <Card.Body>
-                  <Card.Title>Sensor Management</Card.Title>
-                  <Card.Text>
+                  <Card.Title className="fw-bold">Sensor Management</Card.Title>
+                  <Card.Text className="text-muted">
                     Organize and manage all your company's sensors in a centralized and intuitive way.
                   </Card.Text>
                 </Card.Body>
@@ -120,8 +116,8 @@ const LandingPageENG = ({ loginUrl }: Props) => {
               <Card className="border-0 shadow-sm rounded-4 overflow-hidden h-100">
                 <Card.Img variant="top" src="https://picsum.photos/id/352/1020" />
                 <Card.Body>
-                  <Card.Title>Real-Time Monitoring</Card.Title>
-                  <Card.Text>
+                  <Card.Title className="fw-bold">Real-Time Monitoring</Card.Title>
+                  <Card.Text className="text-muted">
                     Monitor the status and performance of sensors in real time to ensure optimal management.
                   </Card.Text>
                 </Card.Body>
@@ -131,8 +127,8 @@ const LandingPageENG = ({ loginUrl }: Props) => {
               <Card className="border-0 shadow-sm rounded-4 overflow-hidden h-100">
                 <Card.Img variant="top" src="https://picsum.photos/id/357/1020" />
                 <Card.Body>
-                  <Card.Title>Certificates & Calibrations</Card.Title>
-                  <Card.Text>
+                  <Card.Title className="fw-bold">Certificates & Calibrations</Card.Title>
+                  <Card.Text className="text-muted">
                     Easily access sensor calibrations and certificates to ensure compliance and reliability.
                   </Card.Text>
                 </Card.Body>
@@ -143,36 +139,35 @@ const LandingPageENG = ({ loginUrl }: Props) => {
       </section>
 
       {/* Benefits */}
-      <section id="benefits" style={{ backgroundColor: '#fff', padding: '40px 0' }}>
-        <Container>
-          <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Benefits</h2>
-          <p style={{ textAlign: 'center' }}>
+      <section id="benefits" className="bg-white py-5">
+        <Container className="text-center">
+          <h2 className="mb-3 fw-bold">Benefits</h2>
+          <p className="text-muted mx-auto" style={{ maxWidth: '700px' }}>
             MeasureStream simplifies corporate sensor management, helping you save time, improve device reliability, and optimize workflow.
           </p>
         </Container>
       </section>
 
       {/* Contact */}
-      <section id="contact" style={{ padding: '40px 0' }}>
-        <Container>
-          <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Contact Us</h2>
-          <p style={{ textAlign: 'center', marginBottom: '20px' }}>
+      <section id="contact" className="py-5 bg-light">
+        <Container className="text-center">
+          <h2 className="mb-3 fw-bold">Contact Us</h2>
+          <p className="text-muted mx-auto mb-4" style={{ maxWidth: '650px' }}>
             Interested in accessing the MeasureStream application? Please note that self-registration is not available.
             To request access, kindly contact our team directly using the information below.
           </p>
-          <div style={{ textAlign: 'center' }}>
-            <Button variant="outline-primary" className="fw-bold px-4" href="mailto:support@measurestream.com">
+          <div>
+            <Button variant="outline-primary" className="fw-bold px-4 rounded-pill" href="mailto:support@measurestream.com">
               Contact Us <BsArrowRight className="ms-1" />
             </Button>
           </div>
         </Container>
-
       </section>
 
       {/* Footer */}
-      <footer style={{ backgroundColor: 'var(--ms-teal)', color: 'white', padding: '20px 0', textAlign: 'center' }}>
+      <footer className="bg-primary text-white py-4 text-center">
         <Container>
-          <p className="mb-0">&copy; 2025 MeasureStream. All rights reserved.</p>
+          <p className="mb-0 small">&copy; 2025 MeasureStream. All rights reserved.</p>
         </Container>
       </footer>
     </div>
