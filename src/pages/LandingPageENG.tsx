@@ -1,11 +1,7 @@
 import { Container, Button, Row, Col, Card } from 'react-bootstrap';
 import { BsBroadcast, BsArrowRight, BsBoxArrowInRight, BsGraphUp, BsEnvelope } from 'react-icons/bs';
 
-/**
- * Landing anonima (home pre-login e pagina vista dopo il logout).
- * Hero in stile "split": pannello primary a sinistra, opzioni outlined a destra.
- * Basato esclusivamente sui colori e le classi di utilità standard di Bootstrap 5.
- */
+
 
 interface Props {
   loginUrl?: string;
@@ -38,10 +34,46 @@ const options = (loginUrl?: string) => [
 const LandingPageENG = ({ loginUrl }: Props) => {
   return (
     <div>
+      {/* CSS Inline per le animazioni e gli effetti hover */}
+      <style>{`
+        /* Animazione d'ingresso sfumata per la Hero Section */
+        @keyframes heroFadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
 
-      {/* Hero Section: split panel */}
+        .animated-hero {
+          animation: heroFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* Animazione hover sulle opzioni della Hero */
+        .hero-option-card {
+          transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+        }
+        .hero-option-card:hover {
+          transform: translateX(6px);
+          box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08) !important;
+        }
+
+        /* Animazione hover sulle Card delle Features */
+        .feature-card {
+          transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .feature-card:hover {
+          transform: translateY(-8px);
+          box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.12) !important;
+        }
+      `}</style>
+
+      {/* Hero Section: split panel con ombra elevata e animazione */}
       <Container className="py-5">
-        <Row className="g-0 rounded-4 overflow-hidden shadow-sm" style={{ minHeight: '420px' }}>
+        <Row className="g-0 rounded-4 overflow-hidden shadow-lg animated-hero" style={{ minHeight: '420px' }}>
           {/* Pannello sinistro: fondo Primary Bootstrap */}
           <Col md={5} className="bg-primary text-white p-5 d-flex flex-column justify-content-between">
             <div>
@@ -56,7 +88,7 @@ const LandingPageENG = ({ loginUrl }: Props) => {
             <BsBroadcast size={56} style={{ opacity: 0.35 }} />
           </Col>
 
-          {/* Pannello destro: opzioni standard Bootstrap */}
+          {/* Pannello destro: opzioni standard Bootstrap con animazione hover */}
           <Col md={7} className="bg-white p-5">
             <h3 className="fw-bold mb-1">Welcome to MeasureStream</h3>
             <p className="text-muted mb-4">
@@ -69,9 +101,9 @@ const LandingPageENG = ({ loginUrl }: Props) => {
                   key={o.title}
                   role="button"
                   onClick={o.onClick}
-                  className={`d-flex align-items-center gap-3 p-3 rounded-3 border ${o.highlighted
-                      ? 'border-primary bg-primary-subtle'
-                      : 'border-secondary-subtle bg-transparent'
+                  className={`hero-option-card d-flex align-items-center gap-3 p-3 rounded-3 border ${o.highlighted
+                    ? 'border-primary bg-primary-subtle'
+                    : 'border-secondary-subtle bg-transparent'
                     }`}
                   style={{ cursor: 'pointer' }}
                 >
@@ -96,13 +128,13 @@ const LandingPageENG = ({ loginUrl }: Props) => {
         </Row>
       </Container>
 
-      {/* Features */}
+      {/* Features Section */}
       <section id="features" className="py-5 bg-light">
         <Container>
           <h2 className="text-center mb-4 fw-bold">Features</h2>
           <Row className="g-4">
             <Col md={4}>
-              <Card className="border-0 shadow-sm rounded-4 overflow-hidden h-100">
+              <Card className="feature-card border-0 shadow-sm rounded-4 overflow-hidden h-100">
                 <Card.Img variant="top" src="https://picsum.photos/id/180/1020" />
                 <Card.Body>
                   <Card.Title className="fw-bold">Sensor Management</Card.Title>
@@ -113,7 +145,7 @@ const LandingPageENG = ({ loginUrl }: Props) => {
               </Card>
             </Col>
             <Col md={4}>
-              <Card className="border-0 shadow-sm rounded-4 overflow-hidden h-100">
+              <Card className="feature-card border-0 shadow-sm rounded-4 overflow-hidden h-100">
                 <Card.Img variant="top" src="https://picsum.photos/id/352/1020" />
                 <Card.Body>
                   <Card.Title className="fw-bold">Real-Time Monitoring</Card.Title>
@@ -124,7 +156,7 @@ const LandingPageENG = ({ loginUrl }: Props) => {
               </Card>
             </Col>
             <Col md={4}>
-              <Card className="border-0 shadow-sm rounded-4 overflow-hidden h-100">
+              <Card className="feature-card border-0 shadow-sm rounded-4 overflow-hidden h-100">
                 <Card.Img variant="top" src="https://picsum.photos/id/357/1020" />
                 <Card.Body>
                   <Card.Title className="fw-bold">Certificates & Calibrations</Card.Title>
