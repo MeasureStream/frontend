@@ -57,8 +57,8 @@ export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPagePr
 
           return (
             <Col key={cu.id} xs={12} lg={6} xl={4} className="mb-4">
-              {/* Applicata la classe `hover-lift` per ombra + elevazione al passaggio del mouse */}
-              <Card className="shadow-sm border-0 hover-lift h-100">
+              {/* Sostituito `shadow-sm` con `shadow` per un'ombra marcata di default + `hover-lift` */}
+              <Card className="shadow border-0 hover-lift h-100">
                 <Card.Body className="d-flex flex-column justify-content-between">
                   <div>
                     <div className="d-flex justify-content-between align-items-start mb-3">
@@ -69,7 +69,7 @@ export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPagePr
                         </code>
                       </div>
 
-                      {/* Tasto eliminazione con animazione slide */}
+                      {/* Tasto eliminazione con animazione hover */}
                       <button
                         className="btn btn-link text-muted p-1 border-0 hover-slide-right"
                         onClick={() => openDeleteModal(cu)}
@@ -105,7 +105,7 @@ export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPagePr
                   </div>
 
                   <div className="d-grid mt-3">
-                    <Link to={`/cus/${cu.id}`} className="btn btn-outline-primary btn-sm d-flex align-items-center justify-content-center gap-2">
+                    <Link to={`/cus/${cu.id}`} className="btn btn-outline-primary btn-sm d-flex align-items-center justify-content-center gap-2 hover-slide-right">
                       Dettaglio Sensori <BsArrowRight />
                     </Link>
                   </div>
