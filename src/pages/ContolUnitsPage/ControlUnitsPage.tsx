@@ -71,7 +71,7 @@ export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPagePr
 
                       {/* Tasto eliminazione con animazione hover */}
                       <button
-                        className="btn btn-link text-muted p-1 border-0 hover-slide-right"
+                        className="btn btn-link text-muted p-1 border-0 "
                         onClick={() => openDeleteModal(cu)}
                         title={`Elimina ${cu.name}`}
                         style={{ background: 'none' }}
