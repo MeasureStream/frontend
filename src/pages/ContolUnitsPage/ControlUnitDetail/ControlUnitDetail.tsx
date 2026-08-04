@@ -285,7 +285,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
               <Col lg={5} md={8} className="border-start-lg ps-lg-4">
                 <div className="d-flex align-items-center gap-2 mb-2 text-muted">
                   <BsCalendarEvent size={16} className="text-primary" />
-                  <label className="fw-bold small text-uppercase mb-0">Schedule Session (Optional)</label>
+                  <label className="fw-bold small text-uppercase mb-0">Schedule Session </label>
                 </div>
 
                 <Row className="g-3">
@@ -319,7 +319,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
 
                   {/* SEZIONE FINE */}
                   <Col sm={6}>
-                    <span className="text-muted tiny d-block mb-1 fw-bold" style={{ fontSize: '0.7rem' }}>END SESSION (SOLO GIORNO)</span>
+                    <span className="text-muted tiny d-block mb-1 fw-bold" style={{ fontSize: '0.7rem' }}>END SESSION</span>
                     <div className="d-flex gap-1">
                       <Form.Control
                         type="date"
