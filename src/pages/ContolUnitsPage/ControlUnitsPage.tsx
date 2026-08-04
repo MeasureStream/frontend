@@ -36,15 +36,15 @@ function batteryPercent(cu: ControlUnitDTO): number {
 }
 
 /**
- * Colore di riempimento della barra (l'icona resta sempre salvia):
+ * Colore di riempimento della barra (l'icona resta sempre in ottanio):
  * salvia quando alimentata dall'esterno o in carica, altrimenti dinamico
- * sul livello (verde chiaro → arancione → cremisi).
+ * sul livello (salvia → arancione sotto il 20% → cremisi sotto il 10%).
  */
 function batteryColor(percent: number, source: PowerSource): string {
   if (source !== "BATTERY") return "var(--ms-sage)";
   if (percent < 10) return "var(--ms-crimson)";
   if (percent < 20) return "var(--ms-orange)";
-  return "var(--ms-green)";
+  return "var(--ms-sage)";
 }
 
 function isControlUnitOnline(lastSeen: string | null, transmissionInterval: number): boolean {
@@ -126,7 +126,7 @@ export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPagePr
 
                     <Row className="text-center mb-3">
                       <Col>
-                        <BsBatteryFull className="mb-1" size={20} style={{ color: 'var(--ms-sage)' }} />
+                        <BsBatteryFull className="mb-1" size={20} style={{ color: 'var(--ms-teal)' }} />
                         <div className="small fw-bold">{percent}%</div>
                         <ProgressBar
                           now={percent}
@@ -136,12 +136,12 @@ export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPagePr
                         <small className="text-muted">{POWER_LABEL[powerSource]}</small>
                       </Col>
                       <Col>
-                        <BsBroadcast className="mb-1" size={18} style={{ color: 'var(--ms-sage)' }} />
+                        <BsBroadcast className="mb-1" size={18} style={{ color: 'var(--ms-teal)' }} />
                         <div className="small fw-bold">{cu.rssi} dBm</div>
                         <small className="text-muted">Segnale</small>
                       </Col>
                       <Col>
-                        <BsCpu className="mb-1" size={20} style={{ color: 'var(--ms-sage)' }} />
+                        <BsCpu className="mb-1" size={20} style={{ color: 'var(--ms-teal)' }} />
                         <div className="small fw-bold">{cu.measurementUnits.length}</div>
                         <small className="text-muted">MU associate</small>
                       </Col>
@@ -163,7 +163,7 @@ export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPagePr
                     style={{
                       fontSize: '0.7rem',
                       letterSpacing: '0.5px',
-                      color: isOnline ? 'var(--ms-green)' : '#6c757d',
+                      color: isOnline ? 'var(--ms-sage)' : '#6c757d',
                     }}
                   >
                     {isOnline ? "Active" : "Inactive"}

@@ -6,14 +6,19 @@
   --ms-offwhite: #EDE7E3;    /* Bianco sporco — sfondi neutri */
   --ms-orange: #FFA62B;      /* Arancione oro — attenzione */
   --ms-green: #D6EAD4;       /* Verde chiaro — stati safe */
-  --ms-sage: #97A675;        /* Verde salvia scuro — bordi/icone safe */
-  --ms-sage-text: #5f6b45;   /* Salvia scurito: testo leggibile su verde chiaro */
+  --ms-sage: #97A675;        /* Verde salvia scuro — stati positivi */
   --ms-crimson: #dc3545;     /* Rosso cremisi — errori, stati critici */
 
   --bs-primary: var(--ms-teal);
   --bs-primary-rgb: 22, 105, 122;
   --bs-primary-bg-subtle: var(--ms-teal-tint);
   --bs-primary-border-subtle: var(--ms-powder);
+
+  /* Il cremisi della palette coincide col danger di Bootstrap: lo dichiariamo
+     comunque qui, così il rosso di errori e azioni distruttive resta una
+     scelta della palette e non un default ereditato dal framework. */
+  --bs-danger: var(--ms-crimson);
+  --bs-danger-rgb: 220, 53, 69;
 }
 
 .text-primary { color: var(--ms-teal) !important; }
@@ -43,6 +48,32 @@
   --bs-btn-disabled-color: var(--ms-powder);
   --bs-btn-disabled-border-color: var(--ms-powder);
 }
+
+/* --- Stati negativi / errori / azioni distruttive: rosso cremisi --- */
+.text-danger { color: var(--ms-crimson) !important; }
+.bg-danger { background-color: var(--ms-crimson) !important; }
+.border-danger { border-color: var(--ms-crimson) !important; }
+
+.btn-danger {
+  --bs-btn-bg: var(--ms-crimson);
+  --bs-btn-border-color: var(--ms-crimson);
+  --bs-btn-hover-bg: #bb2d3b;
+  --bs-btn-hover-border-color: #bb2d3b;
+  --bs-btn-active-bg: #bb2d3b;
+  --bs-btn-active-border-color: #bb2d3b;
+}
+
+.btn-outline-danger {
+  --bs-btn-color: var(--ms-crimson);
+  --bs-btn-border-color: var(--ms-crimson);
+  --bs-btn-hover-bg: var(--ms-crimson);
+  --bs-btn-hover-border-color: var(--ms-crimson);
+  --bs-btn-active-bg: var(--ms-crimson);
+  --bs-btn-active-border-color: var(--ms-crimson);
+}
+
+/* Riempimento delle ProgressBar con variant="danger" (es. batteria, airtime) */
+.progress-bar.bg-danger { background-color: var(--ms-crimson) !important; }
 
 /* Cursore degli slider in palette */
 .form-range::-webkit-slider-thumb { background-color: var(--ms-teal); }
