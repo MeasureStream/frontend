@@ -129,7 +129,7 @@ const LandingPageENG = ({ loginUrl }: Props) => {
       </Container>
 
       {/* Features Section */}
-      <section id="features" className="py-5 bg-light">
+      <section id="features" className="py-5 ">
         <Container>
           <h2 className="text-center mb-4 fw-bold">Features</h2>
           <Row className="g-4">

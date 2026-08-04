@@ -135,7 +135,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
   return (
     <Container className="py-4 fade-in-up">
       {/* --- HEADER CU --- */}
-      <div className="d-flex justify-content-between align-items-end mb-4 px-2">
+      <div className="d-flex shadow justify-content-between align-items-end mb-4 px-2">
         <div>
           <div className="d-flex align-items-center gap-2 mb-1">
             <h2 className="fw-bold mb-0" style={{ letterSpacing: '-0.5px' }}>{cu.name}</h2>
@@ -167,7 +167,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
       <Row className="g-3 mb-5">
         {/* Network Health */}
         <Col md={4}>
-          <div className="p-3 ms-tile rounded shadow-sm border-0 h-100 hover-lift">
+          <div className="p-3 ms-tile rounded shadow border-0 h-100 hover-lift">
             <div className="d-flex align-items-center gap-2 mb-3 text-primary">
               <BsActivity size={18} />
               <span className="fw-bold small text-uppercase">Network Health</span>
@@ -197,7 +197,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
 
         {/* Radio Params */}
         <Col md={4}>
-          <div className="p-3 ms-tile rounded shadow-sm border-0 h-100 hover-lift">
+          <div className="p-3 ms-tile rounded shadow border-0 h-100 hover-lift">
             <div className="d-flex align-items-center gap-2 mb-3 text-success">
               <BsBroadcast size={18} />
               <span className="fw-bold small text-uppercase">Radio Signals</span>
@@ -221,7 +221,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
 
         {/* Config Summary */}
         <Col md={4}>
-          <div className="p-3 ms-tile rounded shadow-sm border-0 h-100 position-relative hover-lift">
+          <div className="p-3 ms-tile rounded shadow border-0 h-100 position-relative hover-lift">
             <div className="d-flex align-items-center justify-content-between mb-3 text-secondary">
               <div className="d-flex align-items-center gap-2">
                 <BsGear size={18} />
@@ -262,7 +262,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
           <Card.Body className="p-4">
             <Row className="align-items-center g-4">
               {/* 1. SELEZIONE INTERVALLO (SLIDER) */}
-              <Col lg={3} md={12}>
+              <Col lg={4} md={12}>
                 <div className="d-flex justify-content-between align-items-end mb-2">
                   <label className="fw-bold small text-uppercase text-muted">Transmission Interval</label>
                   <span className={`ms-badge font-monospace ${acqIndex === 0 ? "ms-badge-muted" : "ms-badge-alert"}`} style={{ fontSize: '0.85rem' }}>
@@ -282,7 +282,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
               </Col>
 
               {/* 2. CALENDARIO STRUTTURATO */}
-              <Col lg={6} md={8} className="border-start-lg ps-lg-4">
+              <Col lg={5} md={8} className="border-start-lg ps-lg-4">
                 <div className="d-flex align-items-center gap-2 mb-2 text-muted">
                   <BsCalendarEvent size={16} className="text-primary" />
                   <label className="fw-bold small text-uppercase mb-0">Schedule Session (Optional)</label>
@@ -343,10 +343,10 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
               </Col>
 
               {/* 3. PULSANTI DI AZIONE CON EFFETTO HOVER-SLIDE */}
-              <Col lg={2} md={2} className="d-flex flex-column gap-2 justify-content-center">
+              <Col lg={3} md={4} className="d-flex flex-column gap-2 justify-content-center">
                 <Button
                   variant="outline-primary"
-                  className="fw-bold px-4 py-2 d-flex align-items-center justify-content-center gap-2 shadow-sm hover-slide-right"
+                  className="fw-bold px-4 py-2 d-flex align-items-center justify-content-center gap-2 shadow hover-slide-right"
                   disabled={acqIndex === 0 || (schedule !== null && !schedule.valid)}
                   onClick={handleStartAcquisition}
                 >
@@ -377,7 +377,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
         <Button
           variant="outline-primary"
           size="sm"
-          className="d-flex align-items-center gap-2 shadow-sm hover-slide-right"
+          className="d-flex align-items-center gap-2 shadow hover-slide-right"
           onClick={() => setShowSensorConfig(true)}
         >
           <BsCpu size={16} /> Configura Sampling Sensori
