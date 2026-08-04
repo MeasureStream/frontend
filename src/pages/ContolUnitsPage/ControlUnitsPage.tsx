@@ -1,10 +1,51 @@
 import { Container, Row, Col, Card, ProgressBar } from "react-bootstrap";
-import { BsSignal, BsBatteryFull, BsCpu, BsArrowRight, BsTrash } from "react-icons/bs";
+import { BsBroadcast, BsBatteryFull, BsCpu, BsArrowRight, BsTrash } from "react-icons/bs";
 import { Link } from "react-router";
 import { useState } from "react";
 import { ControlUnitDTO, formatDevEui } from "../../API/interfaces";
 import { DeleteCUModal } from "../../components/DeleteCUModal";
 import { EmptyDevicesLanding } from "./EmptyDevicesLanding";
+
+/** Valori riservati del byte batteria trasmesso dalla CU. */
+const BATTERY_RAW_EXTERNAL = 254; // 0xFE — alimentazione da rete/USB
+const BATTERY_RAW_CHARGING = 255; // 0xFF — carica in corso
+
+type PowerSource = "BATTERY" | "CHARGING" | "EXTERNAL";
+
+/**
+ * Sorgente di alimentazione: usa il campo del DTO se presente, altrimenti
+ * interpreta i valori riservati del byte grezzo (0xFE/0xFF).
+ */
+function getPowerSource(cu: ControlUnitDTO): PowerSource {
+  if (cu.powerSource) return cu.powerSource;
+  if (cu.remainingBattery === BATTERY_RAW_CHARGING) return "CHARGING";
+  if (cu.remainingBattery === BATTERY_RAW_EXTERNAL) return "EXTERNAL";
+  return "BATTERY";
+}
+
+const POWER_LABEL: Record<PowerSource, string> = {
+  BATTERY: "A batteria",
+  CHARGING: "In ricarica",
+  EXTERNAL: "Alimentazione USB",
+};
+
+/** Percentuale mostrata: i valori riservati non sono livelli di carica. */
+function batteryPercent(cu: ControlUnitDTO): number {
+  if (cu.remainingBattery >= BATTERY_RAW_EXTERNAL) return 100;
+  return cu.remainingBattery;
+}
+
+/**
+ * Colore di riempimento della barra (l'icona resta sempre salvia):
+ * salvia quando alimentata dall'esterno o in carica, altrimenti dinamico
+ * sul livello (verde chiaro → arancione → cremisi).
+ */
+function batteryColor(percent: number, source: PowerSource): string {
+  if (source !== "BATTERY") return "var(--ms-sage)";
+  if (percent < 10) return "var(--ms-crimson)";
+  if (percent < 20) return "var(--ms-orange)";
+  return "var(--ms-green)";
+}
 
 function isControlUnitOnline(lastSeen: string | null, transmissionInterval: number): boolean {
   if (!lastSeen) return false;
@@ -54,6 +95,9 @@ export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPagePr
       <Row>
         {controlUnits.map((cu) => {
           const isOnline = isControlUnitOnline(cu.lastSeen, cu.transmissionInterval);
+          const powerSource = getPowerSource(cu);
+          const percent = batteryPercent(cu);
+          const batteryTint = batteryColor(percent, powerSource);
 
           return (
             <Col key={cu.id} xs={12} lg={6} xl={4} className="mb-4">
@@ -82,22 +126,22 @@ export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPagePr
 
                     <Row className="text-center mb-3">
                       <Col>
-                        <BsBatteryFull className="text-primary mb-1" size={20} />
-                        <div className="small fw-bold">{cu.remainingBattery}%</div>
+                        <BsBatteryFull className="mb-1" size={20} style={{ color: 'var(--ms-sage)' }} />
+                        <div className="small fw-bold">{percent}%</div>
                         <ProgressBar
-                          now={cu.remainingBattery}
-                          variant={cu.remainingBattery < 20 ? "danger" : "primary"}
-                          style={{ height: '4px' }}
-                          className="mt-1"
+                          now={percent}
+                          style={{ height: '4px', ['--ms-progress-color' as string]: batteryTint }}
+                          className="mt-1 ms-progress"
                         />
+                        <small className="text-muted">{POWER_LABEL[powerSource]}</small>
                       </Col>
                       <Col>
-                        <BsSignal className="text-info mb-1" size={20} />
+                        <BsBroadcast className="mb-1" size={18} style={{ color: 'var(--ms-sage)' }} />
                         <div className="small fw-bold">{cu.rssi} dBm</div>
                         <small className="text-muted">Segnale</small>
                       </Col>
                       <Col>
-                        <BsCpu className="text-warning mb-1" size={20} />
+                        <BsCpu className="mb-1" size={20} style={{ color: 'var(--ms-sage)' }} />
                         <div className="small fw-bold">{cu.measurementUnits.length}</div>
                         <small className="text-muted">MU associate</small>
                       </Col>
@@ -114,7 +158,14 @@ export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPagePr
                 <Card.Footer className="border-0 py-2 d-flex justify-content-between align-items-center" style={{ backgroundColor: "transparent" }}>
                   <small className="text-muted">Località: {cu.semanticLocation || "Non specificata"}</small>
 
-                  <span className={`ms-badge ${isOnline ? "ms-badge-safe" : "ms-badge-muted"}`}>
+                  <span
+                    className="fw-bold text-uppercase"
+                    style={{
+                      fontSize: '0.7rem',
+                      letterSpacing: '0.5px',
+                      color: isOnline ? 'var(--ms-green)' : '#6c757d',
+                    }}
+                  >
                     {isOnline ? "Active" : "Inactive"}
                   </span>
                 </Card.Footer>

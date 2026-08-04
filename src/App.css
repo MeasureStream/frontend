@@ -3,6 +3,12 @@
   --ms-sky: #489FB5;          /* Azzurro cielo — hover */
   --ms-powder: #82C0CC;      /* Azzurro polvere — bordi / disabilitato */
   --ms-teal-tint: #e6f2f5;   /* Tinta chiarissima ottanio */
+  --ms-offwhite: #EDE7E3;    /* Bianco sporco — sfondi neutri */
+  --ms-orange: #FFA62B;      /* Arancione oro — attenzione */
+  --ms-green: #D6EAD4;       /* Verde chiaro — stati safe */
+  --ms-sage: #97A675;        /* Verde salvia scuro — bordi/icone safe */
+  --ms-sage-text: #5f6b45;   /* Salvia scurito: testo leggibile su verde chiaro */
+  --ms-crimson: #dc3545;     /* Rosso cremisi — errori, stati critici */
 
   --bs-primary: var(--ms-teal);
   --bs-primary-rgb: 22, 105, 122;
@@ -43,6 +49,10 @@
 .form-range::-moz-range-thumb { background-color: var(--ms-teal); }
 .form-range:disabled::-webkit-slider-thumb { background-color: var(--ms-powder); }
 .form-range:disabled::-moz-range-thumb { background-color: var(--ms-powder); }
+
+/* Progress bar con colore di riempimento dinamico: il colore si passa
+   inline sul wrapper come --ms-progress-color (usato per la batteria). */
+.ms-progress .progress-bar { background-color: var(--ms-progress-color); }
 
 /* --- Animazioni e Utility riutilizzabili --- */
 
