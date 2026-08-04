@@ -343,7 +343,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
               </Col>
 
               {/* 3. PULSANTI DI AZIONE CON EFFETTO HOVER-SLIDE */}
-              <Col lg={3} md={4} className="d-flex flex-column gap-2 justify-content-center">
+              <Col lg={2} md={2} className="d-flex flex-column gap-2 justify-content-center">
                 <Button
                   variant="outline-primary"
                   className="fw-bold px-4 py-2 d-flex align-items-center justify-content-center gap-2 shadow-sm hover-slide-right"
