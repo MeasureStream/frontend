@@ -135,7 +135,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
   return (
     <Container className="py-4 fade-in-up">
       {/* --- HEADER CU --- */}
-      <div className="d-flex shadow justify-content-between align-items-end mb-4 px-2">
+      <div className="d-flex justify-content-between align-items-end mb-4 px-2">
         <div>
           <div className="d-flex align-items-center gap-2 mb-1">
             <h2 className="fw-bold mb-0" style={{ letterSpacing: '-0.5px' }}>{cu.name}</h2>
@@ -389,7 +389,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
         .slice()
         .sort((a, b) => a.localId - b.localId)
         .map((mu: any) => (
-          <div key={mu.id} className="mb-3 hover-lift">
+          <div key={mu.id} className="mb-3 shadow hover-lift">
             <MeasurementUnitCard
               mu={mu}
               handleSetDirty={handleSetDirty}
