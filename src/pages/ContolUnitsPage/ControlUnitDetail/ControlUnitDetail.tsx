@@ -146,9 +146,15 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
               title="Modifica nome e locazione"
             />
 
-            <span className={`ms-badge ${isOnline ? "ms-badge-safe" : "ms-badge-muted"}`} style={{ verticalAlign: 'middle' }}>
-              {isOnline ? "ACTIVE" : "INACTIVE"}
-            </span>
+            <span 
+            className={`ms-badge ${isOnline ? "ms-badge-safe" : "ms-badge-muted"}`} 
+            style={{ 
+              verticalAlign: 'middle',
+              color: isOnline ? 'var(--ms-sage)' : 'black' 
+            }}
+          >
+            {isOnline ? "ACTIVE" : "INACTIVE"}
+          </span>
           </div>
           <small className="text-muted font-monospace">
             EUI: {cu.devEui ? formatDevEui(cu.devEui) : "N/D"} • {cu.semanticLocation || "No Location"}
@@ -169,7 +175,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
         <Col md={4}>
           <div className="p-3 ms-tile rounded shadow border-0 h-100 hover-lift">
             <div className="d-flex align-items-center gap-2 mb-3 text-primary">
-              <BsActivity size={18} />
+              <i className="bi bi-opencollective" style={{ fontSize: '18px' }}></i>
               <span className="fw-bold small text-uppercase">Network Health</span>
             </div>
             <div className="mb-3">
@@ -199,7 +205,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
         <Col md={4}>
           <div className="p-3 ms-tile rounded shadow border-0 h-100 hover-lift">
             <div className="d-flex align-items-center gap-2 mb-3 text-primary">
-              <BsBroadcast size={18} />
+              <i className="bi bi-bar-chart-fill fs-5" style={{ fontSize: '18px' }}></i>
               <span className="fw-bold small text-uppercase">Radio Signals</span>
             </div>
             <Row className="g-2 text-center">
@@ -224,7 +230,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
           <div className="p-3 ms-tile rounded shadow border-0 h-100 position-relative hover-lift">
             <div className="d-flex align-items-center justify-content-between mb-3 text-secondary">
               <div className="d-flex align-items-center gap-2">
-                <BsGear size={18} />
+                <i className="bi bi-wrench-adjustable-circle" style={{ fontSize: '18px' }}></i>
                 <span className="fw-bold small text-uppercase">Configuration</span>
               </div>
               <BsGear
@@ -380,7 +386,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
           className="d-flex align-items-center gap-2 shadow hover-slide-right"
           onClick={() => setShowSensorConfig(true)}
         >
-          <BsCpu size={16} /> Configura Sampling Sensori
+          <i className="bi bi-pencil-square" style={{ fontSize: '18px' }}></i> Configura Sampling Sensori
         </Button>
       </div>
 
