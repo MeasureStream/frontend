@@ -1,7 +1,7 @@
 import { ControlUnitDTO, formatDevEui, CUTransmissionCommandDTO, AcquisitionSchedule } from "../../../API/interfaces";
 import { Container, Row, Col, Card, Badge, ListGroup, ProgressBar, Button, Form } from "react-bootstrap";
 import { BsCpu, BsGear, BsPencil, BsThermometerHalf, BsDroplet, BsSpeedometer, BsToggles, BsActivity, BsBroadcast, BsPlayFill, BsStopFill, BsCalendarEvent } from "react-icons/bs";
-
+import {BsPencilSquare, BsWrenchAdjustableCircle, BsBarChartFill, BsOpencollective } from "react-icons/bs"; //Icone Marco
 import { useParams } from "react-router";
 import { useEffect, useState } from "react";
 import { MeasurementUnitCard } from "../../../components/MeasurementUnitCard";
@@ -175,7 +175,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
         <Col md={4}>
           <div className="p-3 ms-tile rounded shadow border-0 h-100 hover-lift">
             <div className="d-flex align-items-center gap-2 mb-3 text-primary">
-              <i className="bi bi-opencollective" style={{ fontSize: '18px' }}></i>
+              <BsOpencollective size={18} />
               <span className="fw-bold small text-uppercase">Network Health</span>
             </div>
             <div className="mb-3">
@@ -205,7 +205,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
         <Col md={4}>
           <div className="p-3 ms-tile rounded shadow border-0 h-100 hover-lift">
             <div className="d-flex align-items-center gap-2 mb-3 text-primary">
-              <i className="bi bi-bar-chart-fill fs-5" style={{ fontSize: '18px' }}></i>
+              <BsBarChartFill size={18} />
               <span className="fw-bold small text-uppercase">Radio Signals</span>
             </div>
             <Row className="g-2 text-center">
@@ -230,7 +230,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
           <div className="p-3 ms-tile rounded shadow border-0 h-100 position-relative hover-lift">
             <div className="d-flex align-items-center justify-content-between mb-3 text-secondary">
               <div className="d-flex align-items-center gap-2">
-                <i className="bi bi-wrench-adjustable-circle" style={{ fontSize: '18px' }}></i>
+                <BsWrenchAdjustableCircle size={18} />
                 <span className="fw-bold small text-uppercase">Configuration</span>
               </div>
               <BsGear
@@ -386,7 +386,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
           className="d-flex align-items-center gap-2 shadow hover-slide-right"
           onClick={() => setShowSensorConfig(true)}
         >
-          <i className="bi bi-pencil-square" style={{ fontSize: '18px' }}></i> Configura Sampling Sensori
+          <BsPencilSquare size={18} /> Configura Sampling Sensori
         </Button>
       </div>
 
