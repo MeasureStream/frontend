@@ -158,7 +158,7 @@ export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPagePr
                         <small className="text-muted">{POWER_LABEL[powerSource]}</small>
                       </Col>
                       <Col>
-                        <BsBarChartFill className="mb-1" size={18} style={{ color: 'var(--ms-teal)' }} />
+                        <BsBroadcast className="mb-1" size={18} style={{ color: 'var(--ms-teal)' }} />
                         <div className="small fw-bold">{cu.rssi} dBm</div>
                         <small className="text-muted">Segnale</small>
                       </Col>

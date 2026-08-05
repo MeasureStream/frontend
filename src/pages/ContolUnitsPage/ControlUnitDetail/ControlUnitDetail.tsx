@@ -157,7 +157,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
           </span>
           </div>
           <small className="text-muted font-monospace">
-            EUI: {cu.devEui ? formatDevEui(cu.devEui) : "N/D"} <BsGeoFill size={12} /> {cu.semanticLocation || "No Location"}
+            EUI: {cu.devEui ? formatDevEui(cu.devEui) : "N/D"} <BsGeoFill size={13} /> {cu.semanticLocation || "No Location"}
           </small>
         </div>
         <div className="text-end" style={{ minWidth: '150px' }}>
@@ -205,7 +205,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
         <Col md={4}>
           <div className="p-3 ms-tile rounded shadow border-0 h-100 hover-lift">
             <div className="d-flex align-items-center gap-2 mb-3 text-primary">
-              <BsBarChartFill size={18} className="flex-shrink-0" style={{ display: 'block' }} />
+              <BsBroadcast size={18} className="flex-shrink-0" style={{ display: 'block' }} />
               <span className="fw-bold small text-uppercase">Radio Signals</span>
             </div>
             <Row className="g-2 text-center">
