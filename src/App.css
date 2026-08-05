@@ -1,3 +1,17 @@
+/*
+   --ms-teal: #16697A;         Ottanio scuro — colore primario 
+  --ms-sky: #489FB5;          Azzurro cielo — secondario / hover 
+  --ms-powder: #82C0CC;       Azzurro polvere — bordi, accenti soft 
+  --ms-offwhite: #EDE7E3;     Bianco sporco — sfondi neutri 
+  --ms-orange: #FFA62B;       Arancione oro — warning / highlight 
+  --ms-green: #D6EAD4;        Verde chiaro — sfondo condizioni safe 
+  --ms-sage: #97A675;         Verde salvia scuro — bordo/testo safe 
+  --ms-sage-text: #5f6b45;    Salvia scurito per testo leggibile su sfondo chiaro 
+  --ms-brick: #B04A3A;        Rosso mattone — casi limite (confermato) 
+  --ms-teal-tint: #e6f2f5;    Tinta chiarissima dell'ottanio per chip/sfondi 
+}
+
+  */
 :root {
   --ms-teal: #16697A;        /* Ottanio scuro — colore primario */
   --ms-sky: #489FB5;          /* Azzurro cielo — hover */
