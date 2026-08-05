@@ -55,13 +55,14 @@ export function ChartModalButton({ nodeId, unit, setDirty }: { nodeId: number, u
   return (
     <>
       {/* BOTTONE MINIMALISTA: Da posizionare vicino al valore del sensore */}
-      <Button
+     <Button
         variant="outline-primary"
         size="sm"
-        className="rounded-circle p-2 shadow-sm"
+        className="rounded-circle d-inline-flex align-items-center justify-content-center p-0 shadow-sm"
+        style={{ width: "32px", height: "32px" }}
         onClick={handleShow}
         title="Apri Grafico"
-      >
+        >
         <BsGraphUp size={14} />
       </Button>
 

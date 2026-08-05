@@ -198,7 +198,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
         {/* Radio Params */}
         <Col md={4}>
           <div className="p-3 ms-tile rounded shadow border-0 h-100 hover-lift">
-            <div className="d-flex align-items-center gap-2 mb-3 text-success">
+            <div className="d-flex align-items-center gap-2 mb-3 text-primary">
               <BsBroadcast size={18} />
               <span className="fw-bold small text-uppercase">Radio Signals</span>
             </div>
