@@ -151,7 +151,7 @@ function SensorInfoModal({ sensor, onHide }: { sensor: SensorDTO | null, onHide:
 
           {/* SEZIONE 2: METROLOGIA E CONVERSIONE */}
           <Col md={6}>
-            <div className="p-3 rounded-4 bg-primary bg-opacity-10 h-100 border border-primary-subtle">
+            <div className="p-3 rounded-4 bg-white shadow bg-opacity-10 h-100 border border-primary-subtle">
               <h6 className="fw-bold mb-3 d-flex align-items-center gap-2 text-primary">
                 <BsShieldCheck /> Metrology & Conversion
               </h6>

@@ -51,7 +51,7 @@ export function ConfigCUModal({ cu, show, onHide, handleSetDirty }: ConfigProps)
       <Modal.Header closeButton className="border-0 pb-0">
         <Modal.Title className="fw-bold d-flex align-items-center gap-2">
           <BsGearFill className="text-primary" />
-          <span>Impostazioni Unità</span>
+          <span>Control Unit settings</span>
         </Modal.Title>
       </Modal.Header>
 
@@ -62,7 +62,7 @@ export function ConfigCUModal({ cu, show, onHide, handleSetDirty }: ConfigProps)
             <BsCpu size={20} />
           </div>
           <div className="small">
-            <div className="fw-bold">ID: {cu.devEui}</div>
+            <div className="fw-bold">ID: h{Number(cu.deviceId).toString(16).toUpperCase()}</div>
             <div className="text-muted">Model: {cu.model}</div>
           </div>
         </div>
@@ -95,7 +95,7 @@ export function ConfigCUModal({ cu, show, onHide, handleSetDirty }: ConfigProps)
         </div>
 
         {/* BOX 1: INFO TRASMISSIONE - Aggiunto mb-3 e font aumentato */}
-        <div className="p-3 bg-primary bg-opacity-10 rounded-4 border border-primary-subtle mb-3">
+        <div className="p-3 shadow bg-opacity-10 rounded-4 border border-primary-subtle mb-3">
           <h6 className="small fw-bold text-primary mb-2 text-uppercase">Info Trasmissione</h6>
           <div className="text-primary" style={{ fontSize: '0.85rem' }}>
             * L'unità si risveglierà ogni <strong>{pollingInterval} {pollingInterval === 1 ? 'ora' : 'ore'}</strong> per trasmettere il suo stato.
