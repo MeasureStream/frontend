@@ -25,6 +25,14 @@ export interface ControlUnitDTO {
   lastSeen: string | null;
   transmissionInterval: number;
 
+  /**
+   * Sorgente di alimentazione della CU, derivata dal byte batteria dell'uplink
+   * di stato (0x00–0x64 = 0-100%, 0xFE = alimentazione esterna, 0xFF = in carica).
+   * Opzionale: il backend non lo espone ancora (i flag acPowered/isCharging si
+   * fermano al DTO Kafka `CuStatusUpdate`), assente = "BATTERY".
+   */
+  powerSource?: "BATTERY" | "CHARGING" | "EXTERNAL";
+
   // Airtime totale giornaliero in ms (Soglia TTN: 30000)
   usedDailyAirtime: number;
 

@@ -257,7 +257,7 @@ export function AcquisitionScheduler({ onChange }: Props) {
 
       {/* Feedback */}
       {errors.length > 0 && (
-        <div className="mt-2 small" style={{ color: "var(--ms-brick)", fontSize: "0.72rem" }}>
+        <div className="mt-2 small" style={{ color: "var(--ms-crimson)", fontSize: "0.72rem" }}>
           {errors.map((e) => <div key={e}>{e}</div>)}
         </div>
       )}
