@@ -6,9 +6,7 @@ import { ControlUnitDTO, formatDevEui } from "../../API/interfaces";
 import { DeleteCUModal } from "../../components/DeleteCUModal";
 import { EmptyDevicesLanding } from "./EmptyDevicesLanding";
 
-/** Valori riservati del byte batteria trasmesso dalla CU. */
-const BATTERY_RAW_EXTERNAL = 254; // 0xFE — alimentazione da rete/USB
-const BATTERY_RAW_CHARGING = 255; // 0xFF — carica in corso
+
 
 type PowerSource = "BATTERY" | "CHARGING" | "EXTERNAL";
 
@@ -17,9 +15,8 @@ type PowerSource = "BATTERY" | "CHARGING" | "EXTERNAL";
  * interpreta i valori riservati del byte grezzo (0xFE/0xFF).
  */
 function getPowerSource(cu: ControlUnitDTO): PowerSource {
-  if (cu.powerSource) return cu.powerSource;
-  if (cu.remainingBattery === BATTERY_RAW_CHARGING) return "CHARGING";
-  if (cu.remainingBattery === BATTERY_RAW_EXTERNAL) return "EXTERNAL";
+  if (cu.acPowered) return "EXTERNAL";
+  if (cu.isCharging) return "CHARGING";
   return "BATTERY";
 }
 
@@ -31,7 +28,7 @@ const POWER_LABEL: Record<PowerSource, string> = {
 
 /** Percentuale mostrata: i valori riservati non sono livelli di carica. */
 function batteryPercent(cu: ControlUnitDTO): number {
-  if (cu.remainingBattery >= BATTERY_RAW_EXTERNAL) return 100;
+  if (cu.isCharging || cu.acPowered) return 100;
   return cu.remainingBattery;
 }
 
