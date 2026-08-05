@@ -1,7 +1,7 @@
 import { ControlUnitDTO, formatDevEui, CUTransmissionCommandDTO, AcquisitionSchedule } from "../../../API/interfaces";
 import { Container, Row, Col, Card, Badge, ListGroup, ProgressBar, Button, Form } from "react-bootstrap";
 import { BsCpu, BsGear, BsPencil, BsThermometerHalf, BsDroplet, BsSpeedometer, BsToggles, BsActivity, BsBroadcast, BsPlayFill, BsStopFill, BsCalendarEvent } from "react-icons/bs";
-import {BsPencilSquare, BsWrenchAdjustableCircle, BsBarChartFill, BsOpencollective } from "react-icons/bs"; //Icone Marco
+import {BsPencilSquare, BsWrenchAdjustableCircle, BsBarChartFill, BsOpencollective, BsGeoFill } from "react-icons/bs"; //Icone Marco
 import { useParams } from "react-router";
 import { useEffect, useState } from "react";
 import { MeasurementUnitCard } from "../../../components/MeasurementUnitCard";
@@ -157,7 +157,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
           </span>
           </div>
           <small className="text-muted font-monospace">
-            EUI: {cu.devEui ? formatDevEui(cu.devEui) : "N/D"} • {cu.semanticLocation || "No Location"}
+            EUI: {cu.devEui ? formatDevEui(cu.devEui) : "N/D"} <BsGeoFill size={14} /> {cu.semanticLocation || "No Location"}
           </small>
         </div>
         <div className="text-end" style={{ minWidth: '150px' }}>
@@ -175,7 +175,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
         <Col md={4}>
           <div className="p-3 ms-tile rounded shadow border-0 h-100 hover-lift">
             <div className="d-flex align-items-center gap-2 mb-3 text-primary">
-              <BsOpencollective size={18} />
+              <BsOpencollective size={18} className="flex-shrink-0" style={{ display: 'block' }} />
               <span className="fw-bold small text-uppercase">Network Health</span>
             </div>
             <div className="mb-3">
@@ -205,7 +205,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
         <Col md={4}>
           <div className="p-3 ms-tile rounded shadow border-0 h-100 hover-lift">
             <div className="d-flex align-items-center gap-2 mb-3 text-primary">
-              <BsBarChartFill size={18} />
+              <BsBarChartFill size={18} className="flex-shrink-0" style={{ display: 'block' }} />
               <span className="fw-bold small text-uppercase">Radio Signals</span>
             </div>
             <Row className="g-2 text-center">
@@ -230,7 +230,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
           <div className="p-3 ms-tile rounded shadow border-0 h-100 position-relative hover-lift">
             <div className="d-flex align-items-center justify-content-between mb-3 text-secondary">
               <div className="d-flex align-items-center gap-2">
-                <BsWrenchAdjustableCircle size={18} />
+                <BsWrenchAdjustableCircle size={18} className="flex-shrink-0" style={{ display: 'block' }} />
                 <span className="fw-bold small text-uppercase">Configuration</span>
               </div>
               <BsGear
