@@ -1,5 +1,6 @@
 import { Container, Row, Col, Card, ProgressBar } from "react-bootstrap";
-import { BsBroadcast, BsBatteryFull, BsCpu, BsArrowRight, BsTrash } from "react-icons/bs";
+import { BsBarChartFill, BsBroadcast, BsBatteryFull, BsCpu, BsArrowRight, BsTrash } from "react-icons/bs";
+import { BsBatteryCharging, BsUsbPlugFill} from "react-icons/bs";
 import { Link } from "react-router";
 import { useState } from "react";
 import { ControlUnitDTO, formatDevEui } from "../../API/interfaces";
@@ -21,15 +22,38 @@ function getPowerSource(cu: ControlUnitDTO): PowerSource {
 }
 
 const POWER_LABEL: Record<PowerSource, string> = {
-  BATTERY: "A batteria",
-  CHARGING: "In ricarica",
-  EXTERNAL: "Alimentazione USB",
+  BATTERY: "Batteria",
+  CHARGING: "Ricarica",
+  EXTERNAL: "USB",
 };
 
 /** Percentuale mostrata: i valori riservati non sono livelli di carica. */
 function batteryPercent(cu: ControlUnitDTO): number {
   if (cu.isCharging || cu.acPowered) return 100;
   return cu.remainingBattery;
+}
+
+function renderPowerIcon(source: PowerSource) {
+  const commonProps = {
+    className: "mb-1",
+    size: 20,
+    style: { color: "var(--ms-teal)" },
+  };
+
+  switch (source) {
+    case "EXTERNAL":
+      return (
+        <BsUsbPlugFill
+          {...commonProps}
+          style={{ ...commonProps.style, transform: "rotate(90deg)" }}
+        />
+      );
+    case "CHARGING":
+      return <BsBatteryCharging {...commonProps} />;
+    case "BATTERY":
+    default:
+      return <BsBatteryFull {...commonProps} />;
+  }
 }
 
 /**
@@ -85,7 +109,7 @@ export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPagePr
   return (
     <Container className="py-4 fade-in-up">
       <header className="mb-4">
-        <h1 className="fw-bold">Benvenuto, ecco i tuoi dispositivi</h1>
+        <h1 className="fw-bold">Benvenuto, ecco i tuoi dispositivi:</h1>
         <p className="text-muted">Monitoraggio in tempo reale del network LoRaWAN</p>
       </header>
 
@@ -123,7 +147,8 @@ export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPagePr
 
                     <Row className="text-center mb-3">
                       <Col>
-                        <BsBatteryFull className="mb-1" size={20} style={{ color: 'var(--ms-teal)' }} />
+                        {/*<BsBatteryFull className="mb-1" size={20} style={{ color: 'var(--ms-teal)' }} />*/}
+                        {renderPowerIcon(powerSource)}
                         <div className="small fw-bold">{percent}%</div>
                         <ProgressBar
                           now={percent}
@@ -133,7 +158,7 @@ export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPagePr
                         <small className="text-muted">{POWER_LABEL[powerSource]}</small>
                       </Col>
                       <Col>
-                        <BsBroadcast className="mb-1" size={18} style={{ color: 'var(--ms-teal)' }} />
+                        <BsBarChartFill className="mb-1" size={18} style={{ color: 'var(--ms-teal)' }} />
                         <div className="small fw-bold">{cu.rssi} dBm</div>
                         <small className="text-muted">Segnale</small>
                       </Col>

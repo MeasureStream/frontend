@@ -157,7 +157,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
           </span>
           </div>
           <small className="text-muted font-monospace">
-            EUI: {cu.devEui ? formatDevEui(cu.devEui) : "N/D"} <BsGeoFill size={14} /> {cu.semanticLocation || "No Location"}
+            EUI: {cu.devEui ? formatDevEui(cu.devEui) : "N/D"} <BsGeoFill size={12} /> {cu.semanticLocation || "No Location"}
           </small>
         </div>
         <div className="text-end" style={{ minWidth: '150px' }}>
