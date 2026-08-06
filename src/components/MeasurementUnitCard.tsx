@@ -163,7 +163,7 @@ function SensorInfoModal({ sensor, onHide }: { sensor: SensorDTO | null, onHide:
                     <Badge bg="primary" className="ms-2">{sensor.sensorTemplate.conversion.coefficients.join(', ')}</Badge>
                   </div>
                 )}
-                <div className="mt-3 p-2 bg-white rounded shadow-xs border">
+                <div className="mt-3 p-2 bg-white rounded border">
                   <div className="fw-bold border-bottom pb-1 mb-1 text-uppercase text-xs" style={{ fontSize: '0.65rem' }}>Template Properties</div>
                   <pre className="mb-0" style={{ fontSize: '0.7rem' }}>{JSON.stringify(sensor.sensorTemplate.properties, null, 2)}</pre>
                 </div>
