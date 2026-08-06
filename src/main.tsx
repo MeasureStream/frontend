@@ -10,6 +10,7 @@ import './App.css';
 
 import App from './App.js'
 import { AuthProvider } from "./API/AuthContext";
+import { I18nProvider } from "./i18n/I18nContext";
 
 const rootElement = document.getElementById('root');
 
@@ -20,9 +21,11 @@ if (!rootElement) {
 createRoot(rootElement).render(
 
   <StrictMode>
-    <AuthProvider>
-      <App />
-    </AuthProvider>
+    <I18nProvider>
+      <AuthProvider>
+        <App />
+      </AuthProvider>
+    </I18nProvider>
   </StrictMode>,
 
 )

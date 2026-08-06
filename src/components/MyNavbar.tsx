@@ -3,12 +3,15 @@ import { BsArrowsAngleContract } from "react-icons/bs";
 import { Link } from "react-router";
 import { MeInterface } from "../API/interfaces";
 import { useAuth } from "../API/AuthContext";
+import { useI18n } from "../i18n/I18nContext";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 interface NavbarProps {
   me: MeInterface
 }
 
 function MyNavbar({ me }: NavbarProps) {
   const { role } = useAuth();
+  const { t } = useI18n();
   return (
 
     <Navbar expand="sm" className="bg-body-tertiary">
@@ -58,20 +61,21 @@ function MyNavbar({ me }: NavbarProps) {
 
         </Navbar.Collapse>
         <Navbar.Collapse className="justify-content-end">
-          <>
+          <div className="d-flex align-items-center gap-2">
+            <LanguageSwitcher />
             {me.name ?
               <>
                 <Navbar.Text style={{ padding: "5px", textTransform: "capitalize", fontWeight: "bold" }} >{me.name}</Navbar.Text>
 
                 {/* Outlined grigio: niente riempimento, coerente con lo stile della palette */}
-                <Button variant="outline-secondary" className="fw-bold" onClick={() => window.location.href = me.logoutUrl} >Logout</Button>
+                <Button variant="outline-secondary" className="fw-bold" onClick={() => window.location.href = me.logoutUrl} >{t("nav.logout")}</Button>
               </>
               :
 
-              <Button variant="outline-primary" className="fw-bold" onClick={() => window.location.href = me.loginUrl}>Login</Button>
+              <Button variant="outline-primary" className="fw-bold" onClick={() => window.location.href = me.loginUrl}>{t("nav.login")}</Button>
             }
 
-          </>
+          </div>
         </Navbar.Collapse>
       </Container>
     </Navbar>

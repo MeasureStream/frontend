@@ -10,6 +10,8 @@ import { ConfigCUModal } from "../../../components/ConfigCUModal";
 import { SensorConfigModal } from "../../../components/SensorConfigModal";
 import { useAuth } from "../../../API/AuthContext";
 import { EditMetadataModal } from "../../../components/EditMetadataModal";
+import { useI18n } from "../../../i18n/I18nContext";
+import type { TranslationKey } from "../../../i18n/translations";
 import { RangeTicks } from "../../../components/RangeTicks";
 
 // Tacche posizionate sul valore REALE dell'indice (1 step = 15 min):
@@ -37,6 +39,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
   const { id } = useParams<{ id: string }>();
   const cuId = Number(id);
   const { xsrfToken } = useAuth();
+  const { t, locale } = useI18n();
 
   const [currentCU, setCurrentCU] = useState<ControlUnitDTO | null>(null);
   const [showConfig, setShowConfig] = useState(false);
@@ -108,7 +111,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
 
   const cu = currentCU;
 
-  if (!cu) return <Container className="py-5"><h1>CU non trovata</h1></Container>;
+  if (!cu) return <Container className="py-5"><h1>{t("detail.notFound")}</h1></Container>;
 
   const isOnline = isControlUnitOnline(cu.lastSeen, cu.transmissionInterval);
 
@@ -143,7 +146,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
               className="text-muted text-primary-hover hover-slide-right"
               style={{ cursor: "pointer", fontSize: "1.1rem", marginLeft: "4px" }}
               onClick={() => setShowEditMetadata(true)}
-              title="Modifica nome e locazione"
+              title={t("detail.editMetadata")}
             />
 
             <span 
@@ -153,16 +156,16 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
               color: isOnline ? 'var(--ms-sage)' : 'black' 
             }}
           >
-            {isOnline ? "ACTIVE" : "INACTIVE"}
+            {isOnline ? t("devices.active") : t("devices.inactive")}
           </span>
           </div>
           <small className="text-muted font-monospace">
-            EUI: {cu.devEui ? formatDevEui(cu.devEui) : "N/D"} <BsGeoFill size={13} /> {cu.semanticLocation || "No Location"}
+            EUI: {cu.devEui ? formatDevEui(cu.devEui) : t("common.notAvailable")} <BsGeoFill size={13} /> {cu.semanticLocation || t("detail.noLocation")}
           </small>
         </div>
         <div className="text-end" style={{ minWidth: '150px' }}>
           <div className="d-flex justify-content-between mb-1">
-            <small className="fw-bold text-muted" style={{ fontSize: '0.75rem' }}>BATTERY</small>
+            <small className="fw-bold text-muted text-uppercase" style={{ fontSize: '0.75rem' }}>{t("detail.battery")}</small>
             <small className="fw-bold" style={{ fontSize: '0.75rem' }}>{cu.remainingBattery}%</small>
           </div>
           <ProgressBar now={cu.remainingBattery} variant={cu.remainingBattery < 20 ? "danger" : "success"} style={{ height: '4px' }} className="bg-light border" />
@@ -176,19 +179,19 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
           <div className="p-3 ms-tile rounded shadow border-0 h-100 hover-lift">
             <div className="d-flex align-items-center gap-2 mb-3 text-primary">
               <BsOpencollective size={18} className="flex-shrink-0" style={{ display: 'block' }} />
-              <span className="fw-bold small text-uppercase">Network Health</span>
+              <span className="fw-bold small text-uppercase">{t("detail.networkHealth")}</span>
             </div>
             <div className="mb-3">
               <div className="d-flex justify-content-between mb-1" style={{ fontSize: '0.85rem' }}>
-                <span className="text-muted">Airtime Limit</span>
+                <span className="text-muted">{t("detail.airtimeLimit")}</span>
                 <span className="fw-bold">{(cu.usedDailyAirtime / 1000).toFixed(2)}s / 30s</span>
               </div>
               <ProgressBar now={airtimePercentage} variant={airtimePercentage > 80 ? "danger" : "info"} style={{ height: '6px' }} />
             </div>
             <div className="d-flex justify-content-between small opacity-75">
-              <span>Last contact:</span>
+              <span>{t("detail.lastContact")}</span>
               <span className="fw-bold">
-                {cu.lastSeen ? new Date(cu.lastSeen.endsWith('Z') ? cu.lastSeen : cu.lastSeen + 'Z').toLocaleString('it-IT', {
+                {cu.lastSeen ? new Date(cu.lastSeen.endsWith('Z') ? cu.lastSeen : cu.lastSeen + 'Z').toLocaleString(locale, {
                   day: '2-digit',
                   month: '2-digit',
                   year: 'numeric',
@@ -206,7 +209,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
           <div className="p-3 ms-tile rounded shadow border-0 h-100 hover-lift">
             <div className="d-flex align-items-center gap-2 mb-3 text-primary">
               <BsBroadcast size={18} className="flex-shrink-0" style={{ display: 'block' }} />
-              <span className="fw-bold small text-uppercase">Radio Signals</span>
+              <span className="fw-bold small text-uppercase">{t("detail.radioSignals")}</span>
             </div>
             <Row className="g-2 text-center">
               <Col xs={4}>
@@ -218,7 +221,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
                 <div className="fw-bold">DR{cu.dataRate}</div>
               </Col>
               <Col xs={4}>
-                <div className="text-muted tiny text-uppercase" style={{ fontSize: '0.65rem' }}>Power</div>
+                <div className="text-muted tiny text-uppercase" style={{ fontSize: '0.65rem' }}>{t("detail.power")}</div>
                 <div className="fw-bold">{cu.transmissionPower} <small>dBm</small></div>
               </Col>
             </Row>
@@ -231,7 +234,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
             <div className="d-flex align-items-center justify-content-between mb-3 text-secondary">
               <div className="d-flex align-items-center gap-2">
                 <BsWrenchAdjustableCircle size={18} className="flex-shrink-0" style={{ display: 'block' }} />
-                <span className="fw-bold small text-uppercase">Configuration</span>
+                <span className="fw-bold small text-uppercase">{t("detail.configuration")}</span>
               </div>
               <BsGear
                 className="text-primary cursor-pointer"
@@ -246,13 +249,13 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
               />
             </div>
             <div className="d-flex justify-content-between align-items-center mb-2">
-              <span className="small text-muted">Polling Interval:</span>
+              <span className="small text-muted">{t("detail.pollingInterval")}</span>
               <span className="ms-badge ms-badge-accent font-monospace">{cu.pollingInterval} h</span>
             </div>
             <div className="d-flex justify-content-between align-items-center">
-              <span className="small text-muted">GPS Module:</span>
+              <span className="small text-muted">{t("detail.gpsModule")}</span>
               <span className={`ms-badge ${cu.hasGPS ? "ms-badge-accent" : "ms-badge-muted"}`}>
-                {cu.hasGPS ? "ENABLED" : "DISABLED"}
+                {cu.hasGPS ? t("detail.enabled") : t("detail.disabled")}
               </span>
             </div>
           </div>
@@ -262,7 +265,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
       {/* --- ACQUISITION CONTROL SECTION --- */}
       <div className="mb-5 mt-4">
         <h4 className="mb-3 d-flex align-items-center gap-2 fw-bold">
-          <BsActivity className="text-danger" /> Live Acquisition
+          <BsActivity className="text-danger" /> {t("detail.liveAcquisition")}
         </h4>
         <Card className="border-0 shadow hover-lift overflow-hidden">
           <Card.Body className="p-4">
@@ -270,9 +273,9 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
               {/* 1. SELEZIONE INTERVALLO (SLIDER) */}
               <Col lg={4} md={12}>
                 <div className="d-flex justify-content-between align-items-end mb-2">
-                  <label className="fw-bold small text-uppercase text-muted">Transmission Interval</label>
+                  <label className="fw-bold small text-uppercase text-muted">{t("detail.transmissionInterval")}</label>
                   <span className={`ms-badge font-monospace ${acqIndex === 0 ? "ms-badge-muted" : "ms-badge-alert"}`} style={{ fontSize: '0.85rem' }}>
-                    {decodeIndexToLabel(acqIndex)}
+                    {decodeIndexToLabel(acqIndex, t)}
                   </span>
                 </div>
                 <input
@@ -291,13 +294,13 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
               <Col lg={5} md={8} className="border-start-lg ps-lg-4">
                 <div className="d-flex align-items-center gap-2 mb-2 text-muted">
                   <BsCalendarEvent size={16} className="text-primary" />
-                  <label className="fw-bold small text-uppercase mb-0">Schedule Session </label>
+                  <label className="fw-bold small text-uppercase mb-0">{t("detail.scheduleSession")}</label>
                 </div>
 
                 <Row className="g-3">
                   {/* SEZIONE INIZIO */}
                   <Col sm={6}>
-                    <span className="text-muted tiny d-block mb-1 fw-bold" style={{ fontSize: '0.7rem' }}>START SESSION</span>
+                    <span className="text-muted tiny d-block mb-1 fw-bold text-uppercase" style={{ fontSize: '0.7rem' }}>{t("detail.startSession")}</span>
                     <div className="d-flex gap-1">
                       <Form.Control
                         type="date"
@@ -325,7 +328,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
 
                   {/* SEZIONE FINE */}
                   <Col sm={6}>
-                    <span className="text-muted tiny d-block mb-1 fw-bold" style={{ fontSize: '0.7rem' }}>END SESSION</span>
+                    <span className="text-muted tiny d-block mb-1 fw-bold text-uppercase" style={{ fontSize: '0.7rem' }}>{t("detail.endSessionDayOnly")}</span>
                     <div className="d-flex gap-1">
                       <Form.Control
                         type="date"
@@ -343,7 +346,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
 
                 {schedule !== null && !schedule.valid && (
                   <div className="text-danger small mt-2 fw-semibold" style={{ fontSize: '0.75rem' }}>
-                    * La data di stop non può precedere il giorno di avvio.
+                    {t("detail.dateError")}
                   </div>
                 )}
               </Col>
@@ -356,21 +359,21 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
                   disabled={acqIndex === 0 || (schedule !== null && !schedule.valid)}
                   onClick={handleStartAcquisition}
                 >
-                  <BsPlayFill size={20} /> START SESSION
+                  <BsPlayFill size={20} /> {t("detail.startButton")}
                 </Button>
                 <Button
                   variant="outline-danger"
                   className="fw-bold px-4 py-2 d-flex align-items-center justify-content-center gap-2 hover-slide-right"
                   onClick={handleStopAcquisition}
                 >
-                  <BsStopFill size={18} /> STOP
+                  <BsStopFill size={18} /> {t("detail.stopButton")}
                 </Button>
               </Col>
             </Row>
           </Card.Body>
           {acqIndex > 0 && acqIndex < 4 && (
             <div className="bg-warning-subtle text-warning-emphasis px-4 py-1 small border-top border-warning-subtle">
-              <strong>Attenzione:</strong> Verificare limiti di banda e batteria.
+              <strong>{t("detail.bandwidthWarning")}</strong> {t("detail.bandwidthWarningText")}
             </div>
           )}
         </Card>
@@ -378,7 +381,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
 
       <div className="d-flex justify-content-between align-items-center mb-4 mt-5">
         <h4 className="mb-0 d-flex align-items-center gap-2 fw-bold">
-          <BsToggles className="text-primary" /> Measurement Units
+          <BsToggles className="text-primary" /> {t("detail.measurementUnits")}
         </h4>
         <Button
           variant="outline-primary"
@@ -386,7 +389,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
           className="d-flex align-items-center gap-2 shadow hover-slide-right"
           onClick={() => setShowSensorConfig(true)}
         >
-          <BsPencilSquare size={18} /> Configura Sampling Sensori
+          <BsPencilSquare size={18} /> {t("detail.configureSampling")}
         </Button>
       </div>
 
@@ -426,12 +429,21 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
   );
 }
 
-const decodeIndexToLabel = (idx: number): string => {
-  if (idx === 0) return "OFF (Stop)";
-  if (idx <= 4) return `${idx * 15} min`;
-  if (idx <= 96) return `${Math.trunc(idx * 15 / 60)} h ${(idx * 15) % 60} min`;
-  if (idx <= 240) return `${1 + Math.trunc((idx - 96) / 24)} g ${(idx - 96) % 24} h`;
-  if (idx > 240) return "OUT OF RANGE (Max 7gg)";
-  if (idx === 255) return `1 min`;
-  return "OUT OF RANGE";
+/** Traduttore passato dal componente: le unità cambiano con la lingua (g/d). */
+type Translate = (key: TranslationKey, params?: Record<string, string | number>) => string;
+
+const decodeIndexToLabel = (idx: number, t: Translate): string => {
+  if (idx === 0) return t("detail.interval.off");
+  if (idx <= 4) return t("detail.interval.minutes", { value: idx * 15 });
+  if (idx <= 96)
+    return t("detail.interval.hoursMinutes", {
+      hours: Math.trunc((idx * 15) / 60),
+      minutes: (idx * 15) % 60,
+    });
+  if (idx <= 240)
+    return t("detail.interval.daysHours", {
+      days: 1 + Math.trunc((idx - 96) / 24),
+      hours: (idx - 96) % 24,
+    });
+  return t("detail.interval.outOfRange");
 };

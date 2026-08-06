@@ -6,6 +6,8 @@ import { useState } from "react";
 import { ControlUnitDTO, formatDevEui } from "../../API/interfaces";
 import { DeleteCUModal } from "../../components/DeleteCUModal";
 import { EmptyDevicesLanding } from "./EmptyDevicesLanding";
+import { useI18n } from "../../i18n/I18nContext";
+import type { TranslationKey } from "../../i18n/translations";
 
 
 
@@ -21,10 +23,10 @@ function getPowerSource(cu: ControlUnitDTO): PowerSource {
   return "BATTERY";
 }
 
-const POWER_LABEL: Record<PowerSource, string> = {
-  BATTERY: "Batteria",
-  CHARGING: "Ricarica",
-  EXTERNAL: "USB",
+const POWER_LABEL_KEY: Record<PowerSource, TranslationKey> = {
+  BATTERY: "devices.power.battery",
+  CHARGING: "devices.power.charging",
+  EXTERNAL: "devices.power.external",
 };
 
 /** Percentuale mostrata: i valori riservati non sono livelli di carica. */
@@ -88,6 +90,7 @@ interface ControlUnitsPageProps {
 export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPageProps) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedCU, setSelectedCU] = useState<ControlUnitDTO | null>(null);
+  const { t } = useI18n();
 
   if (controlUnits.length === 0) {
     return <EmptyDevicesLanding />;
@@ -109,8 +112,8 @@ export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPagePr
   return (
     <Container className="py-4 fade-in-up">
       <header className="mb-4">
-        <h1 className="fw-bold">Benvenuto, ecco i tuoi dispositivi:</h1>
-        <p className="text-muted">Monitoraggio in tempo reale del network LoRaWAN</p>
+        <h1 className="fw-bold">{t("devices.title")}</h1>
+        <p className="text-muted">{t("devices.subtitle")}</p>
       </header>
 
       <Row>
@@ -138,7 +141,7 @@ export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPagePr
                       <button
                         className="btn btn-link text-muted p-1 border-0 "
                         onClick={() => openDeleteModal(cu)}
-                        title={`Elimina ${cu.name}`}
+                        title={t("devices.deleteTitle", { name: cu.name })}
                         style={{ background: 'none' }}
                       >
                         <BsTrash size={18} className="text-danger" />
@@ -155,30 +158,34 @@ export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPagePr
                           style={{ height: '4px', ['--ms-progress-color' as string]: batteryTint }}
                           className="mt-1 ms-progress"
                         />
-                        <small className="text-muted">{POWER_LABEL[powerSource]}</small>
+                        <small className="text-muted">{t(POWER_LABEL_KEY[powerSource])}</small>
                       </Col>
                       <Col>
                         <BsBroadcast className="mb-1" size={18} style={{ color: 'var(--ms-teal)' }} />
                         <div className="small fw-bold">{cu.rssi} dBm</div>
-                        <small className="text-muted">Segnale</small>
+                        <small className="text-muted">{t("devices.signal")}</small>
                       </Col>
                       <Col>
                         <BsCpu className="mb-1" size={20} style={{ color: 'var(--ms-teal)' }} />
                         <div className="small fw-bold">{cu.measurementUnits.length}</div>
-                        <small className="text-muted">MU associate</small>
+                        <small className="text-muted">{t("devices.linkedMus")}</small>
                       </Col>
                     </Row>
                   </div>
 
                   <div className="d-grid mt-3">
                     <Link to={`/cus/${cu.id}`} className="btn btn-outline-primary btn-sm d-flex align-items-center justify-content-center gap-2 hover-slide-right">
-                      Dettaglio Sensori <BsArrowRight />
+                      {t("devices.sensorDetail")} <BsArrowRight />
                     </Link>
                   </div>
                 </Card.Body>
 
                 <Card.Footer className="border-0 py-2 d-flex justify-content-between align-items-center" style={{ backgroundColor: "transparent" }}>
-                  <small className="text-muted">Località: {cu.semanticLocation || "Non specificata"}</small>
+                  <small className="text-muted">
+                    {t("devices.location", {
+                      location: cu.semanticLocation || t("devices.locationUnknown"),
+                    })}
+                  </small>
 
                   <span
                     className="fw-bold text-uppercase"
@@ -188,7 +195,7 @@ export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPagePr
                       color: isOnline ? 'var(--ms-sage)' : '#6c757d',
                     }}
                   >
-                    {isOnline ? "Active" : "Inactive"}
+                    {isOnline ? t("devices.active") : t("devices.inactive")}
                   </span>
                 </Card.Footer>
               </Card>
