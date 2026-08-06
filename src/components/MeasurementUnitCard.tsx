@@ -32,7 +32,7 @@ export function MeasurementUnitCard({ mu, handleSetDirty }: Props) {
             <BsCpu size={24} />
           </div>
           <div>
-            <h5 className="mb-0 fw-bold">MU h{Number(mu.extendedId).toString(16).toUpperCase()}</h5>
+            <h5 className="mb-0 fw-bold">MU h{Number(mu.extendedId).toString(16).toUpperCase().padStart(8, '0')}</h5>
             <small className="text-muted font-monospace opacity-75">Model: {mu.model}</small>
           </div>
         </div>

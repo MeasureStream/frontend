@@ -62,7 +62,7 @@ export function ConfigCUModal({ cu, show, onHide, handleSetDirty }: ConfigProps)
             <BsCpu size={20} />
           </div>
           <div className="small">
-            <div className="fw-bold">ID: h{Number(cu.deviceId).toString(16).toUpperCase()}</div>
+            <div className="fw-bold">ID: h{cu.deviceId}</div>
             <div className="text-muted">Model: {cu.model}</div>
           </div>
         </div>
