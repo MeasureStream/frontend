@@ -20,7 +20,7 @@ export const it = {
   "common.notAvailable": "N/D",
 
   // --- Landing dispositivi (ControlUnitsPage) ---
-  "devices.title": "Benvenuto, ecco i tuoi dispositivi",
+  "devices.title": "Benvenuto, ecco i tuoi dispositivi:",
   "devices.subtitle": "Monitoraggio in tempo reale del network LoRaWAN",
   "devices.deleteTitle": "Elimina {name}",
   "devices.signal": "Segnale",
@@ -118,7 +118,7 @@ export const en: Partial<Record<TranslationKey, string>> = {
   "common.notAvailable": "N/A",
 
   // --- Devices landing ---
-  "devices.title": "Welcome, here are your devices",
+  "devices.title": "Welcome, here are your devices:",
   "devices.subtitle": "Real-time monitoring of the LoRaWAN network",
   "devices.deleteTitle": "Delete {name}",
   "devices.signal": "Signal",
