@@ -3,7 +3,7 @@ import { Container, Row, Col, Card, Badge, ListGroup, ProgressBar, Button, Form 
 import { BsCpu, BsGear, BsPencil, BsThermometerHalf, BsDroplet, BsSpeedometer, BsToggles, BsActivity, BsBroadcast, BsPlayFill, BsStopFill, BsCalendarEvent } from "react-icons/bs";
 import {BsPencilSquare, BsWrenchAdjustableCircle, BsBarChartFill, BsOpencollective, BsGeoFill } from "react-icons/bs"; //Icone Marco
 import { useParams } from "react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MeasurementUnitCard } from "../../../components/MeasurementUnitCard";
 import { getControlUnitById, ControlTransmission } from "../../../API/ControlUnitAPI";
 import { ConfigCUModal } from "../../../components/ConfigCUModal";
@@ -13,6 +13,7 @@ import { EditMetadataModal } from "../../../components/EditMetadataModal";
 import { useI18n } from "../../../i18n/I18nContext";
 import type { TranslationKey } from "../../../i18n/translations";
 import { RangeTicks } from "../../../components/RangeTicks";
+import { rankedLocations } from "../../../components/CUsFilterComponent";
 
 // Tacche posizionate sul valore REALE dell'indice (1 step = 15 min):
 const TRANSMISSION_TICKS = [
@@ -71,6 +72,13 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
     const interval = setInterval(refreshSingleCU, 60000);
     return () => clearInterval(interval);
   }, [cuId]);
+
+  /* Località già in uso sul parco dispositivi, dalla più diffusa: alimentano
+     i suggerimenti del campo "locazione semantica" nel modal metadati. */
+  const locationSuggestions = useMemo(
+    () => rankedLocations(allControlUnits, locale).map((l) => l.location).filter(Boolean),
+    [allControlUnits, locale],
+  );
 
   const handleSetDirty = () => {
     console.log("Data marked as dirty");
@@ -424,6 +432,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
         onHide={() => setShowEditMetadata(false)}
         cu={cu}
         onSuccess={refreshSingleCU}
+        locationSuggestions={locationSuggestions}
       />
     </Container>
   );

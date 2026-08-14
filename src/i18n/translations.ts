@@ -34,9 +34,16 @@ export const it = {
   "devices.power.charging": "Ricarica",
   "devices.power.external": "USB",
 
+  // Filtro per locazione semantica (CUsFilterComponent)
+  "devices.filter.label": "Filtra per località",
+  "devices.filter.all": "Tutte le località",
+  "devices.filter.noResults": "Nessun dispositivo in questa località.",
+  "devices.filter.clear": "Mostra tutti",
+
   // --- Dettaglio Control Unit ---
   "detail.notFound": "Control Unit non trovata",
   "detail.editMetadata": "Modifica nome e locazione",
+  "detail.locationSuggestions": "Località suggerite",
   "detail.noLocation": "Nessuna locazione",
   "detail.battery": "Batteria",
   "detail.networkHealth": "Stato della rete",

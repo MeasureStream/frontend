@@ -2,9 +2,10 @@ import { Container, Row, Col, Card, ProgressBar } from "react-bootstrap";
 import { BsBarChartFill, BsBroadcast, BsBatteryFull, BsCpu, BsArrowRight, BsTrash } from "react-icons/bs";
 import { BsBatteryCharging, BsUsbPlugFill} from "react-icons/bs";
 import { Link } from "react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ControlUnitDTO, formatDevEui } from "../../API/interfaces";
 import { DeleteCUModal } from "../../components/DeleteCUModal";
+import { CUsFilterComponent, normalizeLocation } from "../../components/CUsFilterComponent";
 import { EmptyDevicesLanding } from "./EmptyDevicesLanding";
 import { useI18n } from "../../i18n/I18nContext";
 import type { TranslationKey } from "../../i18n/translations";
@@ -90,8 +91,16 @@ interface ControlUnitsPageProps {
 export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPageProps) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedCU, setSelectedCU] = useState<ControlUnitDTO | null>(null);
+  /** Località selezionata nel filtro; `null` = tutte. */
+  const [locationFilter, setLocationFilter] = useState<string | null>(null);
   const { t } = useI18n();
 
+  const visibleCUs = useMemo(() => {
+    if (locationFilter === null) return controlUnits;
+    return controlUnits.filter((cu) => normalizeLocation(cu.semanticLocation) === locationFilter);
+  }, [controlUnits, locationFilter]);
+
+  // Dopo tutti gli hook: nessun dispositivo censito (≠ filtro senza risultati)
   if (controlUnits.length === 0) {
     return <EmptyDevicesLanding />;
   }
@@ -113,11 +122,27 @@ export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPagePr
     <Container className="py-4 fade-in-up">
       <header className="mb-4">
         <h1 className="fw-bold">{t("devices.title")}</h1>
-        <p className="text-muted">{t("devices.subtitle")}</p>
+        <p className="text-muted mb-2">{t("devices.subtitle")}</p>
+        <CUsFilterComponent
+          controlUnits={controlUnits}
+          value={locationFilter}
+          onChange={setLocationFilter}
+        />
       </header>
 
+      {/* Può capitare solo con un filtro rimasto su una località non più usata
+          (es. dopo un refresh che ha cambiato la locazione dell'ultima CU). */}
+      {visibleCUs.length === 0 && (
+        <div className="d-flex align-items-center justify-content-between gap-3 p-3 mb-4 bg-primary-subtle rounded">
+          <span>{t("devices.filter.noResults")}</span>
+          <button className="btn btn-outline-primary btn-sm" onClick={() => setLocationFilter(null)}>
+            {t("devices.filter.clear")}
+          </button>
+        </div>
+      )}
+
       <Row>
-        {controlUnits.map((cu) => {
+        {visibleCUs.map((cu) => {
           const isOnline = isControlUnitOnline(cu.lastSeen, cu.transmissionInterval);
           const powerSource = getPowerSource(cu);
           const percent = batteryPercent(cu);
