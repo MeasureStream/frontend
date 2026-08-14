@@ -7,7 +7,7 @@ import { useAuth } from "../API/AuthContext";
 import { useI18n } from "../i18n/I18nContext";
 
 /** Quante località proporre sotto al campo (sia a campo vuoto sia digitando). */
-const MAX_SUGGESTIONS = 5;
+const MAX_SUGGESTIONS = 4;
 
 /**
  * Località da proporre per la query corrente.

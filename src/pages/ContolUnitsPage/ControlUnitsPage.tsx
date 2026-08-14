@@ -93,12 +93,24 @@ export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPagePr
   const [selectedCU, setSelectedCU] = useState<ControlUnitDTO | null>(null);
   /** Località selezionata nel filtro; `null` = tutte. */
   const [locationFilter, setLocationFilter] = useState<string | null>(null);
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
 
+  /* Ordine di visualizzazione (con o senza filtro): prima le CU attive, poi le
+     inattive; dentro ciascun gruppo, in ordine alfabetico per nome. */
   const visibleCUs = useMemo(() => {
-    if (locationFilter === null) return controlUnits;
-    return controlUnits.filter((cu) => normalizeLocation(cu.semanticLocation) === locationFilter);
-  }, [controlUnits, locationFilter]);
+    const filtered =
+      locationFilter === null
+        ? controlUnits
+        : controlUnits.filter((cu) => normalizeLocation(cu.semanticLocation) === locationFilter);
+
+    // Copia: `controlUnits` è una prop, non va riordinata sul posto.
+    return [...filtered].sort((a, b) => {
+      const onlineA = isControlUnitOnline(a.lastSeen, a.transmissionInterval);
+      const onlineB = isControlUnitOnline(b.lastSeen, b.transmissionInterval);
+      if (onlineA !== onlineB) return onlineA ? -1 : 1;
+      return a.name.localeCompare(b.name, locale);
+    });
+  }, [controlUnits, locationFilter, locale]);
 
   // Dopo tutti gli hook: nessun dispositivo censito (≠ filtro senza risultati)
   if (controlUnits.length === 0) {

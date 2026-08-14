@@ -22,7 +22,7 @@
   --ms-green: #D6EAD4;       /* Verde chiaro — stati safe */
   --ms-sage: #97A675;        /* Verde salvia scuro — stati positivi */
   --ms-crimson: #dc3545;     /* Rosso cremisi — errori, stati critici */
-  --ms-steel: #eff3f2;       /* Grigio acciaio caldo — superfici inattive/offline */
+  --ms-steel: #eff3f2;       /* Grigio acciaio — superfici inattive/offline */
   --ms-graphite: #495057;    /* Grigio grafite — testo secondario su fondi chiari */
   --ms-xanadugreen: #7b8776; /* Verde grigio scuro — testo secondario */
 
@@ -64,6 +64,14 @@
   --bs-btn-active-border-color: var(--ms-teal);
   --bs-btn-disabled-color: var(--ms-powder);
   --bs-btn-disabled-border-color: var(--ms-powder);
+}
+
+/* Voce attiva dei menu a tendina: Bootstrap userebbe il suo blu #0d6efd
+   (non passa dalle utility rimappate sopra). Testo scuro perché l'ottanio
+   sull'azzurro polvere non avrebbe contrasto sufficiente. */
+.dropdown-menu {
+  --bs-dropdown-link-active-bg: var(--ms-powder);
+  --bs-dropdown-link-active-color: var(--bs-body-color);
 }
 
 /* --- Stati negativi / errori / azioni distruttive: rosso cremisi --- */
