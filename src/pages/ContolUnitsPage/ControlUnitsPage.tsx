@@ -125,8 +125,10 @@ export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPagePr
 
           return (
             <Col key={cu.id} xs={12} lg={6} xl={4} className="mb-4">
-              {/* Sostituito `shadow-sm` con `shadow` per un'ombra marcata di default + `hover-lift` */}
-              <Card className="shadow border-0 hover-lift h-100">
+              {/* Sostituito `shadow-sm` con `shadow` per un'ombra marcata di default + `hover-lift`.
+                  Card bianca se il dispositivo è online, grigio siliceo se offline: lo stato
+                  si legge dal colore dell'intera scheda, non solo dall'etichetta in basso. */}
+              <Card className={`shadow border-0 hover-lift h-100${isOnline ? "" : " ms-card-offline"}`}>
                 <Card.Body className="d-flex flex-column justify-content-between">
                   <div>
                     <div className="d-flex justify-content-between align-items-start mb-3">
@@ -192,7 +194,9 @@ export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPagePr
                     style={{
                       fontSize: '0.7rem',
                       letterSpacing: '0.5px',
-                      color: isOnline ? 'var(--ms-sage)' : '#6c757d',
+                      /* Offline: grigio grafite — più scuro del grigio Bootstrap
+                         di default, così resta leggibile sul fondo acciaio della card. */
+                      color: isOnline ? 'var(--ms-sage)' : 'var(--ms-xanadugreen)',
                     }}
                   >
                     {isOnline ? t("devices.active") : t("devices.inactive")}

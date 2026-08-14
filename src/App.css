@@ -22,6 +22,9 @@
   --ms-green: #D6EAD4;       /* Verde chiaro — stati safe */
   --ms-sage: #97A675;        /* Verde salvia scuro — stati positivi */
   --ms-crimson: #dc3545;     /* Rosso cremisi — errori, stati critici */
+  --ms-steel: #eff3f2;       /* Grigio acciaio caldo — superfici inattive/offline */
+  --ms-graphite: #495057;    /* Grigio grafite — testo secondario su fondi chiari */
+  --ms-xanadugreen: #7b8776; /* Verde grigio scuro — testo secondario */
 
   --bs-primary: var(--ms-teal);
   --bs-primary-rgb: 22, 105, 122;
@@ -98,6 +101,17 @@
 /* Progress bar con colore di riempimento dinamico: il colore si passa
    inline sul wrapper come --ms-progress-color (usato per la batteria). */
 .ms-progress .progress-bar { background-color: var(--ms-progress-color); }
+
+/* Superficie di un dispositivo offline: l'intera Card passa al grigio acciaio.
+   Si agisce su --bs-card-bg (non su background-color) così header, body e
+   footer trasparenti ereditano lo sfondo senza altre regole. Il testo resta
+   quello di default: cambia solo il fondo, non la leggibilità.
+   Selettore `.card.ms-card-offline` (due classi) per vincere comunque su
+   `.card { --bs-card-bg: var(--bs-body-bg) }` di Bootstrap, a prescindere
+   dall'ordine degli import CSS. */
+.card.ms-card-offline {
+  --bs-card-bg: var(--ms-steel);
+}
 
 /* --- Animazioni e Utility riutilizzabili --- */
 
