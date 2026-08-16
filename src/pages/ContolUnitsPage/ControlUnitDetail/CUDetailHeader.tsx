@@ -78,14 +78,27 @@ export function CUDetailHeader({ cu, isOnline, onEditMetadata }: Props) {
 
         <Metric label={t("detail.header.polling")}>
           {t("detail.header.pollingHours", { hours: cu.pollingInterval })}
-          {nextPoll && <> · {t("detail.header.nextAt", { time: formatClock(nextPoll, locale) })}</>}
+          {/* Su un nodo inattivo la stima del prossimo contatto non significa
+              nulla: al suo posto si dichiara lo stato. */}
+          {!isOnline ? (
+            <span className="text-muted"> · {t("detail.header.inactiveNode")}</span>
+          ) : (
+            nextPoll && <> · {t("detail.header.nextAt", { time: formatClock(nextPoll, locale) })}</>
+          )}
         </Metric>
 
         <span className="ms-meta-sep align-self-center">/</span>
 
         <Metric label={t("detail.header.battery")}>
-          <span className="d-inline-flex align-items-center gap-2">
-            <BatteryDonut percent={battery} externalPower={externalPower} />
+          {/* Allineato al fondo della riga: sulla linea di base l'anello
+              alzerebbe il blocco batteria rispetto alle altre due metriche. */}
+          <span
+            className="d-inline-flex align-items-center gap-2"
+            style={{ height: "1.26rem", verticalAlign: "bottom" }}
+          >
+            {/* Diametro pari all'altezza della riga di testo: così l'anello
+                resta allineato ai valori delle altre due metriche. */}
+            <BatteryDonut percent={battery} size={18} externalPower={externalPower} />
             {battery}%
           </span>
         </Metric>

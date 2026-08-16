@@ -112,6 +112,7 @@ export const it = {
   "detail.header.polling": "Polling",
   "detail.header.battery": "Batteria",
   "detail.header.nextAt": "prossimo {time}",
+  "detail.header.inactiveNode": "Inattivo",
   "detail.header.pollingHours": "{hours} h",
   "detail.age.now": "adesso",
   "detail.age.minutes": "{value} min fa",

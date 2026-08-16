@@ -153,14 +153,29 @@ input[type="number"] { -moz-appearance: textfield; }
 }
 
 /* --- Intestazione della CU: resta fissa durante lo scorrimento --- */
+/* Il fondo bianco deve coprire TUTTA la fascia fino al bordo inferiore:
+   con un margine (trasparente) il contenuto scorrerebbe visibile lì sotto,
+   quindi lo spazio si ottiene con il padding, dentro allo sfondo. */
 .ms-detail-header {
   position: sticky;
   top: 0;
   z-index: 1035;
   background: #fff;
   border-bottom: 1px solid var(--ms-line);
-  margin-bottom: 1.4rem;
-  padding: 0.9rem 0 0;
+  padding: 0.9rem 0 1.1rem;
+  margin-bottom: 1.2rem;
+}
+/* Fascia bianca a tutta larghezza, anche fuori dal Container centrato. */
+.ms-detail-header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: -1px;
+  left: -2rem;
+  right: -2rem;
+  background: #fff;
+  border-bottom: 1px solid var(--ms-line);
+  z-index: -1;
 }
 .ms-meta-label {
   font-size: 0.63rem;
@@ -381,7 +396,14 @@ input[type="number"] { -moz-appearance: textfield; }
   min-width: 250px;
   box-shadow: 1px 0 0 var(--ms-line);
 }
-.ms-cfg-table thead .ms-col-sensor { z-index: 8; }
+/* Le due celle d'angolo (quella vuota sopra e "Sensore") devono restare
+   sopra alle intestazioni che scorrono: stesso z-index non basta, perché a
+   parità vince chi viene dopo nel DOM. */
+.ms-cfg-table thead tr:first-child th.ms-col-sensor,
+.ms-cfg-table thead tr:nth-child(2) th.ms-col-sensor {
+  z-index: 9;
+  background: #fff;
+}
 .ms-cfg-table tr.ms-cfg-row-sel td { background: #e6f4f4; }
 .ms-cfg-table tr.ms-cfg-row-div td { background: #fffafa; }
 
