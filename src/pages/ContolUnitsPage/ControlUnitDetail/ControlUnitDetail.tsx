@@ -6,8 +6,7 @@
  * Il contenuto di ciascuna scheda vive nel proprio file (OverviewTab,
  * ChartsTab, AlarmsTab, SensorConfigTab).
  */
-import { Container, ProgressBar } from "react-bootstrap";
-import { BsGeoFill, BsPencil } from "react-icons/bs";
+import { Container } from "react-bootstrap";
 import { useParams } from "react-router";
 import { useEffect, useMemo, useState } from "react";
 import { formatDevEui, type ControlUnitDTO } from "../../../API/interfaces";
@@ -15,6 +14,7 @@ import { getControlUnitById } from "../../../API/ControlUnitAPI";
 import { EditMetadataModal } from "../../../components/EditMetadataModal";
 import { rankedLocations } from "../../../components/CUsFilterComponent";
 import { useI18n } from "../../../i18n/I18nContext";
+import { CUDetailHeader } from "./CUDetailHeader";
 import { CUDetailTabs, type CUDetailTab } from "./CUDetailTabs";
 import { OverviewTab } from "./OverviewTab";
 import { ChartsTab } from "./ChartsTab";
@@ -68,45 +68,11 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
 
   return (
     <Container className="py-4 fade-in-up">
-      {/* --- INTESTAZIONE (comune a tutte le schede) --- */}
-      <div className="d-flex justify-content-between align-items-end mb-3 px-2">
-        <div>
-          <div className="d-flex align-items-center gap-2 mb-1">
-            <h2 className="fw-bold mb-0" style={{ letterSpacing: "-0.5px" }}>{cu.name}</h2>
-            <BsPencil
-              className="text-muted hover-slide-right"
-              style={{ cursor: "pointer", fontSize: "1.1rem", marginLeft: "4px" }}
-              onClick={() => setShowEditMetadata(true)}
-              title={t("detail.editMetadata")}
-            />
-            <span
-              className={`ms-badge ${isOnline ? "ms-badge-safe" : "ms-badge-muted"}`}
-              style={{ verticalAlign: "middle", color: isOnline ? "var(--ms-sage)" : "var(--ms-graphite)" }}
-            >
-              {isOnline ? t("devices.active") : t("devices.inactive")}
-            </span>
-          </div>
-          <small className="text-muted font-monospace">
-            EUI: {cu.devEui ? formatDevEui(cu.devEui) : t("common.notAvailable")}{" "}
-            <BsGeoFill size={13} /> {cu.semanticLocation || t("detail.noLocation")}
-          </small>
-        </div>
-
-        <div className="text-end" style={{ minWidth: "150px" }}>
-          <div className="d-flex justify-content-between mb-1">
-            <small className="fw-bold text-muted text-uppercase" style={{ fontSize: "0.75rem" }}>{t("detail.battery")}</small>
-            <small className="fw-bold" style={{ fontSize: "0.75rem" }}>{cu.remainingBattery}%</small>
-          </div>
-          <ProgressBar
-            now={cu.remainingBattery}
-            variant={cu.remainingBattery < 20 ? "danger" : "success"}
-            style={{ height: "4px" }}
-            className="bg-light border"
-          />
-        </div>
+      {/* Intestazione e schede restano agganciate in alto durante lo scorrimento */}
+      <div className="ms-detail-header">
+        <CUDetailHeader cu={cu} isOnline={isOnline} onEditMetadata={() => setShowEditMetadata(true)} />
+        <CUDetailTabs active={activeTab} onChange={setActiveTab} />
       </div>
-
-      <CUDetailTabs active={activeTab} onChange={setActiveTab} />
 
       {activeTab === "overview" && <OverviewTab cu={cu} onRefresh={refreshSingleCU} />}
       {activeTab === "charts" && <ChartsTab cu={cu} onRefresh={refreshSingleCU} />}

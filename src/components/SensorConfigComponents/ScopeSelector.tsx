@@ -90,8 +90,8 @@ export function ScopeSelector({
 
       <div className={`ms-cfg-bar d-flex align-items-center gap-2 flex-wrap${count ? " ms-cfg-bar-active" : ""}`}>
         <span className={`ms-cfg-count${count ? " ms-cfg-count-active" : ""}`}>{count}</span>
-        <span className="fw-semibold small">{title}</span>
-        <span className="small text-muted">{note}</span>
+        <span className="fw-semibold">{title}</span>
+        <span className="ms-cfg-note">{note}</span>
       </div>
     </>
   );

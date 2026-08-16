@@ -35,15 +35,16 @@ export function PendingActionsFooter({ pendingCount, justSaved, onRevert, onSave
       {children}
       <span className="flex-grow-1" />
 
-      <Button variant="link" size="sm" className="text-decoration-underline p-0" disabled={!pendingCount} onClick={onRevert}>
+      <Button variant="link" size="sm" className="text-decoration-underline p-0 text-secondary" disabled={!pendingCount} onClick={onRevert}>
         {t("sensorConfig.revert")}
       </Button>
 
-      <div className="text-end">
-        <Button variant={justSaved ? "success" : "primary"} size="sm" disabled={!pendingCount} onClick={onSave}>
+      {/* Il testo di stato parte dal bordo sinistro del pulsante, non centrato */}
+      <div className="text-start">
+        <Button variant={justSaved ? "success" : "primary"} disabled={!pendingCount} onClick={onSave}>
           {saveLabel}
         </Button>
-        <div className="small text-muted mt-1">{hint}</div>
+        <div className="ms-cfg-note mt-1">{hint}</div>
       </div>
     </div>
   );

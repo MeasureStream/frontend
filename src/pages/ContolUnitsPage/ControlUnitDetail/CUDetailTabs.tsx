@@ -28,8 +28,10 @@ interface Props {
 export function CUDetailTabs({ active, onChange, alarmCount = 0 }: Props) {
   const { t } = useI18n();
 
+  /* Stessa convenzione per tutte e quattro: la scheda attiva è l'unica con il
+     riquadro ottanio, le altre sono sola scritta grigia. */
   return (
-    <div className="d-flex align-items-center gap-1 flex-wrap border-bottom mb-4">
+    <div className="d-flex align-items-center gap-1 flex-wrap pt-2 pb-1">
       {READ_TABS.map((tab) => (
         <button
           key={tab.id}
@@ -46,9 +48,7 @@ export function CUDetailTabs({ active, onChange, alarmCount = 0 }: Props) {
 
       <button
         type="button"
-        className={`btn btn-sm d-flex align-items-center gap-2 mb-1 ${
-          active === "sensorConfig" ? "btn-primary" : "btn-outline-primary"
-        }`}
+        className={`ms-tab${active === "sensorConfig" ? " ms-tab-active" : ""}`}
         onClick={() => onChange("sensorConfig")}
       >
         <BsPencilSquare /> {t("detail.tabs.sensorConfig")}

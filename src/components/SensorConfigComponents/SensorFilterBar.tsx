@@ -42,9 +42,9 @@ export function SensorFilterBar({ rows, shownCount, query, filter, onQuery, onFi
   const { t } = useI18n();
 
   return (
-    <div className="ms-cfg-section d-flex align-items-center gap-3 flex-wrap">
+    <div className="ms-cfg-section d-flex align-items-center gap-3 flex-wrap" style={{ background: "var(--ms-surface)" }}>
       <span className="d-flex align-items-center gap-2 fw-bold">
-        <BsFunnel style={{ color: "var(--ms-marrs-green)" }} />
+        <BsFunnel size={16} style={{ color: "var(--ms-marrs-green)" }} />
         {t("sensorConfig.filter")}
       </span>
 
