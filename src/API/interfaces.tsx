@@ -59,6 +59,12 @@ export interface SensorDTO {
   coeffB?: number;
   coeffC?: number;
   coeffD?: number;
+  /**
+   * Falso per i sensori oltre il 48° della CU: il firmware non li configura.
+   * Campo derivato lato server nel toDTO (offset cumulativo MU per MU).
+   * Assente = nessun limite comunicato, il sensore è configurabile.
+   */
+  configurable?: boolean;
   calDate?: number; // Long in Kotlin (Timestamp)
   measLocId?: number;
   calInitials?: string;
@@ -69,6 +75,19 @@ export interface SensorTemplate {
   modelName: string;
   type: string; // Es: "ACCELEROMETER", "ENVIRONMENTAL"
   unit?: string; // Unità di misura principale (se applicabile)
+
+  /**
+   * Categoria del sensore in inglese (es. "accelerometer", "temperature"):
+   * è il valore usato per i chip della Configurazione Sensori.
+   * Opzionale: i template che non la dichiarano finiscono in "Altro".
+   */
+  category?: string;
+
+  /**
+   * Modalità di elaborazione supportate ("avg" | "mm" | "int" | "med" | "pct" | "pt").
+   * Assente = nessun vincolo dichiarato, la UI le propone tutte.
+   */
+  supportedMeasures?: string[];
 
   // Corrisponde a Map<String, Map<String, Double>>
   // Es: { "temperature": { "min": -40, "max": 85 }, "humidity": { "min": 0, "max": 100 } }

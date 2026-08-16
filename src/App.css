@@ -122,6 +122,188 @@
   --bs-card-bg: var(--ms-steel);
 }
 
+/* ================================================================
+   Configurazione Sensori (scheda del dettaglio CU)
+   Tutti i colori vengono dalla palette --ms-*: nei componenti non
+   deve comparire nessun esadecimale.
+   ================================================================ */
+
+/* Barra delle schede del dettaglio CU */
+.ms-tab {
+  border: none;
+  background: transparent;
+  padding: 0.55rem 0.9rem;
+  font-size: 0.86rem;
+  color: var(--ms-graphite);
+  border-radius: 0.5rem 0.5rem 0 0;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+}
+.ms-tab:hover { background: var(--ms-teal-tint); }
+.ms-tab-active {
+  font-weight: 700;
+  color: var(--ms-teal);
+  border-bottom-color: var(--ms-teal);
+}
+
+/* Pannelli (configurazione rapida / avanzata) */
+.ms-cfg-panel {
+  border: 1px solid var(--ms-powder);
+  border-radius: 0.65rem;
+  background: #fff;
+  overflow: hidden;
+}
+.ms-cfg-panel-accent { border-color: var(--ms-marrs-green); }
+.ms-cfg-section { padding: 1rem 1.1rem; border-bottom: 1px solid var(--ms-steel); }
+.ms-cfg-footer {
+  padding: 0.9rem 1.1rem;
+  border-top: 1px solid var(--ms-steel);
+  background: var(--ms-steel);
+}
+
+/* Barra di riepilogo (ambito selezionato / righe selezionate) */
+.ms-cfg-bar {
+  padding: 0.7rem 1.1rem;
+  background: var(--ms-steel);
+  border-bottom: 1px solid var(--ms-steel);
+}
+.ms-cfg-bar-active {
+  background: var(--ms-teal-tint);
+  border-bottom-color: var(--ms-powder);
+}
+.ms-cfg-count {
+  min-width: 28px;
+  padding: 0.1rem 0.5rem;
+  border-radius: 0.45rem;
+  font-weight: 700;
+  font-family: monospace;
+  background: var(--ms-powder);
+  color: #fff;
+}
+.ms-cfg-count-active { background: var(--ms-teal); }
+
+/* Chip: stessa forma, tre accenti (dispositivo/MU, categoria, filtro) */
+.ms-chip {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.78rem;
+  border-radius: 999px;
+  border: 1px solid var(--ms-powder);
+  background: #fff;
+  color: var(--ms-graphite);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ms-chip:hover:not(:disabled) { border-color: var(--ms-teal); }
+.ms-chip:disabled { opacity: 0.5; cursor: not-allowed; }
+.ms-chip-on { font-weight: 700; color: #fff; }
+.ms-chip-device.ms-chip-on { background: var(--ms-teal); border-color: var(--ms-teal); }
+.ms-chip-mu.ms-chip-on { background: var(--ms-sky); border-color: var(--ms-sky); }
+.ms-chip-cat.ms-chip-on { background: var(--ms-sage); border-color: var(--ms-sage); }
+.ms-chip-filter.ms-chip-on { background: var(--ms-marrs-green); border-color: var(--ms-marrs-green); }
+.ms-chip-count {
+  margin-left: 0.4rem;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  background: var(--ms-steel);
+  color: var(--ms-graphite);
+}
+.ms-chip-on .ms-chip-count { background: rgba(255, 255, 255, 0.25); color: #fff; }
+
+/* Segmented control (periodi rapidi, misure) */
+.ms-seg {
+  display: inline-flex;
+  border: 1px solid var(--ms-powder);
+  border-radius: 0.45rem;
+  overflow: hidden;
+  background: #fff;
+}
+.ms-seg button {
+  border: none;
+  border-left: 1px solid var(--ms-steel);
+  background: transparent;
+  color: var(--ms-graphite);
+  padding: 0.3rem 0.6rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ms-seg button:first-child { border-left: none; }
+.ms-seg button:disabled { color: var(--ms-powder); background: var(--ms-steel); cursor: not-allowed; }
+.ms-seg button.ms-seg-on { font-weight: 700; color: #fff; background: var(--ms-teal); }
+.ms-seg-accent button.ms-seg-on { background: var(--ms-marrs-green); }
+
+/* Tabella avanzata */
+.ms-cfg-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.82rem; }
+.ms-cfg-table th {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: #fff;
+  border-bottom: 1px solid var(--ms-powder);
+  padding: 0.5rem 0.6rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--ms-graphite);
+  white-space: nowrap;
+}
+.ms-cfg-table td { padding: 0.6rem; border-bottom: 1px solid var(--ms-steel); vertical-align: middle; }
+.ms-cfg-dense td { padding: 0.3rem 0.6rem; }
+.ms-cfg-table tr.ms-cfg-row-sel > td { background: var(--ms-teal-tint); }
+.ms-cfg-group td {
+  background: var(--ms-green);
+  border-top: 1px solid var(--ms-sage);
+  border-bottom: 1px solid var(--ms-sage);
+  padding: 0.4rem 0.85rem;
+}
+.ms-cfg-dyn { background: var(--ms-steel); }
+
+/* Input numerico di cella: si accende in ambra quando il valore è da salvare */
+.ms-cfg-input {
+  width: 84px;
+  text-align: right;
+  border: 1px solid transparent;
+  border-radius: 0.35rem;
+  padding: 0.25rem 0.4rem;
+  font-family: monospace;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: transparent;
+  color: var(--ms-graphite);
+}
+.ms-cfg-input:focus { outline: none; border-color: var(--ms-marrs-green); background: #fff; }
+.ms-cfg-input:disabled { color: var(--ms-powder); cursor: not-allowed; }
+.ms-cfg-input-dirty { border-color: var(--ms-orange); background: #fff8ec; }
+
+/* Pallino e pillola di stato */
+.ms-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: none; }
+.ms-dot-applied { background: var(--ms-sage); }
+.ms-dot-pending { background: var(--ms-orange); }
+.ms-dot-divergent { background: var(--ms-crimson); }
+.ms-pill {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.ms-pill-applied { background: var(--ms-green); color: var(--ms-xanadugreen); }
+.ms-pill-pending { background: #fff4e0; color: #8a5a00; }
+.ms-pill-divergent { background: #fbe9e9; color: #9b2c2c; }
+
+/* Popover del periodo di campionamento */
+.ms-popover {
+  position: fixed;
+  z-index: 1080;
+  width: 300px;
+  background: #fff;
+  border: 1px solid var(--ms-powder);
+  border-radius: 0.7rem;
+  box-shadow: 0 14px 38px rgba(9, 40, 47, 0.22);
+  padding: 0.85rem 0.95rem;
+}
+
 /* --- Animazioni e Utility riutilizzabili --- */
 
 /* Animazione d'ingresso sfumata verso l'alto */

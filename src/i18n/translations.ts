@@ -106,6 +106,151 @@ export const it = {
     "Ti interessa accedere a MeasureStream? La registrazione autonoma non è disponibile: per richiedere l'accesso contatta direttamente il nostro team.",
   "landing.contactButton": "Contattaci",
   "landing.rights": "© 2025 MeasureStream. Tutti i diritti riservati.",
+
+  // --- Schede del dettaglio CU ---
+  "detail.tabs.overview": "Panoramica",
+  "detail.tabs.charts": "Grafici",
+  "detail.tabs.alarms": "Storico allarmi",
+  "detail.tabs.sensorConfig": "Configurazione Sensori",
+
+  // --- Scheda Grafici ---
+  "charts.title": "Grafici dei sensori",
+  "charts.subtitle": "Andamento delle misure, una card per sensore",
+  "charts.empty": "Nessuna MU associata a questa Control Unit.",
+
+  // --- Scheda Storico allarmi ---
+  "alarms.title": "Storico allarmi",
+  "alarms.soonTitle": "Non ancora disponibile",
+  "alarms.soonText":
+    "La CU non trasmette ancora gli allarmi asincroni (comandi 0xA0/0xA1). Qui compariranno soglia superata, valore misurato e istante di rientro, con la sequenza ALLARM_SEQ per accorgersi degli allarmi persi.",
+
+  // --- Configurazione sensori: intestazioni ---
+  "sensorConfig.quickTitle": "Configurazione rapida",
+  "sensorConfig.quickSubtitle": "• configura per categorie",
+  "sensorConfig.advancedTitle": "Configurazione avanzata",
+  "sensorConfig.expand": "— espandi",
+  "sensorConfig.collapse": "— comprimi",
+  "sensorConfig.pendingCount": "{count} in attesa",
+  "sensorConfig.viewCompact": "Vista compatta",
+  "sensorConfig.viewRelaxed": "Vista rilassata",
+  "sensorConfig.noSensors": "Questa Control Unit non ha ancora sensori censiti.",
+
+  // --- Configurazione sensori: ambito ---
+  "sensorConfig.wholeDevice": "Intero dispositivo • {count} sensori",
+  "sensorConfig.scopeNone": "nessun ambito selezionato",
+  "sensorConfig.scopeAll": "tutti i sensori del dispositivo",
+  "sensorConfig.scopeMuCount": "{count} MU",
+  "sensorConfig.scopeAllMus": "tutte le MU",
+  "sensorConfig.scopeAllCats": "tutte le categorie",
+  "sensorConfig.scopeNoteNone": "— scegli l'intero dispositivo, una o più MU, oppure una categoria",
+  "sensorConfig.scopeNoteAll": "— il comando viaggia in broadcast: un solo pacchetto per tutta la CU",
+  "sensorConfig.scopeNoteOneCat": "— una sola categoria: le soglie sono modificabili",
+  "sensorConfig.scopeNoteMixed": "— categorie miste: solo periodo e misura",
+
+  // --- Configurazione sensori: campi ---
+  "sensorConfig.period": "Periodo",
+  "sensorConfig.measure": "Misura",
+  "sensorConfig.thresholds": "Soglie",
+  "sensorConfig.applyThresholds": "Applica soglie",
+  "sensorConfig.measureNoteNone": "Seleziona un ambito per impostare periodo e misura.",
+  "sensorConfig.measureNoteAll": "Sull'intero dispositivo l'unica misura impostabile è Media + σ.",
+  "sensorConfig.measureNoteOneCat": "Tutte le modalità previste dal template {category}.",
+  "sensorConfig.measureNoteMixed": "Solo le modalità comuni all'ambito selezionato.",
+  "sensorConfig.thNoteNone": "Seleziona una categoria per modificare le soglie.",
+  "sensorConfig.thNoteOk": "Unità {unit} · isteresi 2u = ±{hysteresis} {unit}",
+  "sensorConfig.thNoteMixed":
+    "Seleziona una sola categoria per modificare le soglie: unità di misura diverse non sono confrontabili.",
+
+  // --- Configurazione sensori: azioni ---
+  "sensorConfig.resetTemplate": "↺ Default template",
+  "sensorConfig.revert": "Annulla modifiche in attesa",
+  "sensorConfig.save": "Salva configurazione",
+  "sensorConfig.saveWithCount": "Salva configurazione ({count})",
+  "sensorConfig.saved": "✓ Configurazione salvata",
+  "sensorConfig.saveHintNone": "Nessuna modifica da salvare",
+  "sensorConfig.saveHintPending": "Applicata al prossimo contatto della CU",
+  "sensorConfig.saveHintSaved": "In coda (down/replace) · consegna al prossimo poll",
+
+  // --- Configurazione sensori: filtri e selezione ---
+  "sensorConfig.filter": "Filtra",
+  "sensorConfig.search": "Cerca sensore, MU, canale…",
+  "sensorConfig.filterAll": "Tutti",
+  "sensorConfig.filterPending": "In attesa",
+  "sensorConfig.filterDivergent": "Divergenti",
+  "sensorConfig.filterWithThresholds": "Con soglie",
+  "sensorConfig.filterOff": "Spenti",
+  "sensorConfig.shownAll": "{total} sensori",
+  "sensorConfig.shownSome": "{shown} di {total} sensori",
+  "sensorConfig.selectionNone": "nessuna riga selezionata",
+  "sensorConfig.selectionSome": "righe selezionate",
+  "sensorConfig.selectionClear": "azzera selezione",
+  "sensorConfig.selectionHint":
+    "La selezione segue l'ambito della Configurazione rapida; qui puoi rifinirla riga per riga.",
+
+  // --- Configurazione sensori: tabella ---
+  "sensorConfig.groupSampling": "Campionamento",
+  "sensorConfig.groupStaticTh": "Soglie statiche",
+  "sensorConfig.groupDynamicTh": "Soglie dinamiche & esposizione",
+  "sensorConfig.colSensor": "Sensore",
+  "sensorConfig.colThHigh": "TH alta",
+  "sensorConfig.colThLow": "TH bassa",
+  "sensorConfig.colPercentile": "Percentile",
+  "sensorConfig.colRoc": "Rate of change",
+  "sensorConfig.colTor": "Time out of range",
+  "sensorConfig.colCumulative": "Esposizione cum.",
+  "sensorConfig.colStatus": "Stato",
+  "sensorConfig.muSummary": "{count} sensori · LID {lid}",
+  "sensorConfig.muSummaryOff": "{count} OFF",
+  "sensorConfig.samplingOff": "campionamento OFF",
+  "sensorConfig.channel": "CH {ch}",
+  "sensorConfig.locked": "BLOCCATO",
+  "sensorConfig.lockedTitle": "Sensore oltre il 48°: non configurabile su questa CU",
+  "sensorConfig.pctOnlyWithPercentile": "Disponibile solo con la misura Percentili",
+
+  // --- Configurazione sensori: stato ---
+  "sensorConfig.statusApplied": "applicata",
+  "sensorConfig.statusPending": "in attesa",
+  "sensorConfig.statusDivergent": "divergente",
+  "sensorConfig.statusAppliedTitle": "La CU ha confermato questa versione di configurazione",
+  "sensorConfig.statusPendingTitle": "Salvata sul server, consegna al prossimo poll",
+  "sensorConfig.statusDivergentTitle": "La CU riporta una CFG_VER inattesa: serve riconciliazione",
+  "sensorConfig.legendApplied": "applicata — CFG_VER confermata dalla CU",
+  "sensorConfig.legendPending": "in attesa — salvata, non ancora consegnata",
+  "sensorConfig.legendDivergent": "divergente — la CU riporta una versione inattesa",
+  "sensorConfig.legendHysteresis":
+    "Isteresi di allarme derivata da metrology.Uncertainty (k = 2), non modificabile a mano.",
+
+  // --- Configurazione sensori: costo del payload ---
+  "sensorConfig.payloadNone": "Nessuna modifica in attesa: al prossimo poll la CU riceve solo la risposta normale.",
+  "sensorConfig.payloadBroadcast":
+    "Configurazione uniforme su tutto il dispositivo: i comandi viaggiano in broadcast, costo di rete quasi nullo.",
+  "sensorConfig.payloadGroups": "{groups} gruppi di valori su {sensors} sensori in attesa · ~{bytes} B in {packets}",
+  "sensorConfig.packetOne": "1 pacchetto",
+  "sensorConfig.packetMany": "{count} pacchetti",
+
+  // --- Configurazione sensori: popover del periodo ---
+  "sensorConfig.periodTitle": "Periodo di campionamento",
+  "sensorConfig.periodNote": "Isteresi allarme 2u = ±{hysteresis} {unit}.",
+
+  // --- Misure ---
+  "sensorConfig.measure.avg": "Media + σ",
+  "sensorConfig.measure.mm": "Max / Min",
+  "sensorConfig.measure.int": "Integrale",
+  "sensorConfig.measure.med": "Mediana",
+  "sensorConfig.measure.pct": "Percentili",
+  "sensorConfig.measure.pt": "Puntuale",
+  "sensorConfig.measureNotInTemplate": "{measure} — non prevista dal template",
+  "sensorConfig.measureNotInScope": "{measure} — non prevista da tutti i template dell'ambito",
+  "sensorConfig.measureOnlyAvg": "{measure} — sull'intero dispositivo è impostabile solo Media + σ",
+
+  // --- Categorie sensore (dal campo `category` del template) ---
+  "sensorConfig.category.accelerometer": "Accelerometro",
+  "sensorConfig.category.temperature": "Temperatura",
+  "sensorConfig.category.pressure": "Pressione",
+  "sensorConfig.category.humidity": "Umidità",
+  "sensorConfig.category.co2": "CO₂",
+  "sensorConfig.category.battery": "Batteria",
+  "sensorConfig.category.others": "Altro",
 } as const;
 
 /** Chiave di traduzione: derivata dal dizionario italiano. */
