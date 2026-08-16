@@ -90,11 +90,11 @@ export function QuickConfigPanel({ state }: { state: SensorConfigState }) {
 
   return (
     <section className="mb-4">
-      <h5 className="d-flex align-items-center gap-2 fw-bold mb-2">
-        <BsGearWideConnected className="text-primary" />
-        {t("sensorConfig.quickTitle")}
-        <span className="small fw-normal text-muted">{t("sensorConfig.quickSubtitle")}</span>
-      </h5>
+      <div className="d-flex align-items-center gap-2 mb-2">
+        <BsGearWideConnected size={17} className="text-primary" />
+        <span className="ms-cfg-title">{t("sensorConfig.quickTitle")}</span>
+        <span className="ms-cfg-note">{t("sensorConfig.quickSubtitle")}</span>
+      </div>
 
       <div className="ms-cfg-panel shadow-sm">
         <ScopeSelector
@@ -109,11 +109,11 @@ export function QuickConfigPanel({ state }: { state: SensorConfigState }) {
           onToggleCategory={state.toggleCategory}
         />
 
-        <div className="ms-cfg-section d-flex flex-column gap-3">
+        <div className="ms-cfg-section ms-cfg-section-last d-flex flex-column gap-3">
           {/* Periodo + misura */}
           <div className="d-flex align-items-center gap-4 flex-wrap">
             <div className="d-flex align-items-center gap-2">
-              <span className="small fw-bold text-uppercase text-muted" style={{ width: 60 }}>
+              <span className="ms-cfg-label" style={{ width: 60 }}>
                 {t("sensorConfig.period")}
               </span>
               <SegmentedControl
@@ -124,40 +124,36 @@ export function QuickConfigPanel({ state }: { state: SensorConfigState }) {
             </div>
 
             <div className="d-flex align-items-center gap-2 flex-wrap">
-              <span className="small fw-bold text-uppercase text-muted">{t("sensorConfig.measure")}</span>
+              <span className="ms-cfg-label">{t("sensorConfig.measure")}</span>
               <SegmentedControl
                 options={measureOptions}
                 value={common("measure") as MeasureId | null}
                 onChange={(measure) => state.setValues(targetRows, { measure })}
               />
-              <span className="text-muted" style={{ fontSize: "0.72rem", maxWidth: 260 }}>{measureNote}</span>
+              <span className="ms-cfg-note" style={{ maxWidth: 260 }}>{measureNote}</span>
             </div>
           </div>
 
           {/* Soglie in massa */}
           <div className="d-flex align-items-center gap-2 flex-wrap">
-            <span
-              className="small fw-bold text-uppercase"
-              style={{ width: 60, color: thresholdsEditable ? "var(--ms-graphite)" : "var(--ms-powder)" }}
-            >
+            <span className={`ms-cfg-label${thresholdsEditable ? "" : " ms-cfg-label-off"}`} style={{ width: 60 }}>
               {t("sensorConfig.thresholds")}
             </span>
 
             {BULK_FIELDS.map((f) => (
               <span key={f.key} className="d-flex align-items-center gap-1">
-                <span className="small" style={{ color: thresholdsEditable ? "var(--ms-graphite)" : "var(--ms-powder)" }}>
+                <span className="small fw-semibold" style={{ color: thresholdsEditable ? "var(--ms-graphite)" : "var(--ms-powder)" }}>
                   {f.short}
                 </span>
                 <input
                   type="number"
-                  className="form-control form-control-sm font-monospace text-end"
-                  style={{ width: 92 }}
+                  className="ms-cfg-bulk-input"
                   disabled={!thresholdsEditable}
                   placeholder="—"
                   value={draft[f.key] ?? ""}
                   onChange={(e) => setDraft((d) => ({ ...d, [f.key]: e.target.value }))}
                 />
-                <span className="text-muted font-monospace" style={{ fontSize: "0.68rem" }}>
+                <span className={`ms-cfg-unit${thresholdsEditable ? "" : " ms-cfg-unit-off"}`}>
                   {thresholdsEditable ? fieldUnitLabel(f, singleCategory!.unit, singleCategory!.rocUnit) : "—"}
                 </span>
               </span>
@@ -166,7 +162,9 @@ export function QuickConfigPanel({ state }: { state: SensorConfigState }) {
             <Button size="sm" variant="primary" disabled={!thresholdsEditable} onClick={applyDraft}>
               {t("sensorConfig.applyThresholds")}
             </Button>
-            <span className="text-muted" style={{ fontSize: "0.72rem", maxWidth: 320 }}>{thresholdNote}</span>
+            <span className={`ms-cfg-note${thresholdsEditable ? "" : " ms-cfg-note-warn"}`} style={{ maxWidth: 320 }}>
+              {thresholdNote}
+            </span>
           </div>
         </div>
 

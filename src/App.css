@@ -25,7 +25,7 @@
   --ms-steel: #eff3f2;       /* Grigio acciaio — superfici inattive/offline */
   --ms-graphite: #495057;    /* Grigio grafite — testo secondario su fondi chiari */
   --ms-xanadugreen: #7b8776; /* Verde grigio scuro — testo secondario */
-  --ms-marrs-green: #008c64; /* Verde ottanio brillante - colore secondario */
+  --ms-marrs-green: #008c64; /* Verde ottanio brillante — accento della Configurazione Sensori */
 
   --bs-primary: var(--ms-teal);
   --bs-primary-rgb: 22, 105, 122;
@@ -123,71 +123,144 @@
 }
 
 /* ================================================================
-   Configurazione Sensori (scheda del dettaglio CU)
-   Tutti i colori vengono dalla palette --ms-*: nei componenti non
-   deve comparire nessun esadecimale.
+   Dettaglio Control Unit + Configurazione Sensori
+   Metriche tipografiche allineate al progetto Claude Design.
+   Nei componenti non deve comparire nessun esadecimale: i colori
+   stanno qui e vengono tutti dalla palette --ms-*.
    ================================================================ */
 
-/* Barra delle schede del dettaglio CU */
-.ms-tab {
-  border: none;
-  background: transparent;
-  padding: 0.55rem 0.9rem;
-  font-size: 0.86rem;
-  color: var(--ms-graphite);
-  border-radius: 0.5rem 0.5rem 0 0;
-  border-bottom: 2px solid transparent;
-  cursor: pointer;
-}
-.ms-tab:hover { background: var(--ms-teal-tint); }
-.ms-tab-active {
-  font-weight: 700;
-  color: var(--ms-teal);
-  border-bottom-color: var(--ms-teal);
+/* Grigi di servizio: testo secondario, linee, fondi delle barre. */
+:root {
+  --ms-muted: #8b969b;
+  --ms-line: #e4eaec;
+  --ms-surface: #fbfcfc;
 }
 
-/* Pannelli (configurazione rapida / avanzata) */
+/* Le frecce degli input numerici non servono mai: i valori si digitano. */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+input[type="number"] { -moz-appearance: textfield; }
+
+/* Caselle di selezione in verde marrs (accento della configurazione). */
+.form-check-input:checked,
+.form-check-input:indeterminate {
+  background-color: var(--ms-marrs-green);
+  border-color: var(--ms-marrs-green);
+}
+.form-check-input:focus {
+  border-color: var(--ms-marrs-green);
+  box-shadow: 0 0 0 0.2rem rgba(0, 140, 140, 0.2);
+}
+
+/* --- Intestazione della CU: resta fissa durante lo scorrimento --- */
+.ms-detail-header {
+  position: sticky;
+  top: 0;
+  z-index: 1035;
+  background: #fff;
+  border-bottom: 1px solid var(--ms-line);
+  margin-bottom: 1.4rem;
+  padding: 0.9rem 0 0;
+}
+.ms-meta-label {
+  font-size: 0.63rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ms-muted);
+}
+.ms-meta-value { font-size: 0.84rem; font-weight: 700; white-space: nowrap; }
+.ms-meta-sep { font-size: 2rem; font-weight: 200; line-height: 1; color: var(--ms-line); }
+.ms-state-pill {
+  font-size: 0.69rem;
+  font-weight: 600;
+  padding: 0.18rem 0.6rem;
+  border-radius: 999px;
+  background: var(--ms-steel);
+  color: var(--bs-body-color);
+  white-space: nowrap;
+}
+
+/* --- Schede: solo quella attiva ha il riquadro --- */
+.ms-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1.5px solid transparent;
+  border-radius: 0.5rem;
+  background: transparent;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.84rem;
+  font-weight: 500;
+  color: var(--ms-muted);
+  cursor: pointer;
+}
+.ms-tab:hover { color: var(--ms-teal); }
+.ms-tab-active { border-color: var(--ms-teal); color: var(--ms-teal); font-weight: 700; }
+
+/* --- Pannelli --- */
+.ms-cfg-title { font-size: 1.15rem; font-weight: 700; }
 .ms-cfg-panel {
-  border: 1px solid var(--ms-powder);
+  border: 1px solid var(--ms-line);
   border-radius: 0.65rem;
   background: #fff;
+  box-shadow: 0 2px 12px rgba(9, 40, 47, 0.07);
   overflow: hidden;
 }
-.ms-cfg-panel-accent { border-color: var(--ms-marrs-green); }
-.ms-cfg-section { padding: 1rem 1.1rem; border-bottom: 1px solid var(--ms-steel); }
+.ms-cfg-panel-accent { border-color: #dbeded; box-shadow: 0 2px 12px rgba(0, 140, 140, 0.09); }
+.ms-cfg-section { padding: 0.95rem 1.1rem; border-bottom: 1px solid var(--ms-line); }
+.ms-cfg-section-last { border-bottom: none; }
 .ms-cfg-footer {
-  padding: 0.9rem 1.1rem;
-  border-top: 1px solid var(--ms-steel);
-  background: var(--ms-steel);
+  padding: 0.85rem 1.1rem;
+  border-top: 1px solid var(--ms-line);
+  background: var(--ms-surface);
 }
 
 /* Barra di riepilogo (ambito selezionato / righe selezionate) */
 .ms-cfg-bar {
-  padding: 0.7rem 1.1rem;
-  background: var(--ms-steel);
-  border-bottom: 1px solid var(--ms-steel);
+  padding: 0.65rem 1.1rem;
+  background: var(--ms-surface);
+  border-bottom: 1px solid var(--ms-line);
+  font-size: 0.78rem;
 }
-.ms-cfg-bar-active {
-  background: var(--ms-teal-tint);
-  border-bottom-color: var(--ms-powder);
-}
+.ms-cfg-bar-active { background: var(--ms-teal-tint); border-bottom-color: var(--ms-powder); }
+.ms-cfg-bar-accent.ms-cfg-bar-active { background: #e6f4f4; border-bottom-color: #bfe3e3; }
 .ms-cfg-count {
   min-width: 28px;
-  padding: 0.1rem 0.5rem;
+  height: 24px;
+  padding: 0 0.5rem;
   border-radius: 0.45rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
   font-weight: 700;
   font-family: monospace;
-  background: var(--ms-powder);
-  color: #fff;
+  background: var(--ms-line);
+  color: var(--ms-muted);
 }
-.ms-cfg-count-active { background: var(--ms-teal); }
+.ms-cfg-count-active { background: var(--ms-teal); color: #fff; }
+.ms-cfg-count-accent.ms-cfg-count-active { background: var(--ms-marrs-green); }
+.ms-cfg-note { font-size: 0.7rem; color: var(--ms-muted); line-height: 1.4; }
+.ms-cfg-note-warn { color: #a5762a; }
 
-/* Chip: stessa forma, tre accenti (dispositivo/MU, categoria, filtro) */
+/* Etichette di riga (PERIODO / MISURA / SOGLIE) */
+.ms-cfg-label {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ms-muted);
+}
+.ms-cfg-label-off { color: var(--ms-powder); }
+
+/* --- Chip --- */
 .ms-chip {
   padding: 0.35rem 0.75rem;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
+  line-height: 1.35;
   border-radius: 999px;
-  border: 1px solid var(--ms-powder);
+  border: 1px solid var(--ms-line);
   background: #fff;
   color: var(--ms-graphite);
   cursor: pointer;
@@ -196,22 +269,24 @@
 .ms-chip:hover:not(:disabled) { border-color: var(--ms-teal); }
 .ms-chip:disabled { opacity: 0.5; cursor: not-allowed; }
 .ms-chip-on { font-weight: 700; color: #fff; }
-.ms-chip-device.ms-chip-on { background: var(--ms-teal); border-color: var(--ms-teal); }
+.ms-chip-device { border-color: var(--ms-teal); color: var(--ms-teal); font-weight: 600; padding: 0.4rem 0.9rem; font-size: 0.78rem; }
+.ms-chip-device.ms-chip-on { background: var(--ms-teal); color: #fff; }
+.ms-chip-mu { border-color: var(--ms-sky); color: #3d8ea3; }
 .ms-chip-mu.ms-chip-on { background: var(--ms-sky); border-color: var(--ms-sky); }
 .ms-chip-cat.ms-chip-on { background: var(--ms-sage); border-color: var(--ms-sage); }
 .ms-chip-filter.ms-chip-on { background: var(--ms-marrs-green); border-color: var(--ms-marrs-green); }
 .ms-chip-count {
-  margin-left: 0.4rem;
-  padding: 0 0.35rem;
+  margin-left: 0.35rem;
+  padding: 0 0.32rem;
   border-radius: 999px;
-  font-size: 0.68rem;
+  font-size: 0.63rem;
   font-weight: 700;
   background: var(--ms-steel);
-  color: var(--ms-graphite);
+  color: var(--ms-muted);
 }
 .ms-chip-on .ms-chip-count { background: rgba(255, 255, 255, 0.25); color: #fff; }
 
-/* Segmented control (periodi rapidi, misure) */
+/* --- Segmented control (periodi, misure) --- */
 .ms-seg {
   display: inline-flex;
   border: 1px solid var(--ms-powder);
@@ -221,45 +296,107 @@
 }
 .ms-seg button {
   border: none;
-  border-left: 1px solid var(--ms-steel);
+  border-left: 1px solid var(--ms-line);
   background: transparent;
   color: var(--ms-graphite);
-  padding: 0.3rem 0.6rem;
-  font-size: 0.75rem;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.72rem;
+  line-height: 1.35;
   cursor: pointer;
   white-space: nowrap;
 }
 .ms-seg button:first-child { border-left: none; }
-.ms-seg button:disabled { color: var(--ms-powder); background: var(--ms-steel); cursor: not-allowed; }
+.ms-seg button:disabled { color: #ccd4d7; background: #f4f6f7; cursor: not-allowed; }
 .ms-seg button.ms-seg-on { font-weight: 700; color: #fff; background: var(--ms-teal); }
 .ms-seg-accent button.ms-seg-on { background: var(--ms-marrs-green); }
+.ms-seg-sm button { padding: 0.25rem 0.5rem; font-size: 0.7rem; }
 
-/* Tabella avanzata */
-.ms-cfg-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.82rem; }
-.ms-cfg-table th {
+/* Campi numerici della configurazione rapida */
+.ms-cfg-bulk-input {
+  width: 88px;
+  text-align: right;
+  border: 1px solid var(--ms-powder);
+  border-radius: 0.35rem;
+  padding: 0.3rem 0.45rem;
+  font-family: monospace;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ms-graphite);
+  background: #fff;
+}
+.ms-cfg-bulk-input:disabled { background: #f7f9f9; border-color: var(--ms-line); cursor: not-allowed; }
+.ms-cfg-unit { font-size: 0.66rem; color: var(--ms-muted); font-family: monospace; white-space: nowrap; }
+.ms-cfg-unit-off { color: #c9d1d4; }
+
+/* --- Tabella avanzata --- */
+.ms-cfg-scroll { overflow: auto; max-height: 58vh; position: relative; }
+.ms-cfg-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.8rem; }
+
+/* Prima riga di intestazione: le tre famiglie di colonne */
+.ms-cfg-table thead tr:first-child th {
   position: sticky;
   top: 0;
-  z-index: 5;
-  background: #fff;
-  border-bottom: 1px solid var(--ms-powder);
-  padding: 0.5rem 0.6rem;
-  font-size: 0.7rem;
+  z-index: 6;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.62rem;
   font-weight: 700;
-  color: var(--ms-graphite);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: left;
+  background: #fff;
+  border-bottom: 1px solid var(--ms-line);
+  color: var(--ms-muted);
   white-space: nowrap;
 }
-.ms-cfg-table td { padding: 0.6rem; border-bottom: 1px solid var(--ms-steel); vertical-align: middle; }
-.ms-cfg-dense td { padding: 0.3rem 0.6rem; }
-.ms-cfg-table tr.ms-cfg-row-sel > td { background: var(--ms-teal-tint); }
-.ms-cfg-group td {
-  background: var(--ms-green);
-  border-top: 1px solid var(--ms-sage);
-  border-bottom: 1px solid var(--ms-sage);
-  padding: 0.4rem 0.85rem;
-}
-.ms-cfg-dyn { background: var(--ms-steel); }
+.ms-cfg-th-static { background: #fffdf8 !important; color: #a5762a !important; }
+.ms-cfg-th-dynamic { background: #f8fdfd !important; color: #00706f !important; }
 
-/* Input numerico di cella: si accende in ambra quando il valore è da salvare */
+/* Seconda riga: i nomi delle colonne */
+.ms-cfg-table thead tr:nth-child(2) th {
+  position: sticky;
+  top: 25px;
+  z-index: 5;
+  background: #fafbfc;
+  border-bottom: 1px solid var(--ms-line);
+  padding: 0.45rem 0.6rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #5c6b70;
+  white-space: nowrap;
+}
+
+.ms-cfg-table td {
+  padding: 0.55rem 0.6rem;
+  border-bottom: 1px solid #f2f5f6;
+  vertical-align: middle;
+  background: #fff;
+}
+.ms-cfg-dense td { padding: 0.28rem 0.6rem; }
+
+/* Colonna del sensore: resta ferma nello scorrimento orizzontale */
+.ms-cfg-table .ms-col-sensor {
+  position: sticky;
+  left: 0;
+  z-index: 4;
+  min-width: 250px;
+  box-shadow: 1px 0 0 var(--ms-line);
+}
+.ms-cfg-table thead .ms-col-sensor { z-index: 8; }
+.ms-cfg-table tr.ms-cfg-row-sel td { background: #e6f4f4; }
+.ms-cfg-table tr.ms-cfg-row-div td { background: #fffafa; }
+
+/* Riga di intestazione della MU: anche il suo contenuto resta fermo */
+.ms-cfg-group td {
+  background: #f2fafa;
+  border-top: 1px solid #dceded;
+  border-bottom: 1px solid #dceded;
+  padding: 0.35rem 0.85rem;
+}
+.ms-cfg-group-inner { position: sticky; left: 0.85rem; display: inline-flex; align-items: center; gap: 0.6rem; }
+.ms-cfg-dyn { background: #fcfdfd !important; }
+.ms-cfg-row-sel .ms-cfg-dyn { background: #ddefef !important; }
+
+/* Input di cella: trasparente finché non lo si tocca, ambra se da salvare */
 .ms-cfg-input {
   width: 84px;
   text-align: right;
@@ -267,28 +404,45 @@
   border-radius: 0.35rem;
   padding: 0.25rem 0.4rem;
   font-family: monospace;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 600;
   background: transparent;
-  color: var(--ms-graphite);
+  color: #2c3a3f;
 }
 .ms-cfg-input:focus { outline: none; border-color: var(--ms-marrs-green); background: #fff; }
-.ms-cfg-input:disabled { color: var(--ms-powder); cursor: not-allowed; }
-.ms-cfg-input-dirty { border-color: var(--ms-orange); background: #fff8ec; }
+.ms-cfg-input:disabled { color: #ccd4d7; cursor: not-allowed; }
+.ms-cfg-input-dirty { border-color: #ffd79a; background: #fff9ef; }
+
+/* Identità del sensore */
+.ms-sensor-name { font-family: monospace; font-size: 0.78rem; font-weight: 600; white-space: nowrap; }
+.ms-sensor-meta { font-size: 0.66rem; color: #98a2a7; white-space: nowrap; }
+.ms-mu-name { font-family: monospace; font-size: 0.78rem; font-weight: 700; color: #0d6a6a; white-space: nowrap; }
+.ms-mu-summary { font-size: 0.68rem; color: var(--ms-muted); white-space: nowrap; }
+
+/* Pulsante del periodo */
+.ms-period-btn {
+  min-width: 66px;
+  text-align: left;
+  padding: 0.28rem 0.55rem;
+  border-radius: 0.45rem;
+  border: 1px solid var(--ms-line);
+  background: #fff;
+  font-family: monospace;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #00706f;
+  cursor: pointer;
+}
+.ms-period-btn:hover { border-color: var(--ms-marrs-green); }
+.ms-period-btn-off { background: #f4f6f7; color: var(--ms-muted); }
 
 /* Pallino e pillola di stato */
-.ms-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: none; }
+.ms-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex: none; }
 .ms-dot-applied { background: var(--ms-sage); }
 .ms-dot-pending { background: var(--ms-orange); }
 .ms-dot-divergent { background: var(--ms-crimson); }
-.ms-pill {
-  font-size: 0.68rem;
-  font-weight: 600;
-  padding: 0.1rem 0.5rem;
-  border-radius: 999px;
-  white-space: nowrap;
-}
-.ms-pill-applied { background: var(--ms-green); color: var(--ms-xanadugreen); }
+.ms-pill { font-size: 0.66rem; font-weight: 600; padding: 0.1rem 0.5rem; border-radius: 999px; white-space: nowrap; }
+.ms-pill-applied { background: #eef3ea; color: #5f6b45; }
 .ms-pill-pending { background: #fff4e0; color: #8a5a00; }
 .ms-pill-divergent { background: #fbe9e9; color: #9b2c2c; }
 
@@ -298,10 +452,10 @@
   z-index: 1080;
   width: 300px;
   background: #fff;
-  border: 1px solid var(--ms-powder);
+  border: 1px solid #d3e0e4;
   border-radius: 0.7rem;
   box-shadow: 0 14px 38px rgba(9, 40, 47, 0.22);
-  padding: 0.85rem 0.95rem;
+  padding: 0.8rem 0.95rem 0.7rem;
 }
 
 /* --- Animazioni e Utility riutilizzabili --- */

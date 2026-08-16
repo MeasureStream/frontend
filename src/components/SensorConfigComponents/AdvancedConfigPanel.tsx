@@ -6,7 +6,7 @@
  * è la via per rifinire il singolo sensore.
  */
 import { Button } from "react-bootstrap";
-import { BsChevronDown, BsSearch } from "react-icons/bs";
+import { BsArrowDownCircleFill, BsArrowsCollapse, BsArrowsExpand, BsSearch } from "react-icons/bs";
 import { useI18n } from "../../i18n/I18nContext";
 import { SensorFilterBar } from "./SensorFilterBar";
 import { SensorConfigTable } from "./SensorConfigTable";
@@ -35,22 +35,23 @@ export function AdvancedConfigPanel({ state }: { state: SensorConfigState }) {
 
   return (
     <section className="ms-cfg-panel ms-cfg-panel-accent shadow-sm">
-      <div className="ms-cfg-section d-flex align-items-center gap-3 flex-wrap" style={{ borderBottom: advancedOpen ? undefined : "none" }}>
+      <div className={`ms-cfg-section d-flex align-items-center gap-3 flex-wrap${advancedOpen ? "" : " ms-cfg-section-last"}`}>
         <button
           type="button"
           className="btn btn-link text-decoration-none p-0 d-flex align-items-center gap-2 text-body"
           onClick={() => state.setAdvancedOpen(!advancedOpen)}
         >
-          <BsSearch style={{ color: "var(--ms-marrs-green)" }} />
-          <span className="h5 mb-0 fw-bold">{t("sensorConfig.advancedTitle")}</span>
-          <BsChevronDown
+          <BsSearch size={18} style={{ color: "var(--ms-marrs-green)" }} />
+          <span className="ms-cfg-title">{t("sensorConfig.advancedTitle")}</span>
+          <BsArrowDownCircleFill
+            size={22}
             style={{
               color: "var(--ms-marrs-green)",
               transition: "transform .18s",
               transform: advancedOpen ? "rotate(180deg)" : undefined,
             }}
           />
-          <span className="small text-muted">{advancedOpen ? t("sensorConfig.collapse") : t("sensorConfig.expand")}</span>
+          <span className="ms-cfg-note">{advancedOpen ? t("sensorConfig.collapse") : t("sensorConfig.expand")}</span>
           {pendingRows.length > 0 && (
             <span className="ms-pill ms-pill-pending">{t("sensorConfig.pendingCount", { count: pendingRows.length })}</span>
           )}
@@ -59,7 +60,13 @@ export function AdvancedConfigPanel({ state }: { state: SensorConfigState }) {
         <span className="flex-grow-1" />
 
         {advancedOpen && (
-          <Button size="sm" variant="outline-secondary" onClick={() => state.setDense(!state.dense)}>
+          <Button
+            size="sm"
+            variant="outline-secondary"
+            className="d-flex align-items-center gap-2"
+            onClick={() => state.setDense(!state.dense)}
+          >
+            {state.dense ? <BsArrowsExpand /> : <BsArrowsCollapse />}
             {state.dense ? t("sensorConfig.viewRelaxed") : t("sensorConfig.viewCompact")}
           </Button>
         )}
@@ -78,22 +85,23 @@ export function AdvancedConfigPanel({ state }: { state: SensorConfigState }) {
 
           {/* Riepilogo della selezione: le azioni di massa della configurazione
               rapida agiscono su queste righe. */}
-          <div className={`ms-cfg-bar d-flex align-items-center gap-2 flex-wrap${selectedCount ? " ms-cfg-bar-active" : ""}`}>
-            <span className={`ms-cfg-count${selectedCount ? " ms-cfg-count-active" : ""}`}>{selectedCount}</span>
-            <span className="small fw-semibold">
+          <div className={`ms-cfg-bar ms-cfg-bar-accent d-flex align-items-center gap-2 flex-wrap${selectedCount ? " ms-cfg-bar-active" : ""}`}>
+            <span className={`ms-cfg-count ms-cfg-count-accent${selectedCount ? " ms-cfg-count-active" : ""}`}>{selectedCount}</span>
+            <span className="fw-semibold">
               {selectedCount ? t("sensorConfig.selectionSome") : t("sensorConfig.selectionNone")}
             </span>
             <Button
               variant="link"
               size="sm"
-              className="p-0 text-decoration-underline small"
+              className="p-0 text-decoration-underline"
+              style={{ fontSize: "0.72rem" }}
               disabled={!selectedCount}
               onClick={state.clearSelection}
             >
               {t("sensorConfig.selectionClear")}
             </Button>
             <span className="flex-grow-1" />
-            <span className="small text-muted">{t("sensorConfig.selectionHint")}</span>
+            <span className="ms-cfg-note">{t("sensorConfig.selectionHint")}</span>
           </div>
 
           <SensorConfigTable state={state} />
@@ -104,9 +112,7 @@ export function AdvancedConfigPanel({ state }: { state: SensorConfigState }) {
             onRevert={state.revert}
             onSave={state.save}
           >
-            <span className="text-muted" style={{ fontSize: "0.72rem", maxWidth: 430, lineHeight: 1.45 }}>
-              {payloadHint}
-            </span>
+            <span className="ms-cfg-note" style={{ maxWidth: 430 }}>{payloadHint}</span>
           </PendingActionsFooter>
         </>
       )}

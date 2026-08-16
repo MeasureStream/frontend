@@ -107,6 +107,17 @@ export const it = {
   "landing.contactButton": "Contattaci",
   "landing.rights": "© 2025 MeasureStream. Tutti i diritti riservati.",
 
+  // --- Intestazione fissa del dettaglio CU ---
+  "detail.header.lastContact": "Ultimo contatto",
+  "detail.header.polling": "Polling",
+  "detail.header.battery": "Batteria",
+  "detail.header.nextAt": "prossimo {time}",
+  "detail.header.pollingHours": "{hours} h",
+  "detail.age.now": "adesso",
+  "detail.age.minutes": "{value} min fa",
+  "detail.age.hours": "{value} h fa",
+  "detail.age.days": "{value} g fa",
+
   // --- Schede del dettaglio CU ---
   "detail.tabs.overview": "Panoramica",
   "detail.tabs.charts": "Grafici",

@@ -34,11 +34,20 @@ export function SensorConfigTable({ state }: { state: SensorConfigState }) {
 
   return (
     <>
-      <div style={{ overflow: "auto", maxHeight: "60vh" }}>
+      <div className="ms-cfg-scroll">
         <table className={`ms-cfg-table${state.dense ? " ms-cfg-dense" : ""}`}>
           <thead>
+            {/* Prima riga: le tre famiglie di colonne (campionamento, soglie
+                statiche, soglie dinamiche) — orienta la lettura della tabella. */}
             <tr>
-              <th style={{ minWidth: 240 }}>
+              <th className="ms-col-sensor" />
+              <th colSpan={2}>{t("sensorConfig.groupSampling")}</th>
+              <th colSpan={3} className="ms-cfg-th-static">{t("sensorConfig.groupStaticTh")}</th>
+              <th colSpan={3} className="ms-cfg-th-dynamic">{t("sensorConfig.groupDynamicTh")}</th>
+              <th />
+            </tr>
+            <tr>
+              <th className="ms-col-sensor">
                 <span className="d-flex align-items-center gap-2">
                   <input
                     type="checkbox"
@@ -71,7 +80,9 @@ export function SensorConfigTable({ state }: { state: SensorConfigState }) {
                 {/* Intestazione di gruppo: seleziona/deseleziona l'intera MU */}
                 <tr className="ms-cfg-group">
                   <td colSpan={10}>
-                    <span className="d-inline-flex align-items-center gap-2">
+                    {/* Il contenuto resta agganciato a sinistra: scorrendo in
+                        orizzontale si vede sempre di quale MU è la riga. */}
+                    <span className="ms-cfg-group-inner">
                       <input
                         type="checkbox"
                         className="form-check-input mt-0"
@@ -79,8 +90,8 @@ export function SensorConfigTable({ state }: { state: SensorConfigState }) {
                         ref={(el) => { if (el) el.indeterminate = selectedCount > 0 && selectedCount < rows.length; }}
                         onChange={() => state.toggleRows(rows, selectedCount !== rows.length)}
                       />
-                      <span className="fw-bold font-monospace" style={{ fontSize: "0.78rem" }}>{mu.label}</span>
-                      <span className="text-muted" style={{ fontSize: "0.7rem" }}>
+                      <span className="ms-mu-name">{mu.label}</span>
+                      <span className="ms-mu-summary">
                         {t("sensorConfig.muSummary", { count: rows.length, lid: mu.localId })}
                         {offCount > 0 && ` · ${t("sensorConfig.muSummaryOff", { count: offCount })}`}
                         {pendingCount > 0 && ` · ${t("sensorConfig.pendingCount", { count: pendingCount })}`}

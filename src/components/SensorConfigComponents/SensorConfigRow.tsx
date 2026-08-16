@@ -35,14 +35,14 @@ export function SensorConfigTableRow({ row, selected, onToggleSelect, onOpenPeri
   const locked = !row.configurable;
 
   return (
-    <tr className={selected ? "ms-cfg-row-sel" : undefined}>
-      {/* Identità del sensore */}
-      <td>
+    <tr className={`${selected ? "ms-cfg-row-sel" : ""}${status === "divergent" ? " ms-cfg-row-div" : ""}`}>
+      {/* Identità del sensore: colonna fissa nello scorrimento orizzontale */}
+      <td className="ms-col-sensor">
         <span className="d-flex align-items-center gap-2">
           <input type="checkbox" className="form-check-input mt-0" checked={selected} disabled={locked} onChange={onToggleSelect} />
           <span className={`ms-dot ms-dot-${status}`} />
           <span className="text-truncate">
-            <span className={`d-block font-monospace fw-semibold${isOff ? " text-muted" : ""}`} style={{ fontSize: "0.78rem" }}>
+            <span className={`d-block ms-sensor-name${isOff ? " text-muted" : ""}`}>
               {row.name}
               {locked && (
                 <span className="ms-pill ms-pill-divergent ms-2" title={t("sensorConfig.lockedTitle")}>
@@ -50,7 +50,7 @@ export function SensorConfigTableRow({ row, selected, onToggleSelect, onOpenPeri
                 </span>
               )}
             </span>
-            <span className="d-block text-muted" style={{ fontSize: "0.66rem" }}>
+            <span className="d-block ms-sensor-meta">
               {t("sensorConfig.channel", { ch: row.sensorIndex })} ·{" "}
               {isOff ? t("sensorConfig.samplingOff") : row.liveValue} · u = {row.uncertainty} {row.unit}
             </span>
@@ -62,7 +62,7 @@ export function SensorConfigTableRow({ row, selected, onToggleSelect, onOpenPeri
       <td>
         <button
           type="button"
-          className="btn btn-sm btn-outline-secondary font-monospace fw-bold"
+          className={`ms-period-btn${isOff ? " ms-period-btn-off" : ""}`}
           disabled={locked}
           onClick={(e) => onOpenPeriod(e.currentTarget.getBoundingClientRect())}
         >
@@ -74,6 +74,7 @@ export function SensorConfigTableRow({ row, selected, onToggleSelect, onOpenPeri
       <td>
         <SegmentedControl
           accent
+          className="ms-seg-sm"
           options={MEASURES.map((m) => {
             const unsupported = !row.allowedMeasures.includes(m.id);
             return {
@@ -94,7 +95,10 @@ export function SensorConfigTableRow({ row, selected, onToggleSelect, onOpenPeri
         const disabled = locked || isOff || (field.onlyWithPercentile && row.values.measure !== "pct");
         const dirty = value !== row.saved[field.key];
         return (
-          <td key={field.key} className={field.unit === "roc" || field.unit === "cumulative" || field.unit === "minutes" ? "ms-cfg-dyn text-end" : "text-end"}>
+          <td
+            key={field.key}
+            className={`text-end${field.unit === "roc" || field.unit === "cumulative" || field.unit === "minutes" ? " ms-cfg-dyn" : ""}`}
+          >
             <span className="d-flex align-items-center gap-1 justify-content-end">
               <input
                 type="number"
@@ -106,7 +110,7 @@ export function SensorConfigTableRow({ row, selected, onToggleSelect, onOpenPeri
                 title={field.onlyWithPercentile && row.values.measure !== "pct" ? t("sensorConfig.pctOnlyWithPercentile") : undefined}
                 onChange={(e) => onField(field.key, e.target.value === "" ? null : Number(e.target.value))}
               />
-              <span className="text-muted font-monospace" style={{ fontSize: "0.62rem", minWidth: 34 }}>
+              <span className={`ms-cfg-unit${disabled || value === null ? " ms-cfg-unit-off" : ""}`} style={{ minWidth: 34, textAlign: "left" }}>
                 {fieldUnitLabel(field, row.unit, row.rocUnit)}
               </span>
             </span>
