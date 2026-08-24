@@ -33,7 +33,8 @@ const minutesAgo = (m: number) => new Date(Date.now() - m * 60_000).toISOString(
 
 interface SensorSeed {
   model: string;
-  category?: string;
+  /** Campo `type` del template: guida i chip di categoria. */
+  type: string;
   unit: string;
   value: number;
   uncertainty: number;
@@ -41,12 +42,13 @@ interface SensorSeed {
 }
 
 const SENSOR_SEEDS: SensorSeed[] = [
-  { model: "accelerometer_lsm6dsm", category: "accelerometer", unit: "\\meter\\per\\second\\squared", value: 0.03, uncertainty: 0.004, period: 47 },
-  { model: "ntc_temperature", category: "temperature", unit: "\\degreecelsius", value: 21.8, uncertainty: 0.15, period: 84 },
-  { model: "pressure_ms5837", category: "pressure", unit: "\\pascal", value: 101320, uncertainty: 20, period: 47 },
-  { model: "humidity_hpp845e", category: "humidity", unit: "\\percent", value: 47.2, uncertainty: 1.8, period: 84 },
-  { model: "co2_scd41", category: "co2", unit: "\\ppm", value: 612, uncertainty: 30, period: 84 },
-  { model: "legacy_probe_v1", unit: "\\volt", value: 3.91, uncertainty: 0.02, period: 0 },
+  { model: "accelerometer_lsm6dsm", type: "acceleration", unit: "\\meter\\per\\second\\squared", value: 0.03, uncertainty: 0.004, period: 47 },
+  { model: "ntc_temperature", type: "temperature", unit: "\\degreecelsius", value: 21.8, uncertainty: 0.15, period: 84 },
+  { model: "pressure_ms5837", type: "pressure", unit: "\\pascal", value: 101320, uncertainty: 20, period: 47 },
+  { model: "humidity_hpp845e", type: "humidity", unit: "\\percent", value: 47.2, uncertainty: 1.8, period: 84 },
+  { model: "co2_scd41", type: "co2", unit: "\\ppm", value: 612, uncertainty: 30, period: 84 },
+  // Template senza `type`: deve finire nel gruppo "Altro" senza rompere nulla.
+  { model: "legacy_probe_v1", type: "", unit: "\\volt", value: 3.91, uncertainty: 0.02, period: 0 },
 ];
 
 function mockSensor(seed: SensorSeed, index: number, muIndex: number): SensorDTO {
@@ -63,8 +65,7 @@ function mockSensor(seed: SensorSeed, index: number, muIndex: number): SensorDTO
     configurable: true,
     sensorTemplate: {
       modelName: seed.model,
-      type: seed.category ?? "unknown",
-      category: seed.category,
+      type: seed.type,
       unit: seed.unit,
       ranges: {
         phys: { min: -seed.value * 4, max: seed.value * 4 },

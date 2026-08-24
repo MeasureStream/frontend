@@ -41,12 +41,12 @@ export const MEASURES: MeasureDef[] = [
  * ------------------------------------------------------------------ */
 
 /**
- * Categoria del sensore: arriva dal campo `category` del template (in inglese).
- * Se il template non la dichiara si ricade su `others` (§ punto 6 del brief):
- * la UI non si rompe mai per un template vecchio.
+ * Tipo (categoria) del sensore: arriva dal campo `type` del template, in
+ * inglese. Se il template non lo dichiara si ricade su `others`: la UI non si
+ * rompe mai per un template incompleto.
  */
-export interface SensorCategory {
-  /** Identificatore grezzo del template, minuscolo (es. "accelerometer"). */
+export interface SensorType {
+  /** Identificatore grezzo del template, minuscolo (es. "acceleration"). */
   id: string;
   /** Etichetta già tradotta da mostrare nei chip. */
   label: string;
@@ -54,14 +54,21 @@ export interface SensorCategory {
 
 export const UNKNOWN_CATEGORY_ID = "others";
 
-/** Categorie note: id del template → chiave di traduzione. */
+/**
+ * Tipi noti: valore di `type` nel template → chiave di traduzione.
+ * Sono elencate sia le forme usate oggi nei template di `sensor-templates`
+ * (es. "acceleration") sia quelle equivalenti più discorsive: un tipo non
+ * elencato viene comunque mostrato con il suo nome grezzo.
+ */
 export const KNOWN_CATEGORY_KEYS: Record<string, TranslationKey> = {
+  acceleration: "sensorConfig.category.accelerometer",
   accelerometer: "sensorConfig.category.accelerometer",
   temperature: "sensorConfig.category.temperature",
   pressure: "sensorConfig.category.pressure",
   humidity: "sensorConfig.category.humidity",
   co2: "sensorConfig.category.co2",
   battery: "sensorConfig.category.battery",
+  voltage: "sensorConfig.category.battery",
   others: "sensorConfig.category.others",
 };
 
@@ -145,7 +152,8 @@ export interface SensorConfigRow {
   sensorIndex: number;
   /** Nome del modello dal template (es. accelerometer_lsm6dsm). */
   name: string;
-  category: SensorCategory;
+  /** Tipo del sensore dal template: guida i chip e il raggruppamento. */
+  category: SensorType;
   /** Simbolo dell'unità già leggibile (es. "m/s²"). */
   unit: string;
   /** Unità del rate of change (es. "m/s²/min"). */

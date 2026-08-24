@@ -12,7 +12,7 @@ import {
   MEASURES,
   UNKNOWN_CATEGORY_ID,
   type MeasureId,
-  type SensorCategory,
+  type SensorType,
   type SensorConfigRow,
   type SensorConfigValues,
 } from "./sensorConfigTypes";
@@ -48,12 +48,12 @@ export function prettyUnit(unit: string | undefined): string {
 }
 
 /**
- * Categoria del sensore dal campo `category` del template.
+ * Categoria del sensore dal campo `type` del template.
  * Manca (template vecchio) → "Altro"; presente ma non mappata → si mostra
  * l'identificatore così com'è, senza inventare traduzioni.
  */
-export function sensorCategory(template: SensorTemplate | undefined, t: Translate): SensorCategory {
-  const raw = template?.category?.trim().toLowerCase();
+export function sensorType(template: SensorTemplate | undefined, t: Translate): SensorType {
+  const raw = template?.type?.trim().toLowerCase();
   if (!raw) {
     return { id: UNKNOWN_CATEGORY_ID, label: t(KNOWN_CATEGORY_KEYS[UNKNOWN_CATEGORY_ID]) };
   }
@@ -154,7 +154,7 @@ export function buildSensorConfigRows(cu: ControlUnitDTO, t: Translate): SensorC
             muLabel: muLabel(mu.extendedId),
             sensorIndex: sensor.sensorIndex,
             name: sensor.modelName,
-            category: sensorCategory(template, t),
+            category: sensorType(template, t),
             unit,
             rocUnit: unit ? `${unit}/min` : "/min",
             uncertainty: templateUncertainty(template),

@@ -73,15 +73,13 @@ export interface SensorDTO {
 
 export interface SensorTemplate {
   modelName: string;
-  type: string; // Es: "ACCELEROMETER", "ENVIRONMENTAL"
-  unit?: string; // Unità di misura principale (se applicabile)
-
   /**
-   * Categoria del sensore in inglese (es. "accelerometer", "temperature"):
-   * è il valore usato per i chip della Configurazione Sensori.
-   * Opzionale: i template che non la dichiarano finiscono in "Altro".
+   * Tipo del sensore in inglese (es. "acceleration", "temperature"): è il
+   * valore usato per i chip di categoria della Configurazione Sensori.
+   * Un tipo assente o sconosciuto finisce nel gruppo "Altro".
    */
-  category?: string;
+  type: string;
+  unit?: string; // Unità di misura principale (se applicabile)
 
   /**
    * Modalità di elaborazione supportate ("avg" | "mm" | "int" | "med" | "pct" | "pt").
