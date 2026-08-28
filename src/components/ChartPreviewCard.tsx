@@ -10,7 +10,7 @@ export function ChartPreviewCard({ sensorId, measurementType, setDirty }: { sens
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   // Stato per gestire la vista selezionata nel Modal
-  const [selectedView, setSelectedView] = useState<string>("puntual");
+  const [selectedView, setSelectedView] = useState<string>(measurementType ? measurementType : "puntual");
   const { xsrfToken } = useAuth();
 
   const handleClose = () => setShow(false);
