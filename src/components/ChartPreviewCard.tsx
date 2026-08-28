@@ -9,13 +9,12 @@ export function ChartPreviewCard({ sensorId, measurementType, setDirty }: { sens
   const [show, setShow] = useState(false);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
-  // Stato per gestire la vista selezionata nel Modal (inizializzato sul tipo passato o su "puntual")
+  // Stato per gestire la vista selezionata nel Modal
   const [selectedView, setSelectedView] = useState<string>("puntual");
   const { xsrfToken } = useAuth();
 
   const handleClose = () => setShow(false);
   const handleShow = () => {
-    // Quando apriamo il modal, resettiamo o allineiamo la vista al tipo del sensore se disponibile
     setSelectedView("puntual");
     setShow(true);
   };
@@ -45,7 +44,7 @@ export function ChartPreviewCard({ sensorId, measurementType, setDirty }: { sens
     }
   };
 
-  // Mappatura delle viste ai rispettivi ID pannello di Grafana basata sui tuoi URL
+  // Mappatura delle viste con i codici panel-X che hai testato e verificato funzionare
   const getPanelId = (viewType: string) => {
     switch (viewType) {
       case "integral": return "panel-1";
@@ -65,7 +64,6 @@ export function ChartPreviewCard({ sensorId, measurementType, setDirty }: { sens
     const orgId = 1;
     const theme = "light";
 
-    // Per l'anteprima (card piccola) usiamo di default "puntual" o il tipo passato, nel modal usiamo la selezione attiva
     const activeView = isFullView ? selectedView : "puntual";
     const panelId = getPanelId(activeView);
 
@@ -76,7 +74,7 @@ export function ChartPreviewCard({ sensorId, measurementType, setDirty }: { sens
       ? (to ? new Date(to).toISOString() : "now")
       : "now";
 
-    return `${base}/d-solo/adlw9mw/dashboard-measurements-of-different-types?orgId=${orgId}&from=${encodeURIComponent(fromParam)}&to=${encodeURIComponent(toParam)}&timezone=browser&var-sensor_id=${sensorId}&viewPanel=${panelId}&theme=${theme}`;
+    return `${base}/d-solo/adlw9mw/dashboard-measurements-of-different-types?orgId=${orgId}&from=${encodeURIComponent(fromParam)}&to=${encodeURIComponent(toParam)}&timezone=browser&var-sensor_id=${sensorId}&panelId=${panelId}&theme=${theme}`;
   };
 
   return (
