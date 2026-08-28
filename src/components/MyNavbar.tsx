@@ -1,86 +1,90 @@
-import { Button, Container, Nav, Navbar, NavbarText, NavDropdown } from "react-bootstrap";
-import { BsArrowsAngleContract } from "react-icons/bs";
-import { Link } from "react-router";
+/**
+ * Barra di navigazione principale, comune a tutte le pagine.
+ *
+ * Struttura: marchio a sinistra, sezioni al centro, comandi personali a
+ * destra. L'unico elemento in grassetto è il marchio; le voci di menu sono a
+ * peso normale e la sezione attiva si riconosce dal verde e dal trattino.
+ *
+ * Le voci centrali compaiono solo a utente collegato: da anonimo la barra
+ * porta unicamente al login.
+ */
+import { Button, Container, Navbar } from "react-bootstrap";
+import { BsBoxArrowLeft, BsPersonCircle } from "react-icons/bs";
+import { Link, NavLink } from "react-router";
 import { MeInterface } from "../API/interfaces";
-import { useAuth } from "../API/AuthContext";
 import { useI18n } from "../i18n/I18nContext";
 import { LanguageSwitcher } from "./LanguageSwitcher";
+import { RevealButton } from "./RevealButton";
+import type { TranslationKey } from "../i18n/translations";
+
 interface NavbarProps {
-  me: MeInterface
+  me: MeInterface;
 }
 
+/** Sezioni del sito, nell'ordine in cui compaiono al centro della barra. */
+const SECTIONS: { to: string; key: TranslationKey }[] = [
+  { to: "/", key: "nav.overview" },
+  { to: "/hub", key: "nav.metrologyHub" },
+  { to: "/chi-siamo", key: "nav.about" },
+  { to: "/contatti", key: "nav.contacts" },
+];
+
 function MyNavbar({ me }: NavbarProps) {
-  const { role } = useAuth();
   const { t } = useI18n();
+  const isLogged = !!me.name;
+
   return (
-
-    <Navbar expand="sm" className="bg-body-tertiary">
+    <Navbar expand="md" className="ms-navbar py-2.5">
       <Container fluid>
-        <Navbar.Brand as={Link} to="/">MeasureStream</Navbar.Brand>
-        <Navbar.Toggle aria-controls="basic-navbar-nav" />
-        <Navbar.Collapse id="basic-navbar-nav" role="navigation" >
-          <Nav className="me-auto">
+        <Navbar.Brand as={Link} to="/" className="ms-brand">
+          MeasureStream
+        </Navbar.Brand>
 
-            <>
-              {
-                me.name ?
-                  <>
-                    {/*
+        <Navbar.Toggle aria-controls="ms-main-nav" />
 
-                    <Nav.Link as={Link} to="/measures" >Measures</Nav.Link>
-                    <Nav.Link as={Link} to="/dcc" >DCC</Nav.Link>
-                    <Nav.Link as={Link} to="/create-node" >Create Node</Nav.Link>
-                    {
-                      role == "ADMIN" ?
-                        <Nav.Link as={Link} to="/nodes" >Nodes</Nav.Link>
-                        :
-                        <></>
-                    }
+        <Navbar.Collapse id="ms-main-nav" role="navigation">
+          {/* `mx-auto` tiene le sezioni al centro qualunque sia la larghezza
+              dei due blocchi laterali. */}
+          <div className="mx-auto d-flex align-items-center gap-4 py-2 py-md-0">
+            {isLogged &&
+              SECTIONS.map((section) => (
+                <NavLink
+                  key={section.to}
+                  to={section.to}
+                  end={section.to === "/"}
+                  className={({ isActive }) => `ms-navlink${isActive ? " ms-navlink-active" : ""}`}
+                >
+                  {t(section.key)}
+                </NavLink>
+              ))}
+          </div>
 
-                                                              <NavDropdown title="Other Actions" id="basic-nav-dropdown">
-
-                        <NavDropdown.Item  as = {Link} to="/create-mu" >Create MU</NavDropdown.Item>
-                                        <NavDropdown.Item  as = {Link} to="/create-cu" >Create CU</NavDropdown.Item>
-                                                                                <NavDropdown.Item  as = {Link} to="/mus" >Manage MUs</NavDropdown.Item>
-                                        <NavDropdown.Item  as = {Link} to="/cus" >Manage CUs</NavDropdown.Item>
-                                    <NavDropdown.Item  as = {Link} to="/add" >Add</NavDropdown.Item>
-                                    <NavDropdown.Item href="#action/3.2">Another action</NavDropdown.Item>
-                                    <NavDropdown.Item href="#action/3.3">Something</NavDropdown.Item>
-                                    <NavDropdown.Divider />
-                                    <NavDropdown.Item href="#action/3.4"> Separated link </NavDropdown.Item>
-                                                        </NavDropdown>
-
-                                    */}
-                  </>
-                  :
-                  <></>
-
-              }
-            </>
-          </Nav>
-
-        </Navbar.Collapse>
-        <Navbar.Collapse className="justify-content-end">
           <div className="d-flex align-items-center gap-2">
             <LanguageSwitcher />
-            {me.name ?
+
+            {isLogged ? (
               <>
-                <Navbar.Text style={{ padding: "5px", textTransform: "capitalize", fontWeight: "bold" }} >{me.name}</Navbar.Text>
-
-                {/* Outlined grigio: niente riempimento, coerente con lo stile della palette */}
-                <Button variant="outline-secondary" className="fw-bold" onClick={() => window.location.href = me.logoutUrl} >{t("nav.logout")}</Button>
+                <RevealButton
+                  icon={<BsPersonCircle size={18} />}
+                  label={me.name}
+                  className="text-capitalize"
+                />
+                <RevealButton
+                  icon={<BsBoxArrowLeft size={18} />}
+                  label={t("nav.logout")}
+                  onClick={() => (window.location.href = me.logoutUrl)}
+                />
               </>
-              :
-
-              <Button variant="outline-primary" className="fw-bold" onClick={() => window.location.href = me.loginUrl}>{t("nav.login")}</Button>
-            }
-
+            ) : (
+              <Button variant="outline-primary" onClick={() => (window.location.href = me.loginUrl)}>
+                {t("nav.login")}
+              </Button>
+            )}
           </div>
         </Navbar.Collapse>
       </Container>
     </Navbar>
-  )
+  );
 }
 
-
-export default MyNavbar
+export default MyNavbar;

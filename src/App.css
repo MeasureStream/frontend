@@ -152,6 +152,76 @@ input[type="number"] { -moz-appearance: textfield; }
   box-shadow: 0 0 0 0.2rem rgba(0, 140, 140, 0.2);
 }
 
+/* ================================================================
+   Barra di navigazione principale
+   ================================================================ */
+
+.ms-navbar {
+  background: #fff;
+  border-bottom: 1px solid var(--ms-line);
+}
+
+/* Il marchio è in grassetto. */
+.ms-brand {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  /* 1,2× rispetto alle altre scritte della barra, per farlo risaltare. */
+  font-size: 1.24rem;
+  color: var(--bs-heading-color);
+  text-decoration: none;
+}
+.ms-brand:hover { color: var(--ms-teal); opacity: 0.85; }
+
+/* Voci centrali: la sezione attiva prende il verde e il trattino. */
+.ms-navlink {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--ms-xanadugreen);
+  text-decoration: none;
+  padding: 0.3rem 0;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+}
+.ms-navlink:hover { color: var(--ms-teal); }
+.ms-navlink-active {
+  color: var(--ms-teal);
+  border-bottom-color: var(--ms-teal);
+}
+
+/* Icona che si allarga sul passaggio del mouse scoprendo l'etichetta.
+   L'animazione è sulla larghezza massima: nessun salto di layout quando il
+   testo è nascosto, e il contenuto resta leggibile agli screen reader. */
+.ms-reveal {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: none;
+  background: transparent;
+  color: var(--ms-xanadugreen);
+  font-size: 0.86rem;
+  font-weight: 700;
+  padding: 0.25rem 0.4rem;
+  border-radius: 0.4rem;
+  cursor: pointer;
+}
+.ms-reveal:hover { color: var(--ms-marrs-green); }
+.ms-reveal-text {
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: max-width 0.3s ease, opacity 0.25s ease;
+}
+.ms-reveal:hover .ms-reveal-text,
+.ms-reveal:focus-visible .ms-reveal-text {
+  max-width: 12rem;
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ms-reveal-text { transition: none; }
+}
+
 /* --- Intestazione della CU: resta fissa durante lo scorrimento --- */
 /* Il fondo bianco deve coprire TUTTA la fascia fino al bordo inferiore:
    con un margine (trasparente) il contenuto scorrerebbe visibile lì sotto,

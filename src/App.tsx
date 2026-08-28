@@ -10,6 +10,8 @@ import { getAllCu } from "./API/ControlUnitAPI";
 import { useAuth } from "./API/AuthContext";
 import { ControlUnitsPage } from "./pages/ContolUnitsPage/ControlUnitsPage";
 import { ControlUnitDetail } from "./pages/ContolUnitsPage/ControlUnitDetail/ControlUnitDetail";
+import { MetrologyHubPage } from "./pages/MetrologyHub/MetrologyHubPage";
+import { AboutPage, ContactsPage } from "./pages/InfoPages";
 
 function App() {
   const { xsrfToken, setXsrfToken, dirty, setDirty, role, setRole, setUser } = useAuth(); // Usa il contesto
@@ -110,6 +112,11 @@ function App() {
                 <LandingPageENG loginUrl={me.loginUrl} />} />
 
             <Route path="/cus/:id" element={<ControlUnitDetail allControlUnits={controlUnits} />} />
+
+            {/* Sezioni della barra di navigazione */}
+            <Route path="/hub" element={<MetrologyHubPage controlUnits={controlUnits} />} />
+            <Route path="/chi-siamo" element={<AboutPage />} />
+            <Route path="/contatti" element={<ContactsPage />} />
 
           </Routes>
         </Container>
