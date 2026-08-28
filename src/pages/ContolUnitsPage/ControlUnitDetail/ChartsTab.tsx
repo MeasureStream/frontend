@@ -45,8 +45,8 @@ export function ChartsTab({ cu, onRefresh }: Props) {
                 .map((sensor) => (
                   <Col key={sensor.id}>
                     <ChartPreviewCard
-                      nodeId={mu.extendedId}
-                      unit={sensor.sensorTemplate?.unit || ""}
+                      sensorId={sensor.id}
+                      measurementType={"avg-std"} // sensor.sensorTemplate?.measurementType || sensor.measurementType || TODO aggiistare con measurementType Dinamica
                       setDirty={onRefresh}
                     />
                   </Col>
@@ -57,3 +57,5 @@ export function ChartsTab({ cu, onRefresh }: Props) {
     </section>
   );
 }
+
+export default ChartsTab;
