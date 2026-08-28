@@ -9,13 +9,20 @@ export function ChartPreviewCard({ sensorId, measurementType, setDirty }: { sens
   const [show, setShow] = useState(false);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
-  // Stato per gestire la vista selezionata nel Modal
-  const [selectedView, setSelectedView] = useState<string>("puntual");
+
+  // Inizializziamo lo stato con measurementType (se valido), altrimenti fallback su "puntual"
+  const [selectedView, setSelectedView] = useState<string>(() => {
+    const validViews = ["puntual", "avg-std", "max-min", "integral"];
+    return validViews.includes(measurementType) ? measurementType : "puntual";
+  });
+
   const { xsrfToken } = useAuth();
 
   const handleClose = () => setShow(false);
   const handleShow = () => {
-    setSelectedView("puntual");
+    // Quando apriamo il modal, impostiamo il default sul measurementType della prop
+    const validViews = ["puntual", "avg-std", "max-min", "integral"];
+    setSelectedView(validViews.includes(measurementType) ? measurementType : "puntual");
     setShow(true);
   };
 
@@ -44,7 +51,7 @@ export function ChartPreviewCard({ sensorId, measurementType, setDirty }: { sens
     }
   };
 
-  // Mappatura delle viste con i codici panel-X che hai testato e verificato funzionare
+  // Mappatura delle viste con i codici panel-X
   const getPanelId = (viewType: string) => {
     switch (viewType) {
       case "integral": return "panel-1";
@@ -64,7 +71,8 @@ export function ChartPreviewCard({ sensorId, measurementType, setDirty }: { sens
     const orgId = 1;
     const theme = "light";
 
-    const activeView = isFullView ? selectedView : "puntual";
+    // Per l'anteprima (card piccola) usiamo il measurementType del sensore, nel modal usiamo la selezione attiva
+    const activeView = isFullView ? selectedView : (["puntual", "avg-std", "max-min", "integral"].includes(measurementType) ? measurementType : "puntual");
     const panelId = getPanelId(activeView);
 
     const fromParam = isFullView
