@@ -1,48 +1,34 @@
 import { useState } from "react";
-import { Button, Modal, Card } from "react-bootstrap";
+import { Button, Modal, Card, Form } from "react-bootstrap";
 import { deleteMEasures, downloadMeasures } from "../API/measuresAPI";
 import { useAuth } from "../API/AuthContext";
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
-const unitToTypeMap: Record<string, string> = {
-  "°C": "Temperature", "Celsius": "Temperature", "K": "Temperature", "°F": "Temperature",
-  "Pa": "Pressure", "Pascal": "Pressure", "kPa": "Pressure", "hPa": "Pressure", "bar": "Pressure", "atm": "Pressure", "mmHg": "Pressure",
-  "%": "Humidity", "RH": "Humidity",
-  "m": "Distance", "cm": "Distance", "mm": "Distance", "km": "Distance", "in": "Distance", "ft": "Distance",
-  "m/s": "Speed", "km/h": "Speed", "mph": "Speed",
-  "m/s²": "Acceleration", "g": "Acceleration",
-  "V": "Voltage", "mV": "Voltage",
-  "A": "Current", "mA": "Current",
-  "W": "Power", "kW": "Power",
-  "J": "Energy", "kJ": "Energy", "Wh": "Energy", "kWh": "Energy",
-  "Hz": "Frequency", "kHz": "Frequency", "MHz": "Frequency",
-};
-
-export function ChartPreviewCard({ nodeId, unit, setDirty }: { nodeId: number, unit: string, setDirty: () => void }) {
+export function ChartPreviewCard({ sensorId, measurementType, setDirty }: { sensorId: string | number, measurementType: string, setDirty: () => void }) {
   const [show, setShow] = useState(false);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
+  // Stato per gestire la vista selezionata nel Modal
+  const [selectedView, setSelectedView] = useState<string>("puntual");
   const { xsrfToken } = useAuth();
 
   const handleClose = () => setShow(false);
-  const handleShow = () => setShow(true);
-
-  function getTypeFromUnit(unit: string): string {
-    return unitToTypeMap[unit] || unit;
-  }
+  const handleShow = () => {
+    setSelectedView("puntual");
+    setShow(true);
+  };
 
   // --- LOGICA DOWNLOAD ---
   const handleDownload = async () => {
-    const encodedUnit = encodeURIComponent(unit);
     const encodedFrom = from ? encodeURIComponent(new Date(from).toISOString()) : '';
     const encodedTo = to ? encodeURIComponent(new Date(to).toISOString()) : '';
 
-    const blob = await downloadMeasures(nodeId, encodedUnit, encodedFrom, encodedTo);
+    const blob = await downloadMeasures(Number(sensorId), measurementType, encodedFrom, encodedTo);
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `measures-${nodeId}-${unit}.json`;
+    a.download = `measures-${sensorId}-${measurementType}.json`;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -52,9 +38,20 @@ export function ChartPreviewCard({ nodeId, unit, setDirty }: { nodeId: number, u
   // --- LOGICA DELETE ---
   const handleDelete = async () => {
     if (window.confirm("Are you sure you want to delete these measures?")) {
-      await deleteMEasures(nodeId, unit, from, to, xsrfToken);
+      await deleteMEasures(Number(sensorId), measurementType, from, to, xsrfToken);
       handleClose();
       setDirty();
+    }
+  };
+
+  // Mappatura delle viste con i codici panel-X che hai testato e verificato funzionare
+  const getPanelId = (viewType: string) => {
+    switch (viewType) {
+      case "integral": return "panel-1";
+      case "puntual": return "panel-2";
+      case "max-min": return "panel-3";
+      case "avg-std": return "panel-4";
+      default: return "panel-2";
     }
   };
 
@@ -66,22 +63,23 @@ export function ChartPreviewCard({ nodeId, unit, setDirty }: { nodeId: number, u
 
     const orgId = 1;
     const theme = "light";
-    const panelId = 1;
 
-    // Se è preview (isFullView = false) mostriamo l'ultima ora, altrimenti usiamo i filtri o "last 5m"
+    const activeView = isFullView ? selectedView : "puntual";
+    const panelId = getPanelId(activeView);
+
     const fromParam = isFullView
-      ? (from ? new Date(from).toISOString() : "now-5m")
+      ? (from ? new Date(from).toISOString() : "now-6h")
       : "now-1h";
     const toParam = isFullView
       ? (to ? new Date(to).toISOString() : "now")
       : "now";
 
-    return `${base}/d-solo/beh39dmpjez28e/dashboard1?orgId=${orgId}&from=${encodeURIComponent(fromParam)}&to=${encodeURIComponent(toParam)}&refresh=30s&theme=${theme}&panelId=${panelId}&__feature.dashboardSceneSolo&var-nodeId=${nodeId}&var-measureUnit=${unit}&timezone=browser`;
+    return `${base}/d-solo/adlw9mw/dashboard-measurements-of-different-types?orgId=${orgId}&from=${encodeURIComponent(fromParam)}&to=${encodeURIComponent(toParam)}&timezone=browser&var-sensor_id=${sensorId}&panelId=${panelId}&theme=${theme}`;
   };
 
   return (
     <>
-      {/* CARD ANTEPRIMA (Sostituisce il vecchio bottone) */}
+      {/* CARD ANTEPRIMA */}
       <Card
         className="mb-3 shadow-sm hover-shadow transition-all"
         onClick={handleShow}
@@ -90,7 +88,7 @@ export function ChartPreviewCard({ nodeId, unit, setDirty }: { nodeId: number, u
         <Card.Body className="p-2">
           <div className="d-flex justify-content-between align-items-center mb-2 px-2">
             <h6 className="mb-0 fw-bold text-dark">
-              {getTypeFromUnit(unit)} <small className="text-muted">({unit})</small>
+              Sensor: {sensorId} <small className="text-muted">({measurementType})</small>
             </h6>
             <span className="badge bg-light text-primary border">Zoom Chart</span>
           </div>
@@ -101,21 +99,38 @@ export function ChartPreviewCard({ nodeId, unit, setDirty }: { nodeId: number, u
               width="100%"
               height="100%"
               frameBorder="0"
-              title={`Preview ${unit}`}
+              title={`Preview ${sensorId}`}
             ></iframe>
           </div>
         </Card.Body>
       </Card>
 
-      {/* MODAL DETTAGLIATO (Con tutti i tuoi controlli originali) */}
+      {/* MODAL DETTAGLIATO */}
       <Modal show={show} onHide={handleClose} size="xl" centered>
         <Modal.Header closeButton>
-          <Modal.Title>{getTypeFromUnit(unit)} - Detailed View</Modal.Title>
+          <Modal.Title>Sensor {sensorId} - Detailed View</Modal.Title>
         </Modal.Header>
         <Modal.Body style={{ height: '85vh', display: 'flex', flexDirection: 'column' }}>
 
-          {/* BARRA DEI CONTROLLI (Reintegrata qui) */}
+          {/* BARRA DEI CONTROLLI */}
           <div className="mb-3 d-flex gap-2 align-items-center flex-wrap bg-light p-3 rounded border">
+
+            {/* SELETTORE TIPO DI PANNELLO */}
+            <div className="d-flex align-items-center gap-2">
+              <label className="small fw-bold">View:</label>
+              <Form.Select
+                size="sm"
+                value={selectedView}
+                onChange={(e) => setSelectedView(e.target.value)}
+                style={{ width: '160px' }}
+              >
+                <option value="puntual">Puntual</option>
+                <option value="avg-std">Avg - Std</option>
+                <option value="max-min">Max - Min</option>
+                <option value="integral">Integral</option>
+              </Form.Select>
+            </div>
+
             <div className="d-flex align-items-center gap-2">
               <label className="small fw-bold">From:</label>
               <input
@@ -136,7 +151,7 @@ export function ChartPreviewCard({ nodeId, unit, setDirty }: { nodeId: number, u
             </div>
 
             <Button variant="secondary" size="sm" onClick={() => { setFrom(""); setTo(""); }}>
-              Reset (Last 5m)
+              Reset (Last 6h)
             </Button>
             <div className="ms-auto d-flex gap-2">
               <Button variant="primary" size="sm" onClick={handleDownload}>
