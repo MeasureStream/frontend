@@ -232,7 +232,8 @@ input[type="number"] { -moz-appearance: textfield; }
   z-index: 1035;
   background: #fff;
   border-bottom: 1px solid var(--ms-line);
-  padding: 0.9rem 0 1.1rem;
+  /* Poco spazio sotto le schede: il respiro sta sopra, tra intestazione e schede. */
+  padding: 0.9rem 0 0.8rem;
   margin-bottom: 1.2rem;
 }
 /* Fascia bianca a tutta larghezza, anche fuori dal Container centrato. */
@@ -274,7 +275,10 @@ input[type="number"] { -moz-appearance: textfield; }
   border: 1.5px solid transparent;
   border-radius: 0.5rem;
   background: transparent;
-  padding: 0.45rem 0.85rem;
+  /* Riquadro più basso: si stringe solo in verticale, la larghezza resta. */
+  padding: 0.26rem 0.85rem;
+  /*line-height: 1.25;*/
+  line-height: 1.25;
   font-size: 0.84rem;
   font-weight: 500;
   color: var(--ms-muted);

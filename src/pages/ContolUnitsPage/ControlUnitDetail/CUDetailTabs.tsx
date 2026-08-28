@@ -31,7 +31,7 @@ export function CUDetailTabs({ active, onChange, alarmCount = 0 }: Props) {
   /* Stessa convenzione per tutte e quattro: la scheda attiva è l'unica con il
      riquadro ottanio, le altre sono sola scritta grigia. */
   return (
-    <div className="d-flex align-items-center gap-1 flex-wrap pt-2 pb-1">
+    <div className="d-flex align-items-center gap-1 flex-wrap pt-3 pb-0">
       {READ_TABS.map((tab) => (
         <button
           key={tab.id}
