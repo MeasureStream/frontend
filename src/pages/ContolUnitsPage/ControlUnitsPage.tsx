@@ -133,7 +133,8 @@ export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPagePr
   return (
     <Container className="py-4 fade-in-up">
       <header className="mb-4">
-        <h1 className="fw-bold">{t("devices.title")}</h1>
+        {/* 20% più piccolo del titolo di default (2.5rem di Bootstrap). */}
+        <h1 className="fw-bold" style={{ fontSize: "2rem" }}>{t("devices.title")}</h1>
         <p className="text-muted mb-2">{t("devices.subtitle")}</p>
         <CUsFilterComponent
           controlUnits={controlUnits}

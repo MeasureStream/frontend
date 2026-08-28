@@ -18,8 +18,11 @@ import { MemoryRouter, Route, Routes } from "react-router";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../App.css";
 
+import MyNavbar from "../components/MyNavbar";
 import { ControlUnitsPage } from "../pages/ContolUnitsPage/ControlUnitsPage";
 import { ControlUnitDetail } from "../pages/ContolUnitsPage/ControlUnitDetail/ControlUnitDetail";
+import { MetrologyHubPage } from "../pages/MetrologyHub/MetrologyHubPage";
+import { AboutPage, ContactsPage } from "../pages/InfoPages";
 import { I18nProvider } from "../i18n/I18nContext";
 import { AuthProvider } from "../API/AuthContext";
 import type { ControlUnitDTO, MeasurementUnitDTO, SensorDTO } from "../API/interfaces";
@@ -158,11 +161,17 @@ createRoot(rootElement).render(
   <StrictMode>
     <I18nProvider>
       <AuthProvider>
-        {/* Si apre sul dettaglio della prima CU: è lì che stanno le novità. */}
-        <MemoryRouter initialEntries={["/cus/1"]}>
+        {/* Si apre sulla panoramica; da lì si naviga come nell'app vera. */}
+        <MemoryRouter initialEntries={["/"]}>
+          {/* Utente finto: basta un `name` non vuoto perché la barra mostri le
+              sezioni e i comandi personali invece del pulsante di accesso. */}
+          <MyNavbar me={{ name: "Marco", loginUrl: "#", principal: null, xsrfToken: "", logoutUrl: "#" }} />
           <Routes>
             <Route path="/" element={<ControlUnitsPage controlUnits={MOCK_CUS} />} />
             <Route path="/cus/:id" element={<ControlUnitDetail allControlUnits={MOCK_CUS} />} />
+            <Route path="/hub" element={<MetrologyHubPage controlUnits={MOCK_CUS} />} />
+            <Route path="/chi-siamo" element={<AboutPage />} />
+            <Route path="/contatti" element={<ContactsPage />} />
           </Routes>
         </MemoryRouter>
       </AuthProvider>

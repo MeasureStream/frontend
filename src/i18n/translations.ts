@@ -17,6 +17,31 @@ export const it = {
   "nav.login": "Accedi",
   "nav.logout": "Esci",
   "nav.language": "Lingua",
+  "nav.overview": "Panoramica",
+  "nav.metrologyHub": "Portfolio",
+  "nav.about": "Chi siamo",
+  "nav.contacts": "Contatti",
+  "nav.account": "Utente collegato",
+
+  // --- Hub Metrologico (tarature e DCC) ---
+  "hub.title": "Hub Metrologico",
+  "hub.subtitle": "Tarature, certificati digitali e conformità dei sensori",
+  "hub.emptyTitle": "Nessuno storico da valutare",
+  "hub.emptyText":
+    "Non ci sono sensori censiti su questo account, quindi non esistono tarature né certificati da consultare. Collega una Control Unit e le sue Measurement Unit: da qui potrai poi seguire le richieste di taratura, rivedere i risultati e archiviare i Digital Calibration Certificate.",
+  "hub.comingTitle": "Cosa troverai in questa sezione",
+  "hub.comingCertificates": "Certificati digitali (DCC) per sensore, dalla bozza alla firma alla pubblicazione",
+  "hub.comingCalibrations": "Richieste di taratura e avanzamento delle elaborazioni",
+  "hub.comingConformity": "Storico dei risultati e verifica di conformità",
+  "hub.backToOverview": "Torna alla panoramica sensori",
+
+  // --- Pagine informative ---
+  "about.title": "Chi siamo",
+  "about.text":
+    "MeasureStream nasce da un progetto di monitoraggio metrologico su rete LoRaWAN: unità di misura sul campo, una Control Unit che le interroga e una piattaforma che ne raccoglie i dati, ne verifica la taratura e ne conserva i certificati.",
+  "contacts.title": "Contatti",
+  "contacts.text":
+    "Per richiedere l'accesso alla piattaforma, segnalare un problema o proporre una collaborazione, scrivi al team: la registrazione autonoma non è prevista.",
   "common.notAvailable": "N/D",
 
   // --- Landing dispositivi (ControlUnitsPage) ---
