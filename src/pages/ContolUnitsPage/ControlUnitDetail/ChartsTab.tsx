@@ -46,6 +46,7 @@ export function ChartsTab({ cu, onRefresh }: Props) {
                   <Col key={sensor.id}>
                     <ChartPreviewCard
                       sensorId={sensor.id}
+                      sensor={sensor}
                       measurementType={"avg-std"} // sensor.sensorTemplate?.measurementType || sensor.measurementType || TODO aggiistare con measurementType Dinamica
                       setDirty={onRefresh}
                     />

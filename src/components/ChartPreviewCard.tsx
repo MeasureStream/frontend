@@ -2,10 +2,11 @@ import { useState } from "react";
 import { Button, Modal, Card, Form } from "react-bootstrap";
 import { deleteMEasures, downloadMeasures } from "../API/measuresAPI";
 import { useAuth } from "../API/AuthContext";
+import { SensorDTO } from "../API/interfaces";
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
-export function ChartPreviewCard({ sensorId, measurementType, setDirty }: { sensorId: string | number, measurementType: string, setDirty: () => void }) {
+export function ChartPreviewCard({ sensorId, sensor, measurementType, setDirty }: { sensorId: string | number, sensor: SensorDTO, measurementType: string, setDirty: () => void }) {
   const [show, setShow] = useState(false);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
@@ -96,7 +97,7 @@ export function ChartPreviewCard({ sensorId, measurementType, setDirty }: { sens
         <Card.Body className="p-2">
           <div className="d-flex justify-content-between align-items-center mb-2 px-2">
             <h6 className="mb-0 fw-bold text-dark">
-              Sensor: {sensorId} <small className="text-muted">({measurementType})</small>
+              Sensor: {sensor.sensorIndex}<small className="text-muted">({sensor.sensorTemplate.type}) </small>
             </h6>
             <span className="badge bg-light text-primary border">Zoom Chart</span>
           </div>
