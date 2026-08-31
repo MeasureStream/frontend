@@ -55,7 +55,7 @@ export function EmptyDevicesLanding() {
           >
             MeasureStream
           </div>
-          <h1 className="fw-bold mb-3" style={{ color: "#212529" }}>
+          <h1 className="fw-bold ms-hero-title mb-3" style={{ color: "#212529" }}>
             Benvenuto! Non hai ancora dispositivi associati
           </h1>
           <p className="text-muted mb-4">

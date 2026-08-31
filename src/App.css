@@ -152,6 +152,28 @@ input[type="number"] { -moz-appearance: textfield; }
   box-shadow: 0 0 0 0.2rem rgba(0, 140, 140, 0.2);
 }
 
+/* Contatore circolare accanto a "conformi / non conformi / da tarare". */
+.ms-count-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 0.3rem;
+  border-radius: 999px;
+  border: 1.5px solid;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.ms-count-dot-ok { border-color: var(--ms-marrs-green); color: var(--ms-marrs-green); }
+.ms-count-dot-bad { border-color: var(--ms-crimson); color: var(--ms-crimson); }
+.ms-count-dot-todo { border-color: var(--ms-powder); color: var(--ms-teal); }
+
+/* Titolo principale di una schermata (Panoramica, Hub, Chi siamo, Contatti…):
+   unica misura per tutte, così le sezioni si somigliano. */
+.ms-hero-title { font-size: 2rem; }
+
 /* ================================================================
    Barra di navigazione principale
    ================================================================ */
@@ -184,6 +206,24 @@ input[type="number"] { -moz-appearance: textfield; }
   white-space: nowrap;
 }
 .ms-navlink:hover { color: var(--ms-teal); }
+
+/* Pallino con il conteggio (messaggi non letti) accanto a una voce. */
+.ms-nav-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.15rem;
+  height: 1.15rem;
+  margin-left: 0.4rem;
+  padding: 0 0.3rem;
+  border-radius: 999px;
+  background: var(--ms-marrs-green);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1;
+  vertical-align: middle;
+}
 .ms-navlink-active {
   color: var(--ms-teal);
   border-bottom-color: var(--ms-teal);

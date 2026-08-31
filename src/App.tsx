@@ -11,7 +11,9 @@ import { useAuth } from "./API/AuthContext";
 import { ControlUnitsPage } from "./pages/ContolUnitsPage/ControlUnitsPage";
 import { ControlUnitDetail } from "./pages/ContolUnitsPage/ControlUnitDetail/ControlUnitDetail";
 import { MetrologyHubPage } from "./pages/MetrologyHub/MetrologyHubPage";
-import { AboutPage, ContactsPage } from "./pages/InfoPages";
+import { CertificateVerifyPage } from "./pages/CertificateVerify/CertificateVerifyPage";
+import { MessagesPage } from "./pages/Messages/MessagesPage";
+import { ReferenceStandardsPage } from "./pages/ReferenceStandards/ReferenceStandardsPage";
 
 function App() {
   const { xsrfToken, setXsrfToken, dirty, setDirty, role, setRole, setUser } = useAuth(); // Usa il contesto
@@ -114,9 +116,10 @@ function App() {
             <Route path="/cus/:id" element={<ControlUnitDetail allControlUnits={controlUnits} />} />
 
             {/* Sezioni della barra di navigazione */}
-            <Route path="/hub" element={<MetrologyHubPage controlUnits={controlUnits} />} />
-            <Route path="/chi-siamo" element={<AboutPage />} />
-            <Route path="/contatti" element={<ContactsPage />} />
+            <Route path="/hub" element={<MetrologyHubPage />} />
+            <Route path="/verifica-certificati" element={<CertificateVerifyPage />} />
+            <Route path="/messaggi" element={<MessagesPage />} />
+            <Route path="/riferimenti-campione" element={<ReferenceStandardsPage />} />
 
           </Routes>
         </Container>

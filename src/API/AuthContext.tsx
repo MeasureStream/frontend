@@ -14,10 +14,15 @@ interface AuthContextType {
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
+/**
+ * `initialRole` serve solo all'anteprima UI (`src/preview/`), per guardare le
+ * schermate con gli occhi di un ADMIN senza passare da Keycloak. Nell'app vera
+ * non si passa: il ruolo arriva da `/me` e sovrascrive questo valore iniziale.
+ */
+export const AuthProvider = ({ children, initialRole = "ANONYMOUS" }: { children: ReactNode; initialRole?: string }) => {
     const [xsrfToken, setXsrfToken] = useState<string | null>(null);
     const [dirty, setDirty] = useState<boolean>(true); // Aggiunta della variabile dirty
-    const [role , setRole] = useState<string>("ANONYMOUS")
+    const [role , setRole] = useState<string>(initialRole)
     const [user, setUser] = useState<UserDTO>({
         name:"",
         surname: "",

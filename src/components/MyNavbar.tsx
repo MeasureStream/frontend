@@ -12,6 +12,8 @@ import { Button, Container, Navbar } from "react-bootstrap";
 import { BsBoxArrowLeft, BsPersonCircle } from "react-icons/bs";
 import { Link, NavLink } from "react-router";
 import { MeInterface } from "../API/interfaces";
+import { useAuth } from "../API/AuthContext";
+import { useMessages } from "../API/useMessages";
 import { useI18n } from "../i18n/I18nContext";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { RevealButton } from "./RevealButton";
@@ -22,16 +24,22 @@ interface NavbarProps {
 }
 
 /** Sezioni del sito, nell'ordine in cui compaiono al centro della barra. */
-const SECTIONS: { to: string; key: TranslationKey }[] = [
+const SECTIONS: { to: string; key: TranslationKey; badge?: "messages"; adminOnly?: boolean }[] = [
   { to: "/", key: "nav.overview" },
   { to: "/hub", key: "nav.metrologyHub" },
-  { to: "/chi-siamo", key: "nav.about" },
-  { to: "/contatti", key: "nav.contacts" },
+  { to: "/verifica-certificati", key: "nav.verifyCertificates" },
+  { to: "/messaggi", key: "nav.messages", badge: "messages" },
+  // Dati trasversali a tutti gli account: visibile ai soli amministratori.
+  // Nascondere la voce non è un controllo di accesso: quello sta sull'API.
+  { to: "/riferimenti-campione", key: "nav.referenceStandards", adminOnly: true },
 ];
 
 function MyNavbar({ me }: NavbarProps) {
   const { t } = useI18n();
+  const { role } = useAuth();
+  const { unreadCount } = useMessages();
   const isLogged = !!me.name;
+  const sections = SECTIONS.filter((section) => !section.adminOnly || role === "ADMIN");
 
   return (
     <Navbar expand="md" className="ms-navbar py-2.5">
@@ -47,7 +55,7 @@ function MyNavbar({ me }: NavbarProps) {
               dei due blocchi laterali. */}
           <div className="mx-auto d-flex align-items-center gap-4 py-2 py-md-0">
             {isLogged &&
-              SECTIONS.map((section) => (
+              sections.map((section) => (
                 <NavLink
                   key={section.to}
                   to={section.to}
@@ -55,6 +63,13 @@ function MyNavbar({ me }: NavbarProps) {
                   className={({ isActive }) => `ms-navlink${isActive ? " ms-navlink-active" : ""}`}
                 >
                   {t(section.key)}
+                  {/* Pallino con il numero di messaggi non letti: compare solo
+                      quando ce n'è almeno uno. */}
+                  {section.badge === "messages" && unreadCount > 0 && (
+                    <span className="ms-nav-badge" title={t("nav.messagesBadge", { count: unreadCount })}>
+                      {unreadCount}
+                    </span>
+                  )}
                 </NavLink>
               ))}
           </div>

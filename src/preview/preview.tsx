@@ -22,7 +22,9 @@ import MyNavbar from "../components/MyNavbar";
 import { ControlUnitsPage } from "../pages/ContolUnitsPage/ControlUnitsPage";
 import { ControlUnitDetail } from "../pages/ContolUnitsPage/ControlUnitDetail/ControlUnitDetail";
 import { MetrologyHubPage } from "../pages/MetrologyHub/MetrologyHubPage";
-import { AboutPage, ContactsPage } from "../pages/InfoPages";
+import { CertificateVerifyPage } from "../pages/CertificateVerify/CertificateVerifyPage";
+import { MessagesPage } from "../pages/Messages/MessagesPage";
+import { ReferenceStandardsPage } from "../pages/ReferenceStandards/ReferenceStandardsPage";
 import { I18nProvider } from "../i18n/I18nContext";
 import { AuthProvider } from "../API/AuthContext";
 import type { ControlUnitDTO, MeasurementUnitDTO, SensorDTO } from "../API/interfaces";
@@ -160,7 +162,9 @@ if (!rootElement) throw new Error("Elemento 'root' non trovato nel DOM.");
 createRoot(rootElement).render(
   <StrictMode>
     <I18nProvider>
-      <AuthProvider>
+      {/* Ruolo dell'anteprima: "ADMIN" per vedere le schermate da laboratorio,
+          "USER" per vederle come le vede il cliente. */}
+      <AuthProvider initialRole="ADMIN">
         {/* Si apre sulla panoramica; da lì si naviga come nell'app vera. */}
         <MemoryRouter initialEntries={["/"]}>
           {/* Utente finto: basta un `name` non vuoto perché la barra mostri le
@@ -169,9 +173,10 @@ createRoot(rootElement).render(
           <Routes>
             <Route path="/" element={<ControlUnitsPage controlUnits={MOCK_CUS} />} />
             <Route path="/cus/:id" element={<ControlUnitDetail allControlUnits={MOCK_CUS} />} />
-            <Route path="/hub" element={<MetrologyHubPage controlUnits={MOCK_CUS} />} />
-            <Route path="/chi-siamo" element={<AboutPage />} />
-            <Route path="/contatti" element={<ContactsPage />} />
+            <Route path="/hub" element={<MetrologyHubPage />} />
+            <Route path="/verifica-certificati" element={<CertificateVerifyPage />} />
+            <Route path="/messaggi" element={<MessagesPage />} />
+            <Route path="/riferimenti-campione" element={<ReferenceStandardsPage />} />
           </Routes>
         </MemoryRouter>
       </AuthProvider>

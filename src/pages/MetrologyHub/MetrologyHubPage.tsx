@@ -1,66 +1,101 @@
 /**
- * Hub Metrologico — segnaposto.
+ * Sezione "Documentazione": tarature, certificati DCC e conformità.
  *
- * È il punto di innesto del lavoro di taratura e DCC (vedi
- * `Mario - Taratura/Analisi_Integrazione_Taratura_DCC_MeasureStream.docx`):
- * qui atterreranno l'elenco dei certificati digitali per sensore, le richieste
- * di taratura con il loro avanzamento e la verifica di conformità.
- *
- * Finché quel trapianto non è fatto, la pagina spiega cosa manca. Senza
- * sensori censiti non esiste proprio nulla da mostrare, e lo si dice.
+ * Guscio della sezione — carica i dati una volta sola, tiene l'intestazione
+ * agganciata in alto (come nel dettaglio CU) e mostra la scheda attiva.
+ * Il ruolo decide tutto il resto: quali numeri, quali schede, quali azioni.
  */
-import { Container } from "react-bootstrap";
-import { BsAward, BsCheck2Circle, BsFileEarmarkMedical, BsRulers } from "react-icons/bs";
-import { Link } from "react-router";
-import type { ControlUnitDTO } from "../../API/interfaces";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Alert, Container } from "react-bootstrap";
+import { BsClipboardCheck, BsJournalText, BsSliders } from "react-icons/bs";
+import { getCertificates, getHubClients, getHubSummary, type HubClient } from "../../API/metrologyHub/hubApi";
+import type { CertificateDTO, HubSummaryDTO } from "../../API/metrologyHub/hubTypes";
+import { useAuth } from "../../API/AuthContext";
 import { useI18n } from "../../i18n/I18nContext";
-import type { TranslationKey } from "../../i18n/translations";
+import { HubHeader } from "../../components/MetrologyHubComponents/HubHeader";
+import { HubTabs, type HubTab } from "./HubTabs";
+import { CertificatesTab } from "./CertificatesTab";
+import { HubPlaceholderTab } from "./HubPlaceholderTab";
 
-/** Cosa ospiterà la sezione, una volta integrata. */
-const COMING: { key: TranslationKey; icon: React.ReactNode }[] = [
-  { key: "hub.comingCertificates", icon: <BsFileEarmarkMedical /> },
-  { key: "hub.comingCalibrations", icon: <BsRulers /> },
-  { key: "hub.comingConformity", icon: <BsCheck2Circle /> },
-];
-
-export function MetrologyHubPage({ controlUnits }: { controlUnits: ControlUnitDTO[] }) {
+export function MetrologyHubPage() {
   const { t } = useI18n();
+  const { role } = useAuth();
+  const isAdmin = role === "ADMIN";
+  const hubRole = isAdmin ? "admin" : "client";
 
-  const sensorCount = controlUnits.reduce(
-    (total, cu) => total + cu.measurementUnits.reduce((n, mu) => n + mu.sensors.length, 0),
-    0,
-  );
+  const [activeTab, setActiveTab] = useState<HubTab>("certificates");
+  /** Cliente osservato dall'admin; `null` = tutti i clienti. */
+  const [clientId, setClientId] = useState<number | null>(null);
+  const [clients, setClients] = useState<HubClient[]>([]);
+  const [summary, setSummary] = useState<HubSummaryDTO | null>(null);
+  const [certificates, setCertificates] = useState<CertificateDTO[]>([]);
+  /** Vero quando i numeri mostrati vengono dai dati dimostrativi. */
+  const [isDemo, setIsDemo] = useState(false);
+
+  const load = useCallback(async () => {
+    const [summaryRes, certificatesRes] = await Promise.all([
+      getHubSummary(hubRole, clientId),
+      getCertificates(hubRole, clientId),
+    ]);
+    setSummary(summaryRes.data);
+    setCertificates(certificatesRes.data);
+    setIsDemo(summaryRes.isDemo || certificatesRes.isDemo);
+  }, [hubRole, clientId]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  /* L'elenco dei clienti serve al solo selettore dell'admin. */
+  useEffect(() => {
+    if (!isAdmin) return;
+    getHubClients().then((res) => setClients(res.data));
+  }, [isAdmin]);
+
+  const tabContent = useMemo(() => {
+    switch (activeTab) {
+      case "certificates":
+        return <CertificatesTab certificates={certificates} isAdmin={isAdmin} onRefresh={load} />;
+      case "calibrations":
+        return <HubPlaceholderTab titleKey="hub.soonTitle" textKey="hub.calibrationsSoon" icon={<BsJournalText />} />;
+      case "conformity":
+        return <HubPlaceholderTab titleKey="hub.soonTitle" textKey="hub.conformitySoon" icon={<BsClipboardCheck />} />;
+      case "registry":
+        return <HubPlaceholderTab titleKey="hub.soonTitle" textKey="hub.registrySoon" icon={<BsSliders />} />;
+    }
+  }, [activeTab, certificates, isAdmin, load]);
+
+  if (!summary) return <Container className="py-5" />;
 
   return (
-    <Container className="py-4 fade-in-up">
-      <header className="mb-4">
-        <h1 className="fw-bold d-flex align-items-center gap-2">
-          <BsAward className="text-primary" /> {t("hub.title")}
-        </h1>
-        <p className="text-muted mb-0">{t("hub.subtitle")}</p>
-      </header>
+    <Container fluid className="py-2 fade-in-up">
+      {/* Intestazione e schede restano fisse durante lo scorrimento. */}
+      <div className="ms-detail-header">
+        <HubHeader
+          summary={summary}
+          isAdmin={isAdmin}
+          clients={clients}
+          selectedClientId={clientId}
+          onSelectClient={setClientId}
+          onRequestCalibration={() => {
+            // TODO(flussi): precompila la richiesta di taratura con i sensori
+            // scaduti o in scadenza del cliente.
+            console.info("[dcc] richiesta di taratura avviata dal cliente");
+          }}
+        />
+        <HubTabs
+          active={activeTab}
+          onChange={setActiveTab}
+          isAdmin={isAdmin}
+          certificateCount={certificates.length}
+        />
+      </div>
 
-      {sensorCount === 0 && (
-        <div className="ms-tile rounded shadow-sm border-0 p-5 text-center mb-4">
-          <h5 className="fw-bold">{t("hub.emptyTitle")}</h5>
-          <p className="text-muted mx-auto mb-3" style={{ maxWidth: 640 }}>{t("hub.emptyText")}</p>
-          <Link to="/" className="btn btn-outline-primary btn-sm">
-            {t("hub.backToOverview")}
-          </Link>
-        </div>
+      {isDemo && (
+        <Alert variant="warning" className="py-2 small">{t("hub.demoData")}</Alert>
       )}
 
-      <section>
-        <h5 className="fw-bold mb-3">{t("hub.comingTitle")}</h5>
-        <ul className="list-unstyled d-flex flex-column gap-2 mb-0">
-          {COMING.map((item) => (
-            <li key={item.key} className="d-flex align-items-start gap-2 text-muted">
-              <span className="text-primary mt-1">{item.icon}</span>
-              {t(item.key)}
-            </li>
-          ))}
-        </ul>
-      </section>
+      {tabContent}
     </Container>
   );
 }
