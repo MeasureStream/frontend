@@ -1,10 +1,3 @@
-/**
- * Scheda "Panoramica": è la vista che si apre cliccando su "Dettaglio Sensori".
- * Contiene lo stato della CU (rete, radio, configurazione), il controllo
- * dell'acquisizione e le card delle MU.
- *
- * La configurazione dei sensori NON sta più qui: ha una scheda dedicata.
- */
 import { useState } from "react";
 import { Row, Col, Card, ProgressBar, Button, Form } from "react-bootstrap";
 import {
@@ -18,9 +11,9 @@ import { useI18n } from "../../../i18n/I18nContext";
 import type { TranslationKey } from "../../../i18n/translations";
 import { MeasurementUnitCard } from "../../../components/MeasurementUnitCard";
 import { ConfigCUModal } from "../../../components/ConfigCUModal";
+import { SignalQualityModal } from "../../../components/SignalQualityModal";
 import { RangeTicks } from "../../../components/RangeTicks";
 
-/** Tacche posizionate sul valore REALE dell'indice (1 step = 15 min). */
 const TRANSMISSION_TICKS = [
   { value: 0, label: "OFF" },
   { value: 24, label: "6h" },
@@ -33,7 +26,6 @@ const AIRTIME_LIMIT_MS = 30000;
 
 type Translate = (key: TranslationKey, params?: Record<string, string | number>) => string;
 
-/** Indice dell'intervallo di trasmissione → etichetta leggibile. */
 function decodeIndexToLabel(idx: number, t: Translate): string {
   if (idx === 0) return t("detail.interval.off");
   if (idx <= 4) return t("detail.interval.minutes", { value: idx * 15 });
@@ -52,7 +44,6 @@ function decodeIndexToLabel(idx: number, t: Translate): string {
 
 interface Props {
   cu: ControlUnitDTO;
-  /** Ricarica la CU dopo una modifica (usato anche dai modali). */
   onRefresh: () => void;
 }
 
@@ -63,10 +54,10 @@ export function OverviewTab({ cu, onRefresh }: Props) {
   const [acqIndex, setAcqIndex] = useState(cu.transmissionInterval);
   const [schedule, setSchedule] = useState<AcquisitionSchedule | null>(null);
   const [showConfig, setShowConfig] = useState(false);
+  const [showSignalModal, setShowSignalModal] = useState(false);
 
   const airtimePercentage = Math.min((cu.usedDailyAirtime / AIRTIME_LIMIT_MS) * 100, 100);
 
-  /** Per lo stop contano solo i giorni: l'end device gestisce ore intere. */
   const updateSchedule = (startDate: string | null, startTime: string | null, endDate: string | null) => {
     const complete = !!(startDate && endDate);
     setSchedule({
@@ -82,7 +73,6 @@ export function OverviewTab({ cu, onRefresh }: Props) {
     if (schedule && !schedule.valid) return;
     try {
       if (schedule?.complete) {
-        // TODO(backend): schedulazione lato server, vedi ROADMAP §7.
         console.log("Sessione programmata (solo UI per ora):", schedule);
       }
       await ControlTransmission(xsrfToken, { devEui: cu.devEui, transmissionIndex: acqIndex });
@@ -122,20 +112,30 @@ export function OverviewTab({ cu, onRefresh }: Props) {
               <span className="fw-bold">
                 {cu.lastSeen
                   ? new Date(cu.lastSeen.endsWith("Z") ? cu.lastSeen : cu.lastSeen + "Z").toLocaleString(locale, {
-                      day: "2-digit", month: "2-digit", year: "numeric",
-                      hour: "2-digit", minute: "2-digit", second: "2-digit",
-                    })
+                    day: "2-digit", month: "2-digit", year: "numeric",
+                    hour: "2-digit", minute: "2-digit", second: "2-digit",
+                  })
                   : t("common.notAvailable")}
               </span>
             </div>
           </div>
         </Col>
 
+        {/* --- CARD SEGNALE RADIO (CLICCABILE) --- */}
         <Col md={4}>
-          <div className="p-3 ms-tile rounded shadow border-0 h-100 hover-lift">
-            <div className="d-flex align-items-center gap-2 mb-3 text-primary">
-              <BsBroadcast size={18} className="flex-shrink-0" />
-              <span className="fw-bold small text-uppercase">{t("detail.radioSignals")}</span>
+          <div
+            className="p-3 ms-tile rounded shadow border-0 h-100 hover-lift"
+            style={{ cursor: "pointer" }}
+            onClick={() => setShowSignalModal(true)}
+          >
+            <div className="d-flex align-items-center justify-content-between mb-3 text-primary">
+              <div className="d-flex align-items-center gap-2">
+                <BsBroadcast size={18} className="flex-shrink-0" />
+                <span className="fw-bold small text-uppercase">{t("detail.radioSignals")}</span>
+              </div>
+              <span className="badge bg-primary-subtle text-primary border border-primary-subtle" style={{ fontSize: "0.65rem" }}>
+                Grafici 📊
+              </span>
             </div>
             <Row className="g-2 text-center">
               <Col xs={4}>
@@ -296,6 +296,14 @@ export function OverviewTab({ cu, onRefresh }: Props) {
         ))}
 
       <ConfigCUModal cu={cu} show={showConfig} onHide={() => setShowConfig(false)} handleSetDirty={onRefresh} />
+
+      {/* --- MODALE GRAFANA --- */}
+      <SignalQualityModal
+        show={showSignalModal}
+        onHide={() => setShowSignalModal(false)}
+        cuId={cu.id}
+        cuName={cu.name}
+      />
     </>
   );
 }

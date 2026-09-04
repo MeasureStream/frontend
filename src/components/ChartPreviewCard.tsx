@@ -97,7 +97,7 @@ export function ChartPreviewCard({ sensorId, sensor, measurementType, setDirty }
         <Card.Body className="p-2">
           <div className="d-flex justify-content-between align-items-center mb-2 px-2">
             <h6 className="mb-0 fw-bold text-dark">
-              Sensor: {sensor.sensorIndex}<small className="text-muted">({sensor.sensorTemplate.type}) </small>
+              Sensor: {sensor.sensorIndex}<small className="text-muted"> ({sensor.sensorTemplate.type}) </small>
             </h6>
             <span className="badge bg-light text-primary border">Zoom Chart</span>
           </div>
