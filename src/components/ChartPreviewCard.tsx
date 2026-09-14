@@ -1,12 +1,10 @@
 import { useState } from "react";
 import { Button, Modal, Card, Form } from "react-bootstrap";
-import { deleteMEasures, downloadMeasures } from "../API/measuresAPI";
-import { useAuth } from "../API/AuthContext";
 import { SensorDTO } from "../API/interfaces";
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
-export function ChartPreviewCard({ sensorId, sensor, measurementType, setDirty }: { sensorId: string | number, sensor: SensorDTO, measurementType: string, setDirty: () => void }) {
+export function ChartPreviewCard({ sensorId, sensor, measurementType }: { sensorId: string | number, sensor: SensorDTO, measurementType: string }) {
   const [show, setShow] = useState(false);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
@@ -17,39 +15,12 @@ export function ChartPreviewCard({ sensorId, sensor, measurementType, setDirty }
     return validViews.includes(measurementType) ? measurementType : "puntual";
   });
 
-  const { xsrfToken } = useAuth();
-
   const handleClose = () => setShow(false);
   const handleShow = () => {
     // Quando apriamo il modal, impostiamo il default sul measurementType della prop
     const validViews = ["puntual", "avg-std", "max-min", "integral"];
     setSelectedView(validViews.includes(measurementType) ? measurementType : "puntual");
     setShow(true);
-  };
-
-  // --- LOGICA DOWNLOAD ---
-  const handleDownload = async () => {
-    const encodedFrom = from ? encodeURIComponent(new Date(from).toISOString()) : '';
-    const encodedTo = to ? encodeURIComponent(new Date(to).toISOString()) : '';
-
-    const blob = await downloadMeasures(Number(sensorId), measurementType, encodedFrom, encodedTo);
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `measures-${sensorId}-${measurementType}.json`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    window.URL.revokeObjectURL(url);
-  };
-
-  // --- LOGICA DELETE ---
-  const handleDelete = async () => {
-    if (window.confirm("Are you sure you want to delete these measures?")) {
-      await deleteMEasures(Number(sensorId), measurementType, from, to, xsrfToken);
-      handleClose();
-      setDirty();
-    }
   };
 
   // Mappatura delle viste con i codici panel-X
@@ -162,14 +133,8 @@ export function ChartPreviewCard({ sensorId, sensor, measurementType, setDirty }
             <Button variant="secondary" size="sm" onClick={() => { setFrom(""); setTo(""); }}>
               Reset (Last 6h)
             </Button>
-            <div className="ms-auto d-flex gap-2">
-              <Button variant="primary" size="sm" onClick={handleDownload}>
-                📥 Download JSON
-              </Button>
-              <Button variant="danger" size="sm" onClick={handleDelete}>
-                🗑️ Delete Range
-              </Button>
-            </div>
+            {/* «Download JSON» e «Delete Range» tolti il 14/09/2026: chiamavano measure-manager,
+                dismesso. Da reintegrare con endpoint di sensor-manager sulla tabella measurements. */}
           </div>
 
           {/* GRAFICO FULL SIZE */}

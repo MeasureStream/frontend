@@ -21,11 +21,9 @@ import { ChartsTab } from "./ChartsTab";
 import { AlarmsTab } from "./AlarmsTab";
 import { SensorConfigTab } from "./SensorConfigTab";
 
-/** Online se il contatto è recente: max(30 min, 2× intervallo di trasmissione). */
-function isControlUnitOnline(lastSeen: string | null, transmissionInterval: number): boolean {
-  if (!lastSeen) return false;
-  const minutesElapsed = (Date.now() - new Date(lastSeen).getTime()) / (1000 * 60);
-  return minutesElapsed <= Math.max(30, transmissionInterval * 2);
+/** Stato calcolato dal server (`ControlUnitDTO.status`): unica fonte di verità per lista e dettaglio. */
+function isControlUnitOnline(cu: ControlUnitDTO): boolean {
+  return cu.status === 1;
 }
 
 export function ControlUnitDetail({ allControlUnits }: { allControlUnits: ControlUnitDTO[] }) {
@@ -64,7 +62,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
   const cu = currentCU;
   if (!cu) return <Container className="py-5"><h1>{t("detail.notFound")}</h1></Container>;
 
-  const isOnline = isControlUnitOnline(cu.lastSeen, cu.transmissionInterval);
+  const isOnline = isControlUnitOnline(cu);
 
   return (
     <Container className="py-4 fade-in-up">

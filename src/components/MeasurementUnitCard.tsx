@@ -1,7 +1,6 @@
 import { Row, Col, Card, Badge, Modal, ListGroup } from "react-bootstrap";
 import { BsCpu, BsThermometerHalf, BsDroplet, BsSpeedometer, BsGear, BsInfoCircle, BsTools, BsSliders, BsShieldCheck } from "react-icons/bs";
 import { useState } from "react";
-import { ChartModalButton } from "./ChartModalButton";
 import { MeasurementUnitDTO, SensorDTO } from "../API/interfaces";
 import { AccelIcon, PressureIcon } from "../icons/CustomIcons";
 
@@ -90,11 +89,8 @@ export function MeasurementUnitCard({ mu, handleSetDirty }: Props) {
                       >
                         <BsInfoCircle size={14} />
                       </button>
-                      <ChartModalButton
-                        nodeId={mu.extendedId}
-                        unit={sensor.sensorTemplate.unit || ""}
-                        setDirty={handleSetDirty}
-                      />
+                      {/* Pulsante del grafico storico tolto il 14/09/2026: apriva una dashboard
+                          servita da measure-manager, dismesso. I grafici sono nella scheda Grafici. */}
                     </div>
                   </div>
                 </Card.Body>
