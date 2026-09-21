@@ -69,6 +69,12 @@ export interface SensorDTO {
   measLocId?: number;
   calInitials?: string;
   sensorTemplate: SensorTemplate; // Il template completo dal backend
+  /**
+   * False se il backend non ha trovato il template di `modelName`: in quel caso
+   * `sensorTemplate` è un segnaposto con il solo modelName e `type` vuoto.
+   * Assente = backend precedente a questo campo, template considerato risolto.
+   */
+  templateResolved?: boolean;
 }
 
 export interface SensorTemplate {

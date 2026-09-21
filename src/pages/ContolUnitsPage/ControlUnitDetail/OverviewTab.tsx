@@ -39,6 +39,7 @@ function decodeIndexToLabel(idx: number, t: Translate): string {
       days: 1 + Math.trunc((idx - 96) / 24),
       hours: (idx - 96) % 24,
     });
+  if (idx === 255) return t("detail.interval.minutes", { value: 1 }); // override di minimo
   return t("detail.interval.outOfRange");
 }
 

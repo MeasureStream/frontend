@@ -71,16 +71,13 @@ function batteryColor(percent: number, source: PowerSource): string {
   return "var(--ms-sage)";
 }
 
-function isControlUnitOnline(lastSeen: string | null, transmissionInterval: number): boolean {
-  if (!lastSeen) return false;
-
-  const lastSeenDate = new Date(lastSeen).getTime();
-  const now = Date.now();
-
-  const minutesElapsed = (now - lastSeenDate) / (1000 * 60);
-  const maxTimeout = Math.max(30, transmissionInterval * 2);
-
-  return minutesElapsed <= maxTimeout;
+/**
+ * Stato calcolato dal server (`ControlUnitDTO.status`, da lastSeen e dal periodo di
+ * trasmissione decodificato): unica fonte di verità per lista e dettaglio. Qui prima
+ * l'indice di trasmissione veniva trattato come minuti.
+ */
+function isControlUnitOnline(cu: ControlUnitDTO): boolean {
+  return cu.status === 1;
 }
 
 interface ControlUnitsPageProps {
@@ -105,8 +102,8 @@ export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPagePr
 
     // Copia: `controlUnits` è una prop, non va riordinata sul posto.
     return [...filtered].sort((a, b) => {
-      const onlineA = isControlUnitOnline(a.lastSeen, a.transmissionInterval);
-      const onlineB = isControlUnitOnline(b.lastSeen, b.transmissionInterval);
+      const onlineA = isControlUnitOnline(a);
+      const onlineB = isControlUnitOnline(b);
       if (onlineA !== onlineB) return onlineA ? -1 : 1;
       return a.name.localeCompare(b.name, locale);
     });
@@ -155,7 +152,7 @@ export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPagePr
 
       <Row>
         {visibleCUs.map((cu) => {
-          const isOnline = isControlUnitOnline(cu.lastSeen, cu.transmissionInterval);
+          const isOnline = isControlUnitOnline(cu);
           const powerSource = getPowerSource(cu);
           const percent = batteryPercent(cu);
           const batteryTint = batteryColor(percent, powerSource);

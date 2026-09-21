@@ -152,8 +152,9 @@ const MOCK_CUS: ControlUnitDTO[] = [
     rssi: -103,
     semanticLocation: "Colive 1 AB",
     lastSeen: minutesAgo(180),
+    status: 0, // lo stato online arriva dal server, non si ricalcola da lastSeen
   }),
-  mockCU({ id: 4, name: "Nodo mai visto — offline", devEui: "0x70B3D57ED00125E0", rssi: 0, lastSeen: null }),
+  mockCU({ id: 4, name: "Nodo mai visto — offline", devEui: "0x70B3D57ED00125E0", rssi: 0, lastSeen: null, status: 0 }),
 ];
 
 const rootElement = document.getElementById("root");

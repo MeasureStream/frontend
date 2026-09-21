@@ -1,9 +1,9 @@
 /**
  * Scheda "Grafici": una card per sensore, raggruppate per MU.
  *
- * Riusa `ChartPreviewCard` (già esistente): la card apre il grafico storico e
- * permette scarico/cancellazione delle misure. Qui cambia solo la disposizione,
- * pensata per confrontare più sensori invece di aprirne uno alla volta.
+ * Riusa `ChartPreviewCard` (già esistente): la card apre il grafico storico.
+ * Qui cambia solo la disposizione, pensata per confrontare più sensori invece
+ * di aprirne uno alla volta.
  */
 import { Row, Col } from "react-bootstrap";
 import { BsBarChartFill } from "react-icons/bs";
@@ -13,11 +13,14 @@ import { useI18n } from "../../../i18n/I18nContext";
 
 interface Props {
   cu: ControlUnitDTO;
-  /** Segnala alla pagina che i dati vanno ricaricati (scarico/cancellazione). */
+  /**
+   * Segnala alla pagina che i dati vanno ricaricati. Oggi non usato: serviva a
+   * scarico e cancellazione delle misure, tolti finché non tornano su sensor-manager.
+   */
   onRefresh: () => void;
 }
 
-export function ChartsTab({ cu, onRefresh }: Props) {
+export function ChartsTab({ cu }: Props) {
   const { t } = useI18n();
 
   if (!cu.measurementUnits.length) {
@@ -48,7 +51,6 @@ export function ChartsTab({ cu, onRefresh }: Props) {
                       sensorId={sensor.id}
                       sensor={sensor}
                       measurementType={"avg-std"} // sensor.sensorTemplate?.measurementType || sensor.measurementType || TODO aggiistare con measurementType Dinamica
-                      setDirty={onRefresh}
                     />
                   </Col>
                 ))}

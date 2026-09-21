@@ -167,45 +167,6 @@ async function getfirstavailableCU() {
   return await response.json() as number
 }
 
-/**
- * Recupera l'ultimo valore numerico di LoRa RSSI degli ultimi 5 minuti.
- * @param nodeId L'ID del nodo (networkId)
- * @returns Il valore numerico (number) o null se non ci sono dati
- */
-export const getLatestLoraRSSIValue = async (nodeId: number): Promise<number | null> => {
-  const BASE_URL = "https://www.christiandellisanti.uk/API/measures/nodeId";
-
-  // Calcolo intervallo 5 minuti
-  const now = new Date();
-  const fiveMinutesAgo = new Date(now.getTime() - 2 * 60 * 1000).toISOString();
-  const nowIso = now.toISOString();
-
-  const params = new URLSearchParams({
-    nodeId: nodeId.toString(),
-    measureUnit: "LoRa RSSI",
-    start: fiveMinutesAgo,
-    end: nowIso
-  });
-
-  try {
-    const response = await fetch(`${BASE_URL}?${params.toString()}`);
-
-    if (!response.ok) return null;
-
-    const data: any[] = await response.json();
-
-    if (data && data.length > 0) {
-      // Restituisce il campo 'value' dell'ultimo elemento della lista
-      return data[data.length - 1].value;
-    }
-
-    return null; // Nessun dato trovato nell'intervallo
-  } catch (error) {
-    console.error("Errore fetch RSSI:", error);
-    return null;
-  }
-};
-
 async function ConfigureCu(xsrfToken: string | null, command: CUConfigCommandDTO) {
   const url = `${API_URL}/polling`;
 
