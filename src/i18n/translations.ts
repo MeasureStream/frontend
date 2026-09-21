@@ -438,7 +438,14 @@ export const it = {
   "sensorConfig.measureOnlyAvg": "{measure} — sull'intero dispositivo è impostabile solo Media + σ",
 
   // --- Categorie sensore (dal campo `category` del template) ---
+  "detail.interval.tick.off": "OFF",
+  "detail.interval.tick.hours": "{hours}h",
+  "detail.interval.tick.days": "{days}g",
+  "detail.configMismatch.title": "Misure in arrivo scartate: configurazione disallineata",
+  "detail.configMismatch.body":
+    "La CU trasmette con la configurazione {reported}, il server ne attende {expected}: {count} report sono stati scartati. Rimanda la configurazione dei sensori, oppure resetta la CU. I dati di quei report non sono recuperabili.",
   "sensorConfig.category.accelerometer": "Accelerometro",
+  "sensorConfig.category.gyroscope": "Giroscopio",
   "sensorConfig.category.temperature": "Temperatura",
   "sensorConfig.category.pressure": "Pressione",
   "sensorConfig.category.humidity": "Umidità",

@@ -63,9 +63,15 @@ export const UNKNOWN_CATEGORY_ID = "others";
 export const KNOWN_CATEGORY_KEYS: Record<string, TranslationKey> = {
   acceleration: "sensorConfig.category.accelerometer",
   accelerometer: "sensorConfig.category.accelerometer",
+  gyroscope: "sensorConfig.category.gyroscope",
+  // I template dichiarano lo strumento (thermometer, barometer, hygrometer), non solo
+  // la grandezza: entrambe le forme portano alla stessa categoria.
   temperature: "sensorConfig.category.temperature",
+  thermometer: "sensorConfig.category.temperature",
   pressure: "sensorConfig.category.pressure",
+  barometer: "sensorConfig.category.pressure",
   humidity: "sensorConfig.category.humidity",
+  hygrometer: "sensorConfig.category.humidity",
   co2: "sensorConfig.category.co2",
   battery: "sensorConfig.category.battery",
   voltage: "sensorConfig.category.battery",

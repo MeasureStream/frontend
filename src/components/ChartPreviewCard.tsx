@@ -4,10 +4,24 @@ import { SensorDTO } from "../API/interfaces";
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
-export function ChartPreviewCard({ sensorId, sensor, measurementType }: { sensorId: string | number, sensor: SensorDTO, measurementType: string }) {
+interface Props {
+  sensorId: string | number;
+  sensor: SensorDTO;
+  measurementType: string;
+  /**
+   * Intestazione della card e titolo della finestra: "MU hA1B2 · Temperatura".
+   * La compone chi conosce la MU (ChartsTab); senza, si ricade sul numero del canale,
+   * che da solo dice poco all'utente.
+   */
+  title?: string;
+}
+
+export function ChartPreviewCard({ sensorId, sensor, measurementType, title }: Props) {
   const [show, setShow] = useState(false);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
+
+  const heading = title ?? `Sensore ${sensor.sensorIndex}`;
 
   // Inizializziamo lo stato con measurementType (se valido), altrimenti fallback su "puntual"
   const [selectedView, setSelectedView] = useState<string>(() => {
@@ -68,12 +82,14 @@ export function ChartPreviewCard({ sensorId, sensor, measurementType }: { sensor
         <Card.Body className="p-2">
           <div className="d-flex justify-content-between align-items-center mb-2 px-2">
             <h6 className="mb-0 fw-bold text-dark">
-              Sensor: {sensor.sensorIndex}<small className="text-muted"> ({sensor.sensorTemplate.type}) </small>
+              {heading}
+              <small className="text-muted ms-2">canale {sensor.sensorIndex}</small>
             </h6>
             <span className="badge bg-light text-primary border">Zoom Chart</span>
           </div>
 
-          <div style={{ height: '200px', overflow: 'hidden', borderRadius: '4px', pointerEvents: 'none' }}>
+          {/* Due card per riga: l'anteprima può essere più alta e i punti restano leggibili. */}
+          <div style={{ height: '320px', overflow: 'hidden', borderRadius: '4px', pointerEvents: 'none' }}>
             <iframe
               src={getGrafanaUrl(false)}
               width="100%"
@@ -88,7 +104,12 @@ export function ChartPreviewCard({ sensorId, sensor, measurementType }: { sensor
       {/* MODAL DETTAGLIATO */}
       <Modal show={show} onHide={handleClose} size="xl" centered>
         <Modal.Header closeButton>
-          <Modal.Title>Sensor {sensorId} - Detailed View</Modal.Title>
+          <Modal.Title>
+            {heading}
+            <small className="text-muted ms-2">
+              canale {sensor.sensorIndex} · {sensor.modelName}
+            </small>
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body style={{ height: '85vh', display: 'flex', flexDirection: 'column' }}>
 

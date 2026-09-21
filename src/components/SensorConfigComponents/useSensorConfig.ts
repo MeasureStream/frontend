@@ -8,6 +8,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ControlUnitDTO } from "../../API/interfaces";
 import { buildSensorConfigRows, templateDefaults } from "../../API/sensorConfig/sensorConfigAdapter";
+import { useCuTemplates } from "../../API/templates/useTemplates";
 import {
   EMPTY_SCOPE,
   rowStatus,
@@ -25,8 +26,13 @@ export type RowFilter = "all" | "pending" | "divergent" | "withThresholds" | "of
 
 export function useSensorConfig(cu: ControlUnitDTO) {
   const { t } = useI18n();
+  /* I documenti dei template arrivano dal registro: pochi modelli distinti, una chiamata
+     ciascuno, poi restano in cache perché una versione pubblicata non cambia. */
+  const resolveTemplate = useCuTemplates(cu);
 
-  const [rows, setRows] = useState<SensorConfigRow[]>(() => buildSensorConfigRows(cu, t));
+  const [rows, setRows] = useState<SensorConfigRow[]>(() =>
+    buildSensorConfigRows(cu, t, resolveTemplate),
+  );
   const [scope, setScope] = useState<ConfigScope>(EMPTY_SCOPE);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [query, setQuery] = useState("");
@@ -51,11 +57,14 @@ export function useSensorConfig(cu: ControlUnitDTO) {
   );
 
   useEffect(() => {
-    setRows(buildSensorConfigRows(cu, t));
+    setRows(buildSensorConfigRows(cu, t, resolveTemplate));
     setSelected({});
     setScope(EMPTY_SCOPE);
     // `t` cambia con la lingua: le etichette di categoria vanno ricalcolate.
-  }, [cu.id, sensorsSignature, t]); // eslint-disable-line react-hooks/exhaustive-deps
+    // `resolveTemplate` cambia quando arrivano i documenti: incertezza, passo e misure
+    // ammesse si riempiono allora, senza perdere le modifiche in corso (la firma dei
+    // sensori non cambia, quindi le righe si ricostruiscono una sola volta per documento).
+  }, [cu.id, sensorsSignature, t, resolveTemplate]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ---------------------------------------------------------------- *
    * Derivati
@@ -179,10 +188,10 @@ export function useSensorConfig(cu: ControlUnitDTO) {
     applyTo(targetRows, (r) => {
       const mu = cu.measurementUnits.find((m) => m.localId === r.muLocalId);
       const sensor = mu?.sensors.find((s) => s.sensorIndex === r.sensorIndex);
-      const defaults = templateDefaults(sensor?.sensorTemplate);
+      const defaults = templateDefaults(resolveTemplate(sensor?.template));
       return { ...r, values: { ...r.values, ...defaults, roc: null, tor: null, cum: null, pct: null } };
     });
-  }, [applyTo, targetRows, cu.measurementUnits]);
+  }, [applyTo, targetRows, cu.measurementUnits, resolveTemplate]);
 
   /** Annulla tutte le modifiche non ancora salvate. */
   const revert = useCallback(() => {

@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Row, Col, Card, ProgressBar, Button, Form } from "react-bootstrap";
+import { Row, Col, Card, ProgressBar, Button, Form, Alert } from "react-bootstrap";
 import {
   BsActivity, BsBroadcast, BsCalendarEvent, BsGear, BsOpencollective,
-  BsPlayFill, BsStopFill, BsToggles, BsWrenchAdjustableCircle,
+  BsPlayFill, BsStopFill, BsToggles, BsWrenchAdjustableCircle, BsExclamationTriangle,
 } from "react-icons/bs";
 import type { AcquisitionSchedule, ControlUnitDTO } from "../../../API/interfaces";
 import { ControlTransmission } from "../../../API/ControlUnitAPI";
@@ -13,34 +13,55 @@ import { MeasurementUnitCard } from "../../../components/MeasurementUnitCard";
 import { ConfigCUModal } from "../../../components/ConfigCUModal";
 import { SignalQualityModal } from "../../../components/SignalQualityModal";
 import { RangeTicks } from "../../../components/RangeTicks";
-
-const TRANSMISSION_TICKS = [
-  { value: 0, label: "OFF" },
-  { value: 24, label: "6h" },
-  { value: 48, label: "12h" },
-  { value: 96, label: "24h" },
-  { value: 240, label: "7g" },
-];
+import {
+  MAX_TRANSMISSION_INDEX,
+  TRANSMISSION_FAST_INDEX,
+  transmissionMinutes,
+  transmissionTicks,
+} from "../../../API/protocol/scales";
 
 const AIRTIME_LIMIT_MS = 30000;
 
 type Translate = (key: TranslationKey, params?: Record<string, string | number>) => string;
 
+/**
+ * Etichetta compatta per le tacche sotto lo slider: "6h", "24h", "7g". Sono gli stessi
+ * indici del cursore, letti con meno parole perche' stanno in mezzo centimetro.
+ */
+function tickLabel(idx: number, t: Translate): string {
+  if (idx === 0) return t("detail.interval.tick.off");
+
+  const minutes = transmissionMinutes(idx);
+  if (minutes === null) return "—";
+
+  const days = minutes / (24 * 60);
+  // I giorni si usano da due in su: "24h" accanto a "6h" e "12h" si legge meglio di "1g".
+  return days >= 2 && Number.isInteger(days)
+    ? t("detail.interval.tick.days", { days })
+    : t("detail.interval.tick.hours", { hours: Math.round(minutes / 60) });
+}
+
+/**
+ * Etichetta dell'indice di trasmissione. La scala sta in `API/protocol/scales`: qui si
+ * sceglie solo in che unita' leggerla, perche' le stringhe passano dalle traduzioni.
+ */
 function decodeIndexToLabel(idx: number, t: Translate): string {
   if (idx === 0) return t("detail.interval.off");
-  if (idx <= 4) return t("detail.interval.minutes", { value: idx * 15 });
-  if (idx <= 96)
+
+  const minutes = transmissionMinutes(idx);
+  if (minutes === null) return t("detail.interval.outOfRange");
+
+  if (idx === TRANSMISSION_FAST_INDEX || minutes < 60)
+    return t("detail.interval.minutes", { value: minutes });
+  if (minutes < 24 * 60)
     return t("detail.interval.hoursMinutes", {
-      hours: Math.trunc((idx * 15) / 60),
-      minutes: (idx * 15) % 60,
+      hours: Math.trunc(minutes / 60),
+      minutes: minutes % 60,
     });
-  if (idx <= 240)
-    return t("detail.interval.daysHours", {
-      days: 1 + Math.trunc((idx - 96) / 24),
-      hours: (idx - 96) % 24,
-    });
-  if (idx === 255) return t("detail.interval.minutes", { value: 1 }); // override di minimo
-  return t("detail.interval.outOfRange");
+  return t("detail.interval.daysHours", {
+    days: Math.trunc(minutes / (24 * 60)),
+    hours: Math.trunc((minutes % (24 * 60)) / 60),
+  });
 }
 
 interface Props {
@@ -91,8 +112,31 @@ export function OverviewTab({ cu, onRefresh }: Props) {
     }
   };
 
+  /*
+   * I report che arrivano con un CFG_VER diverso da quello atteso restano scartati: senza
+   * sapere quale configurazione era attiva, quei byte non si possono interpretare nemmeno
+   * dopo. Quello che non deve succedere e' che spariscano in silenzio, com'era prima.
+   */
+  const mismatches = cu.configMismatchCount ?? 0;
+
   return (
     <>
+      {mismatches > 0 && (
+        <Alert variant="warning" className="d-flex align-items-start gap-2 mb-4">
+          <BsExclamationTriangle className="mt-1 flex-shrink-0" />
+          <div>
+            <div className="fw-bold">{t("detail.configMismatch.title")}</div>
+            <div className="small">
+              {t("detail.configMismatch.body", {
+                reported: cu.lastReportedConfigVersion ?? "?",
+                expected: (cu.configVersion ?? 0) % 256,
+                count: mismatches,
+              })}
+            </div>
+          </div>
+        </Alert>
+      )}
+
       {/* --- METRICHE --- */}
       <Row className="g-3 mb-5">
         <Col md={4}>
@@ -203,12 +247,12 @@ export function OverviewTab({ cu, onRefresh }: Props) {
                   type="range"
                   className="form-range"
                   min="0"
-                  max="240"
+                  max={MAX_TRANSMISSION_INDEX}
                   step="1"
                   value={acqIndex}
                   onChange={(e) => setAcqIndex(parseInt(e.target.value))}
                 />
-                <RangeTicks max={240} ticks={TRANSMISSION_TICKS} />
+                <RangeTicks max={MAX_TRANSMISSION_INDEX} ticks={transmissionTicks((i) => tickLabel(i, t))} />
               </Col>
 
               <Col lg={5} md={8} className="ps-lg-4">

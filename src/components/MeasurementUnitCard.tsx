@@ -3,6 +3,12 @@ import { BsCpu, BsThermometerHalf, BsDroplet, BsSpeedometer, BsGear, BsInfoCircl
 import { useState } from "react";
 import { MeasurementUnitDTO, SensorDTO } from "../API/interfaces";
 import { AccelIcon, PressureIcon } from "../icons/CustomIcons";
+import { useTemplate } from "../API/templates/useTemplates";
+import {
+  calibrationCoefficients,
+  calibrationType,
+  prettyUnit,
+} from "../API/templates/templateFields";
 
 interface Props {
   mu: MeasurementUnitDTO;
@@ -57,10 +63,10 @@ export function MeasurementUnitCard({ mu, handleSetDirty }: Props) {
                   {/* TOP: Icona e Canale */}
                   <div className="d-flex justify-content-between align-items-start">
                     <div className="p-2 bg-white rounded-3 shadow-sm">
-                      {getSensorIcon(sensor.sensorTemplate.type)}
+                      {getSensorIcon(sensor.template?.type ?? "")}
                     </div>
                     <Badge bg="white" className="text-primary border border-primary-subtle px-2 py-1" style={{ fontSize: '0.6rem' }}>
-                      CH {sensor.sensorIndex}
+                      CH {sensor.sensorIndex}{sensor.channel ? ` · ${sensor.channel}` : ""}
                     </Badge>
                   </div>
 
@@ -70,17 +76,14 @@ export function MeasurementUnitCard({ mu, handleSetDirty }: Props) {
                       {sensor.physVal.toFixed(1)}
                     </div>
                     <div className="text-muted text-uppercase fw-bold" style={{ fontSize: '0.65rem', letterSpacing: '1px' }}>
-                      {sensor.sensorTemplate.unit}
+                      {prettyUnit(sensor.template?.unit)}
                     </div>
                   </div>
 
                   {/* BOTTOM: Azioni e Nome Modello */}
                   <div className="d-flex justify-content-between align-items-center pt-2">
                     <div className="small text-truncate text-muted pe-2" style={{ fontSize: '0.6rem', maxWidth: '60%' }}>
-                      {sensor.sensorTemplate.type}
-                      {
-                        //sensor.modelName.split('_')[0]
-                      }
+                      {sensor.template?.type}
                     </div>
                     <div className="d-flex gap-1">
                       <button
@@ -108,13 +111,21 @@ export function MeasurementUnitCard({ mu, handleSetDirty }: Props) {
 }
 
 function SensorInfoModal({ sensor, onHide }: { sensor: SensorDTO | null, onHide: () => void }) {
+  // Il documento completo sta nel registro: il DTO porta solo il riferimento.
+  const template = useTemplate(sensor?.template);
   if (!sensor) return null;
+
+  const unit = prettyUnit(sensor.template?.unit);
+  const coefficients = calibrationCoefficients(template);
 
   return (
     <Modal show={!!sensor} onHide={onHide} centered size="lg" contentClassName="rounded-4 border-0 shadow">
       <Modal.Header closeButton className="border-bottom-0 pb-0">
         <Modal.Title className="fw-bold d-flex align-items-center gap-2">
-          <BsTools className="text-primary" /> {sensor.modelName} <small className="text-muted fw-light">Specs</small>
+          <BsTools className="text-primary" /> {sensor.modelName}
+          <small className="text-muted fw-light">
+            {sensor.template ? `v${sensor.template.resolvedVersion}` : 'template non risolto'}
+          </small>
         </Modal.Title>
       </Modal.Header>
 
@@ -133,10 +144,10 @@ function SensorInfoModal({ sensor, onHide }: { sensor: SensorDTO | null, onHide:
                 </ListGroup.Item>
                 <ListGroup.Item className="bg-transparent px-0 d-flex justify-content-between">
                   <span className="text-muted">Phys Threshold</span>
-                  <span className="fw-bold">{sensor.phyThreshold} {sensor.sensorTemplate.unit}</span>
+                  <span className="fw-bold">{sensor.phyThreshold} {unit}</span>
                 </ListGroup.Item>
                 <ListGroup.Item className="bg-transparent px-0">
-                  <div className="text-muted mb-2">Polynomial Coeffs (A-D)</div>
+                  <div className="text-muted mb-2">Coefficienti di taratura del sensore</div>
                   <div className="p-2 bg-white rounded border font-monospace text-center small">
                     {sensor.coeffA ?? 0} | {sensor.coeffB ?? 0} | {sensor.coeffC ?? 0} | {sensor.coeffD ?? 0}
                   </div>
@@ -152,28 +163,28 @@ function SensorInfoModal({ sensor, onHide }: { sensor: SensorDTO | null, onHide:
                 <BsShieldCheck /> Metrology & Conversion
               </h6>
               <div className="small">
-                <div className="mb-2"><strong>Conv Type:</strong> {sensor.sensorTemplate.conversion?.type || 'N/A'}</div>
-                {sensor.sensorTemplate.conversion?.coefficients && (
+                <div className="mb-2"><strong>Conv Type:</strong> {calibrationType(template) || 'N/A'}</div>
+                {coefficients.length > 0 && (
                   <div className="mb-2">
                     <strong>Template Coeffs:</strong>
-                    <Badge bg="primary" className="ms-2">{sensor.sensorTemplate.conversion.coefficients.join(', ')}</Badge>
+                    <Badge bg="primary" className="ms-2">{coefficients.join(', ')}</Badge>
                   </div>
                 )}
                 <div className="mt-3 p-2 bg-white rounded border">
                   <div className="fw-bold border-bottom pb-1 mb-1 text-uppercase text-xs" style={{ fontSize: '0.65rem' }}>Template Properties</div>
-                  <pre className="mb-0" style={{ fontSize: '0.7rem' }}>{JSON.stringify(sensor.sensorTemplate.properties, null, 2)}</pre>
+                  <pre className="mb-0" style={{ fontSize: '0.7rem' }}>{JSON.stringify(template?.properties, null, 2)}</pre>
                 </div>
               </div>
             </div>
           </Col>
 
           {/* SEZIONE 3: RANGE OPERATIVI (FULL WIDTH) */}
-          {sensor.sensorTemplate.ranges && (
+          {template?.ranges && (
             <Col xs={12}>
               <div className="p-3 rounded-4 border bg-white">
                 <h6 className="fw-bold mb-3 text-secondary">Operating Ranges</h6>
                 <Row className="text-center g-2">
-                  {Object.entries(sensor.sensorTemplate.ranges).map(([key, val]: [string, any]) => (
+                  {Object.entries(template.ranges).map(([key, val]: [string, any]) => (
                     <Col key={key} xs={4}>
                       <div className="p-2 rounded bg-light border-dashed">
                         <div className="text-muted text-uppercase" style={{ fontSize: '0.6rem' }}>{key}</div>

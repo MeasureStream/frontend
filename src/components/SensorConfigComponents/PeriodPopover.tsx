@@ -7,7 +7,11 @@
  */
 import { useEffect } from "react";
 import { useI18n } from "../../i18n/I18nContext";
-import { MAX_PERIOD_INDEX, PERIOD_PRESETS, decodePeriodIndex } from "../../API/sensorConfig/samplingScale";
+import {
+  MAX_SAMPLING_INDEX as MAX_PERIOD_INDEX,
+  SAMPLING_PRESETS as PERIOD_PRESETS,
+  decodeSamplingIndex as decodePeriodIndex,
+} from "../../API/protocol/scales";
 import type { SensorConfigRow } from "../../API/sensorConfig/sensorConfigTypes";
 import { SegmentedControl } from "./SegmentedControl";
 
@@ -65,8 +69,8 @@ export function PeriodPopover({ row, anchor, onChange, onClose }: Props) {
         <div className="d-flex justify-content-between mt-2">
           <SegmentedControl
             accent
-            options={PERIOD_PRESETS.map((p) => ({ value: p.index, label: p.label }))}
-            value={PERIOD_PRESETS.some((p) => p.index === row.values.period) ? row.values.period : null}
+            options={PERIOD_PRESETS.map((p) => ({ value: p.value, label: p.label }))}
+            value={PERIOD_PRESETS.some((p) => p.value === row.values.period) ? row.values.period : null}
             onChange={onChange}
           />
         </div>

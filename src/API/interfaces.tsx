@@ -26,6 +26,17 @@ export interface ControlUnitDTO {
   frequency: number;
   lastSeen: string | null;
   transmissionInterval: number;
+  /** Versione di configurazione che il server considera attiva (sul filo ne viaggia il byte basso). */
+  configVersion?: number;
+  /**
+   * Report scartati perché la CU dichiarava un CFG_VER diverso: > 0 significa che si stanno
+   * perdendo misure, e che serve riallineare la configurazione o resettare la CU.
+   */
+  configMismatchCount?: number;
+  /** Ultimo CFG_VER dichiarato dalla CU, quando c'è un disallineamento aperto. */
+  lastReportedConfigVersion?: number | null;
+  /** Quando è arrivato l'ultimo report scartato. */
+  lastConfigMismatchAt?: string | null;
 
 
   // Airtime totale giornaliero in ms (Soglia TTN: 30000)
@@ -49,6 +60,11 @@ export interface SensorDTO {
   id: number;
   modelName: string;
   sensorIndex: number;
+  /**
+   * Asse dello slot ("X", "Y", "Z") quando il modello di MU istanzia più volte lo stesso
+   * template: il template dei tre assi è identico, l'asse lo dice il modello di MU.
+   */
+  channel?: string | null;
   physVal: number;
   elecVal: number;
   samplingF: number;
@@ -68,17 +84,57 @@ export interface SensorDTO {
   calDate?: number; // Long in Kotlin (Timestamp)
   measLocId?: number;
   calInitials?: string;
-  sensorTemplate: SensorTemplate; // Il template completo dal backend
   /**
-   * False se il backend non ha trovato il template di `modelName`: in quel caso
-   * `sensorTemplate` è un segnaposto con il solo modelName e `type` vuoto.
-   * Assente = backend precedente a questo campo, template considerato risolto.
+   * Riferimento al template, non il documento intero: `(templateId, major)` più i due
+   * campi che servono alla card. Il documento si scarica una volta da `/API/templates`
+   * e resta in cache, perché una versione pubblicata è immutabile (vedi API/templates/).
+   * Null = il registro non ha quel modello, il sensore finisce nel gruppo "Altro".
    */
+  template: TemplateRef | null;
+  /** Comodità: equivale a `template !== null`. */
   templateResolved?: boolean;
+}
+
+/** Le cinque famiglie del registro. */
+export type TemplateKind = "SENSOR" | "REFERENCE" | "MU" | "CU" | "PROTOCOL";
+
+export type TemplateStatus = "DEV" | "PUBLISHED" | "REVOKED";
+
+/** Quello che il DTO di un sensore porta con sé: il puntatore al documento. */
+export interface TemplateRef {
+  kind: TemplateKind;
+  templateId: number;
+  major: number;
+  /** Versione esatta che ha vinto la risoluzione dentro il MAJOR: è la chiave di cache. */
+  resolvedVersion: string;
+  status: TemplateStatus;
+  modelName?: string;
+  /** Tipo in inglese ("temperature", "acceleration"): basta per i gruppi di categoria. */
+  type: string;
+  /** Unità in notazione D-SI: basta per la card, senza aprire il documento. */
+  unit?: string;
+}
+
+/** La risposta di `/API/templates/{kind}/{id}/{major}`: intestazione più documento. */
+export interface TemplateDocumentDTO {
+  kind: TemplateKind;
+  templateId: number;
+  resolvedVersion: string;
+  status: TemplateStatus;
+  modelName?: string;
+  schemaVersion?: string;
+  contentHash: string;
+  content: SensorTemplate;
 }
 
 export interface SensorTemplate {
   modelName: string;
+  /**
+   * Che cosa trasmette il dispositivo: `uncalibrated` la lettura grezza (il server applica
+   * la formula di taratura), `calibrated` la stima del misurando già tarata. Default del
+   * modello; la singola metrica può sovrascriverlo con `domain`.
+   */
+  outputFormat?: "calibrated" | "uncalibrated";
   /**
    * Tipo del sensore in inglese (es. "acceleration", "temperature"): è il
    * valore usato per i chip di categoria della Configurazione Sensori.
@@ -97,8 +153,26 @@ export interface SensorTemplate {
   // Es: { "temperature": { "min": -40, "max": 85 }, "humidity": { "min": 0, "max": 100 } }
   ranges?: Record<string, Record<string, number>>;
 
-  // Corrisponde a Map<String, Any>
-  // Qui dentro ci finiscono logiche di conversione, offset, guadagni
+  /**
+   * Le metriche che il modello sa produrre, nell'ordine canonico del protocollo.
+   * `bytes` ed `encoding` dicono come leggere il campo nel report, `transform` come
+   * convertirlo. Schema 2.1.0.
+   */
+  supportedMetrics?: {
+    id: number;
+    name: string;
+    class: "BASE" | "EXTENDED" | "RARE";
+    bytes: number;
+    encoding?: "u16" | "i16" | "u32" | "i32";
+    domain?: "elec" | "phys";
+    transform?: "calibration" | "variance" | "integral" | "none";
+    dsi?: string;
+  }[];
+
+  /** Formula di conversione grezzo → grandezza fisica, con i coefficienti in `c[]`. */
+  calibration?: Record<string, any>;
+
+  /** Vecchio nome di `calibration`: non compare più in nessun template dalla 2.1.0. */
   conversion?: Record<string, any>;
 
   // Proprietà generiche del sensore (es: risoluzione, bitrate)

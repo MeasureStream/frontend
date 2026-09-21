@@ -27,7 +27,8 @@ import { MessagesPage } from "../pages/Messages/MessagesPage";
 import { ReferenceStandardsPage } from "../pages/ReferenceStandards/ReferenceStandardsPage";
 import { I18nProvider } from "../i18n/I18nContext";
 import { AuthProvider } from "../API/AuthContext";
-import type { ControlUnitDTO, MeasurementUnitDTO, SensorDTO } from "../API/interfaces";
+import type { ControlUnitDTO, MeasurementUnitDTO, SensorDTO, TemplateRef } from "../API/interfaces";
+import { primeTemplate } from "../API/templates/templatesAPI";
 
 const minutesAgo = (m: number) => new Date(Date.now() - m * 60_000).toISOString();
 
@@ -56,6 +57,43 @@ const SENSOR_SEEDS: SensorSeed[] = [
   { model: "legacy_probe_v1", type: "", unit: "\\volt", value: 3.91, uncertainty: 0.02, period: 0 },
 ];
 
+/**
+ * Il DTO porta solo il riferimento, quindi l'anteprima mette il documento direttamente
+ * nella cache del registro: così le schermate leggono i campi veri senza backend.
+ */
+function mockTemplate(seed: SensorSeed, index: number): TemplateRef {
+  const ref: TemplateRef = {
+    kind: "SENSOR",
+    templateId: 200 + index,
+    major: 2,
+    resolvedVersion: "2.0.0",
+    status: "PUBLISHED",
+    modelName: seed.model,
+    type: seed.type,
+    unit: seed.unit,
+  };
+
+  primeTemplate(ref, {
+    modelName: seed.model,
+    type: seed.type,
+    unit: seed.unit,
+    ranges: {
+      phys: { min: -seed.value * 4, max: seed.value * 4 },
+      threshold: { min: -seed.value * 2, max: seed.value * 3 },
+    },
+    supportedMetrics: [
+      { id: 1, name: "mean", class: "BASE", bytes: 2, encoding: "u16", domain: "elec", transform: "calibration" },
+      { id: 2, name: "variance", class: "BASE", bytes: 2, encoding: "u16", domain: "elec", transform: "variance" },
+    ],
+    metrology: {
+      evaluationFormula: "RSS",
+      Uncertainty: [{ varName: "u", value: seed.uncertainty, coverageFactor: 1 }],
+    },
+  });
+
+  return ref;
+}
+
 function mockSensor(seed: SensorSeed, index: number, muIndex: number): SensorDTO {
   return {
     id: muIndex * 100 + index,
@@ -68,16 +106,8 @@ function mockSensor(seed: SensorSeed, index: number, muIndex: number): SensorDTO
     isUpperThresholdMax: false,
     isLowerThresholdMin: false,
     configurable: true,
-    sensorTemplate: {
-      modelName: seed.model,
-      type: seed.type,
-      unit: seed.unit,
-      ranges: {
-        phys: { min: -seed.value * 4, max: seed.value * 4 },
-        threshold: { min: -seed.value * 2, max: seed.value * 3 },
-      },
-      metrology: { Uncertainty: [{ uc: seed.uncertainty, k: 2 }] },
-    },
+    template: mockTemplate(seed, index),
+    templateResolved: true,
   };
 }
 

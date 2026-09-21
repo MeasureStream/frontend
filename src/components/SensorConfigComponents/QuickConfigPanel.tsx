@@ -8,7 +8,7 @@ import { useState } from "react";
 import { Button } from "react-bootstrap";
 import { BsGearWideConnected } from "react-icons/bs";
 import { useI18n } from "../../i18n/I18nContext";
-import { PERIOD_PRESETS } from "../../API/sensorConfig/samplingScale";
+import { SAMPLING_PRESETS as PERIOD_PRESETS } from "../../API/protocol/scales";
 import {
   MEASURES,
   VALUE_FIELDS,
@@ -117,7 +117,7 @@ export function QuickConfigPanel({ state }: { state: SensorConfigState }) {
                 {t("sensorConfig.period")}
               </span>
               <SegmentedControl
-                options={PERIOD_PRESETS.map((p) => ({ value: p.index, label: p.label, disabled: !hasScope }))}
+                options={PERIOD_PRESETS.map((p) => ({ value: p.value, label: p.label, disabled: !hasScope }))}
                 value={common("period")}
                 onChange={(period) => state.setValues(targetRows, { period })}
               />
