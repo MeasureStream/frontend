@@ -5,37 +5,11 @@ import { ControlUnitDTO, CUConfigurationDTO } from "../API/interfaces";
 import { UpdateSensorsConfig } from "../API/ControlUnitAPI";
 import { useAuth } from "../API/AuthContext";
 import { RangeTicks } from "./RangeTicks";
-
-// Tacche posizionate sul valore REALE dell'indice (scala non lineare):
-// 1s = idx 46, 1m = idx 65, 1h = idx 84, 24h = idx 222, 48h = idx 246
-const SAMPLING_TICKS = [
-  { value: 0, label: "OFF" },
-  { value: 46, label: "1s" },
-  { value: 65, label: "1m" },
-  { value: 84, label: "1h" },
-  { value: 222, label: "24h" },
-  { value: 246, label: "48h" },
-];
-
-
-const decodeIndexToLabel = (idx: number): string => {
-  if (idx === 0) return "OFF";
-  if (idx <= 9) return `${idx} ms`;
-  if (idx <= 27) return `${10 + (idx - 10) * 5} ms`;
-  if (idx <= 45) return `${100 + (idx - 28) * 50} ms`;
-  if (idx <= 54) return `${1 + (idx - 46)} s`;
-  if (idx <= 64) return `${10 + (idx - 55) * 5} s`;
-  if (idx <= 73) return `${1 + (idx - 65)} m`;
-  if (idx <= 83) return `${10 + (idx - 74) * 5} m`;
-  if (idx <= 222) {
-    const totalMin = 60 + (idx - 84) * 10;
-    const h = Math.floor(totalMin / 60);
-    const m = totalMin % 60;
-    return m === 0 ? `${h}h` : `${h}h ${m}m`;
-  }
-  if (idx <= 246) return `${25 + (idx - 223)} h`;
-  return "Out of Range";
-};
+import {
+  MAX_SAMPLING_INDEX,
+  SAMPLING_TICKS,
+  decodeSamplingIndex as decodeIndexToLabel,
+} from "../API/protocol/scales";
 
 interface Props {
   show: boolean;
@@ -159,12 +133,12 @@ export function SensorConfigModal({ show, onHide, controlUnit }: Props) {
 
                             <Form.Range
                               min={0}
-                              max={246}
+                              max={MAX_SAMPLING_INDEX}
                               step={1}
                               value={currentIdx}
                               onChange={(e) => handlePeriodChange(mu.localId, sensor.sensorIndex, parseInt(e.target.value))}
                             />
-                            <RangeTicks max={246} ticks={SAMPLING_TICKS} />
+                            <RangeTicks max={MAX_SAMPLING_INDEX} ticks={SAMPLING_TICKS} />
                           </ListGroup.Item>
                         );
                       })}

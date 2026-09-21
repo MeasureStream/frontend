@@ -1,12 +1,23 @@
 /**
- * Adapter: da ciò che serve il backend OGGI (ControlUnitDTO + template)
+ * Adapter: da ciò che serve il backend OGGI (ControlUnitDTO + documenti del registro)
  * al modello della schermata di configurazione.
  *
  * È l'unico punto che conosce le mancanze dell'API attuale. Quando il backend
  * esporrà soglie, RoC, esposizione cumulata e CFG_VER per sensore, si cambia
  * SOLO questo file (i componenti lavorano già sul modello finale).
+ *
+ * Il DTO porta un riferimento al template, non il documento: tipo e unità arrivano già
+ * dal riferimento, tutto il resto dal documento risolto da `useCuTemplates`.
  */
-import type { ControlUnitDTO, SensorDTO, SensorTemplate } from "../interfaces";
+import type { ControlUnitDTO, SensorDTO, SensorTemplate, TemplateRef } from "../interfaces";
+import type { TemplateResolver } from "../templates/useTemplates";
+import {
+  metricNames,
+  prettyUnit,
+  templateUncertainty,
+  thresholdRange,
+  valueStep,
+} from "../templates/templateFields";
 import {
   KNOWN_CATEGORY_KEYS,
   MEASURES,
@@ -21,39 +32,15 @@ import type { TranslationKey } from "../../i18n/translations";
 /** Firma di `t()` presa da useI18n(), passata dall'esterno per non legare l'adapter a React. */
 type Translate = (key: TranslationKey, vars?: Record<string, string | number>) => string;
 
-/**
- * Unità D-SI del template → simbolo leggibile.
- * I template usano la notazione D-SI (`\meter\per\second\squared`); qui teniamo
- * solo i casi realmente montati sulle MU, con fallback alla stringa ripulita.
- */
-const UNIT_SYMBOLS: Record<string, string> = {
-  "\\meter\\per\\second\\squared": "m/s²",
-  "\\degreecelsius": "°C",
-  "\\kelvin": "K",
-  "\\pascal": "Pa",
-  "\\hectopascal": "hPa",
-  "\\percent": "%",
-  "\\volt": "V",
-  "\\ppm": "ppm",
-  "\\one": "",
-};
-
-/** Simbolo dell'unità, con fallback leggibile per i template non mappati. */
-export function prettyUnit(unit: string | undefined): string {
-  if (!unit) return "";
-  const known = UNIT_SYMBOLS[unit.toLowerCase()];
-  if (known !== undefined) return known;
-  // Fallback: "\meter\per\second" → "meter per second"
-  return unit.replace(/\\/g, " ").trim();
-}
+export { prettyUnit } from "../templates/templateFields";
 
 /**
- * Categoria del sensore dal campo `type` del template.
- * Manca (template vecchio) → "Altro"; presente ma non mappata → si mostra
- * l'identificatore così com'è, senza inventare traduzioni.
+ * Categoria del sensore dal campo `type` del riferimento: non serve il documento.
+ * Riferimento assente (template non risolto) → "Altro"; tipo presente ma non mappato →
+ * si mostra l'identificatore così com'è, senza inventare traduzioni.
  */
-export function sensorType(template: SensorTemplate | undefined, t: Translate): SensorType {
-  const raw = template?.type?.trim().toLowerCase();
+export function sensorType(ref: TemplateRef | null | undefined, t: Translate): SensorType {
+  const raw = ref?.type?.trim().toLowerCase();
   if (!raw) {
     return { id: UNKNOWN_CATEGORY_ID, label: t(KNOWN_CATEGORY_KEYS[UNKNOWN_CATEGORY_ID]) };
   }
@@ -62,35 +49,33 @@ export function sensorType(template: SensorTemplate | undefined, t: Translate): 
 }
 
 /**
- * Incertezza u dichiarata dal template (`metrology.Uncertainty[0]`).
- * L'isteresi di allarme è 2u (k = 2) e non è modificabile a mano: serve solo
- * a spiegare all'utente perché una soglia non "sfarfalla".
+ * Misure ammesse: si ricavano dalle metriche che il modello dichiara di saper produrre.
+ * `mean` abilita media e deviazione, `max`/`min` il minimo-massimo, `integral` l'integrale.
+ * Documento non ancora arrivato o senza `supportedMetrics` → nessun vincolo, le propone
+ * tutte: è il firmware a rifiutare una modalità che non sa fare, e la UI non blocca a
+ * sproposito. Il filtro per slot del modello di MU arriva con il passo 11.
  */
-function templateUncertainty(template: SensorTemplate | undefined): number {
-  const entry = (template?.metrology?.Uncertainty as { uc?: number; absUncertainty?: number }[] | undefined)?.[0];
-  return entry?.uc || entry?.absUncertainty || 0;
-}
+const MEASURE_BY_METRIC: Record<string, MeasureId> = {
+  mean: "avg",
+  variance: "avg",
+  max: "mm",
+  min: "mm",
+  integral: "int",
+  median: "med",
+  percentile: "pct",
+  punctual: "pt",
+};
 
-/** Passo degli input numerici: un centesimo dell'escursione utile del sensore. */
-function templateStep(template: SensorTemplate | undefined): number {
-  const phys = template?.ranges?.phys;
-  if (!phys || phys.max === undefined || phys.min === undefined) return 1;
-  const span = Math.abs(phys.max - phys.min);
-  if (!span) return 1;
-  const raw = span / 100;
-  // Arrotondamento alla potenza di 10 più vicina, per non avere step tipo 3,1387
-  return Math.pow(10, Math.round(Math.log10(raw)));
-}
+function allowedMeasures(doc: SensorTemplate | undefined): MeasureId[] {
+  const metrics = metricNames(doc);
+  if (!metrics.length) return MEASURES.map((m) => m.id);
 
-/**
- * Misure ammesse dal template. Finché i template non dichiarano
- * `supportedMeasures`, si considerano ammesse tutte: è il firmware a rifiutare
- * l'eventuale modalità non supportata, e la UI non blocca a sproposito.
- */
-function allowedMeasures(template: SensorTemplate | undefined): MeasureId[] {
-  const declared = template?.supportedMeasures;
-  if (!declared?.length) return MEASURES.map((m) => m.id);
-  return MEASURES.filter((m) => declared.includes(m.id)).map((m) => m.id);
+  const allowed = new Set<MeasureId>();
+  metrics.forEach((name) => {
+    const measure = MEASURE_BY_METRIC[name];
+    if (measure) allowed.add(measure);
+  });
+  return allowed.size ? MEASURES.filter((m) => allowed.has(m.id)).map((m) => m.id) : MEASURES.map((m) => m.id);
 }
 
 /**
@@ -117,8 +102,8 @@ function currentValues(sensor: SensorDTO): SensorConfigValues {
 }
 
 /** Valori di default dichiarati dal template (pulsante "Default template"). */
-export function templateDefaults(template: SensorTemplate | undefined): Pick<SensorConfigValues, "thHigh" | "thLow"> {
-  const threshold = template?.ranges?.threshold;
+export function templateDefaults(doc: SensorTemplate | undefined): Pick<SensorConfigValues, "thHigh" | "thLow"> {
+  const threshold = thresholdRange(doc);
   return {
     thHigh: threshold?.max ?? null,
     thLow: threshold?.min ?? null,
@@ -135,7 +120,11 @@ function muLabel(extendedId: number): string {
  * Ordine stabile: MU per localId, sensori per sensorIndex — lo stesso ordine
  * con cui il backend calcola il limite dei 48 sensori configurabili.
  */
-export function buildSensorConfigRows(cu: ControlUnitDTO, t: Translate): SensorConfigRow[] {
+export function buildSensorConfigRows(
+  cu: ControlUnitDTO,
+  t: Translate,
+  resolve: TemplateResolver,
+): SensorConfigRow[] {
   const rows: SensorConfigRow[] = [];
 
   [...cu.measurementUnits]
@@ -144,8 +133,9 @@ export function buildSensorConfigRows(cu: ControlUnitDTO, t: Translate): SensorC
       [...mu.sensors]
         .sort((a, b) => a.sensorIndex - b.sensorIndex)
         .forEach((sensor) => {
-          const template = sensor.sensorTemplate;
-          const unit = prettyUnit(template?.unit);
+          const ref = sensor.template;
+          const doc = resolve(ref);
+          const unit = prettyUnit(ref?.unit);
           const values = currentValues(sensor);
 
           rows.push({
@@ -154,12 +144,12 @@ export function buildSensorConfigRows(cu: ControlUnitDTO, t: Translate): SensorC
             muLabel: muLabel(mu.extendedId),
             sensorIndex: sensor.sensorIndex,
             name: sensor.modelName,
-            category: sensorType(template, t),
+            category: sensorType(ref, t),
             unit,
             rocUnit: unit ? `${unit}/min` : "/min",
-            uncertainty: templateUncertainty(template),
-            step: templateStep(template),
-            allowedMeasures: allowedMeasures(template),
+            uncertainty: templateUncertainty(doc),
+            step: valueStep(doc),
+            allowedMeasures: allowedMeasures(doc),
             liveValue: `${sensor.physVal?.toFixed(2) ?? "—"} ${unit}`.trim(),
             configurable: sensor.configurable !== false,
             values,

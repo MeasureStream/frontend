@@ -6,7 +6,7 @@
  * colpo d'occhio cosa partirà al prossimo poll.
  */
 import { useI18n } from "../../i18n/I18nContext";
-import { decodePeriodIndex } from "../../API/sensorConfig/samplingScale";
+import { decodeSamplingIndex as decodePeriodIndex } from "../../API/protocol/scales";
 import {
   MEASURES,
   VALUE_FIELDS,
