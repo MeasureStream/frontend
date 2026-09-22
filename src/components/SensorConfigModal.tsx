@@ -6,9 +6,9 @@ import { UpdateSensorsConfig } from "../API/ControlUnitAPI";
 import { useAuth } from "../API/AuthContext";
 import { RangeTicks } from "./RangeTicks";
 import {
-  MAX_SAMPLING_INDEX,
-  SAMPLING_TICKS,
   decodeSamplingIndex as decodeIndexToLabel,
+  maxSamplingIndex,
+  samplingTicks,
 } from "../API/protocol/scales";
 
 interface Props {
@@ -133,12 +133,12 @@ export function SensorConfigModal({ show, onHide, controlUnit }: Props) {
 
                             <Form.Range
                               min={0}
-                              max={MAX_SAMPLING_INDEX}
+                              max={maxSamplingIndex()}
                               step={1}
                               value={currentIdx}
                               onChange={(e) => handlePeriodChange(mu.localId, sensor.sensorIndex, parseInt(e.target.value))}
                             />
-                            <RangeTicks max={MAX_SAMPLING_INDEX} ticks={SAMPLING_TICKS} />
+                            <RangeTicks max={maxSamplingIndex()} ticks={samplingTicks()} />
                           </ListGroup.Item>
                         );
                       })}
