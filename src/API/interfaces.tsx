@@ -33,6 +33,8 @@ export interface ControlUnitDTO {
    * perdendo misure, e che serve riallineare la configurazione o resettare la CU.
    */
   configMismatchCount?: number;
+  /** Report scartati perché non decodificabili: payload troncato o corrotto. */
+  decodeFailureCount?: number;
   /** Ultimo CFG_VER dichiarato dalla CU, quando c'è un disallineamento aperto. */
   lastReportedConfigVersion?: number | null;
   /** Quando è arrivato l'ultimo report scartato. */

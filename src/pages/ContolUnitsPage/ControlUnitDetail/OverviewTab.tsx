@@ -14,8 +14,8 @@ import { ConfigCUModal } from "../../../components/ConfigCUModal";
 import { SignalQualityModal } from "../../../components/SignalQualityModal";
 import { RangeTicks } from "../../../components/RangeTicks";
 import {
-  MAX_TRANSMISSION_INDEX,
   TRANSMISSION_FAST_INDEX,
+  maxTransmissionIndex,
   transmissionMinutes,
   transmissionTicks,
 } from "../../../API/protocol/scales";
@@ -247,12 +247,12 @@ export function OverviewTab({ cu, onRefresh }: Props) {
                   type="range"
                   className="form-range"
                   min="0"
-                  max={MAX_TRANSMISSION_INDEX}
+                  max={maxTransmissionIndex()}
                   step="1"
                   value={acqIndex}
                   onChange={(e) => setAcqIndex(parseInt(e.target.value))}
                 />
-                <RangeTicks max={MAX_TRANSMISSION_INDEX} ticks={transmissionTicks((i) => tickLabel(i, t))} />
+                <RangeTicks max={maxTransmissionIndex()} ticks={transmissionTicks((i) => tickLabel(i, t))} />
               </Col>
 
               <Col lg={5} md={8} className="ps-lg-4">
