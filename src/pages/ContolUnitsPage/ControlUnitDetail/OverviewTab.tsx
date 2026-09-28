@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Row, Col, Card, ProgressBar, Button, Form, Alert } from "react-bootstrap";
+import { Row, Col, Card, ProgressBar, Button, Form, Alert, Badge } from "react-bootstrap";
 import {
   BsActivity, BsBroadcast, BsCalendarEvent, BsGear, BsOpencollective,
   BsPlayFill, BsStopFill, BsToggles, BsWrenchAdjustableCircle, BsExclamationTriangle,
@@ -21,6 +21,13 @@ import {
 } from "../../../API/protocol/scales";
 
 const AIRTIME_LIMIT_MS = 30000;
+
+/**
+ * ProtoVer viaggia su un byte, un nibble per numero: 0x12 e' il protocollo v1.2.
+ */
+function protocolLabel(raw: number): string {
+  return `${(raw >> 4) & 0x0f}.${raw & 0x0f}`;
+}
 
 type Translate = (key: TranslationKey, params?: Record<string, string | number>) => string;
 
@@ -135,6 +142,35 @@ export function OverviewTab({ cu, onRefresh }: Props) {
             </div>
           </div>
         </Alert>
+      )}
+
+      {/*
+        * Stato dichiarato dalla CU nel poll. I testi arrivano dal server gia' risolti con il
+        * dizionario di protocollo e non passano da translations.ts: nascono da un documento
+        * pubblicato dopo la compilazione (eccezione i18n documentata in CLAUDE.md).
+        */}
+      {(cu.protocolVer != null || (cu.statusFlags?.length ?? 0) > 0) && (
+        <div className="d-flex flex-wrap align-items-center gap-2 mb-4">
+          <span className="text-muted small text-uppercase fw-bold">
+            {t("detail.deviceStatus.title")}
+          </span>
+          {cu.protocolVer != null && (
+            <Badge bg="light" text="dark" className="border">
+              {t("detail.deviceStatus.protocol", { version: protocolLabel(cu.protocolVer) })}
+            </Badge>
+          )}
+          {(cu.statusFlags ?? []).map((flag) => (
+            <Badge
+              key={flag.bit}
+              bg={flag.kind === "event" ? "warning" : "secondary"}
+              text={flag.kind === "event" ? "dark" : undefined}
+              /* Il bit serve a chi confronta con la documentazione, non all'utente comune. */
+              title={t("detail.deviceStatus.bit", { bit: flag.bit })}
+            >
+              {flag.description}
+            </Badge>
+          ))}
+        </div>
       )}
 
       {/* --- METRICHE --- */}

@@ -39,6 +39,14 @@ export interface ControlUnitDTO {
   lastReportedConfigVersion?: number | null;
   /** Quando è arrivato l'ultimo report scartato. */
   lastConfigMismatchAt?: string | null;
+  /**
+   * ProtoVer dichiarato nel poll: 18 (0x12) è il protocollo v1.2. Assente con i firmware
+   * precedenti, che non lo trasmettono.
+   */
+  protocolVer?: number | null;
+  /** I bit di stato alzati nell'ultimo poll, già tradotti dal dizionario di protocollo. */
+  statusFlags?: StatusFlagDTO[];
+  statusAt?: string | null;
 
 
   // Airtime totale giornaliero in ms (Soglia TTN: 30000)
@@ -54,8 +62,29 @@ export interface MeasurementUnitDTO {
   extendedId: number;
   localId: number;
   model: number;
+  /** MAJOR del modello dichiarato dalla MU nella notifica 0x11; assente con la vecchia 0x10. */
+  modelMajor?: number | null;
+  /** I bit di stato dell'ultimo comando 0x12, già tradotti. */
+  statusFlags?: StatusFlagDTO[];
+  statusAt?: string | null;
   controlUnitId: number | null;
   sensors: SensorDTO[];
+}
+
+/**
+ * Un bit di stato alzato, con il testo che il dizionario di protocollo gli assegna.
+ *
+ * Il testo arriva dal server e non si traduce con `t()`: nasce da un documento pubblicato
+ * dopo la compilazione, e non può stare in `translations.ts`.
+ */
+export interface StatusFlagDTO {
+  bit: number;
+  meaning: string;
+  description: string;
+  /** `state` si spegne da solo, `event` resta finché il server non lo conferma. */
+  kind?: string | null;
+  /** Per una MU: `mu` se il bit arriva dal bus UART, `cu` se lo aggiunge la Control Unit. */
+  origin?: string | null;
 }
 
 export interface SensorDTO {

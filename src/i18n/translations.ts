@@ -475,6 +475,9 @@ export const it = {
   "detail.configMismatch.title": "Misure in arrivo scartate: configurazione disallineata",
   "detail.configMismatch.body":
     "La CU trasmette con la configurazione {reported}, il server ne attende {expected}: {count} report sono stati scartati. Rimanda la configurazione dei sensori, oppure resetta la CU. I dati di quei report non sono recuperabili.",
+  "detail.deviceStatus.title": "Stato dichiarato dalla CU",
+  "detail.deviceStatus.protocol": "Protocollo v{version}",
+  "detail.deviceStatus.bit": "bit {bit} della parola di stato",
   "sensorConfig.category.accelerometer": "Accelerometro",
   "sensorConfig.category.gyroscope": "Giroscopio",
   "sensorConfig.category.temperature": "Temperatura",
