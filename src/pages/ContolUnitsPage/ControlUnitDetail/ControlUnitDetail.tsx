@@ -74,7 +74,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
 
       {activeTab === "overview" && <OverviewTab cu={cu} onRefresh={refreshSingleCU} />}
       {activeTab === "charts" && <ChartsTab cu={cu} onRefresh={refreshSingleCU} />}
-      {activeTab === "alarms" && <AlarmsTab />}
+      {activeTab === "alarms" && <AlarmsTab cu={cu} onRefresh={refreshSingleCU} />}
       {activeTab === "sensorConfig" && <SensorConfigTab cu={cu} />}
 
       <EditMetadataModal
