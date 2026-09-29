@@ -3,6 +3,7 @@ import { BsCpu, BsThermometerHalf, BsDroplet, BsSpeedometer, BsGear, BsInfoCircl
 import { useState } from "react";
 import { MeasurementUnitDTO, SensorDTO } from "../API/interfaces";
 import { AccelIcon, PressureIcon } from "../icons/CustomIcons";
+import { useI18n } from "../i18n/I18nContext";
 import { useTemplate } from "../API/templates/useTemplates";
 import {
   calibrationCoefficients,
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export function MeasurementUnitCard({ mu, handleSetDirty }: Props) {
+  const { t } = useI18n();
   const [selectedSensor, setSelectedSensor] = useState<SensorDTO | null>(null);
 
   const getSensorIcon = (type: string) => {
@@ -37,7 +39,17 @@ export function MeasurementUnitCard({ mu, handleSetDirty }: Props) {
             <BsCpu size={24} />
           </div>
           <div>
-            <h5 className="mb-0 fw-bold">MU h{(Number(mu.extendedId) & 0xFFFF).toString(16).toUpperCase()}</h5>
+            <div className="d-flex align-items-center gap-2">
+              <h5 className="mb-0 fw-bold">MU h{(Number(mu.extendedId) & 0xFFFF).toString(16).toUpperCase()}</h5>
+              {/* MAJOR del MODELLO di MU (5° byte di ogni record della 0x11), non dei
+                  template dei sensori: è la versione con cui si costruiscono gli slot
+                  e quindi con cui si decodifica il report. Assente con la vecchia 0x10. */}
+              {mu.modelMajor != null && (
+                <span className="ms-state-pill" title={t("mu.modelMajorTitle", { major: mu.modelMajor })}>
+                  v{mu.modelMajor}
+                </span>
+              )}
+            </div>
             <small className="text-muted font-monospace opacity-75">Model: {mu.model}</small>
           </div>
         </div>
@@ -65,9 +77,27 @@ export function MeasurementUnitCard({ mu, handleSetDirty }: Props) {
                     <div className="p-2 bg-white rounded-3 shadow-sm">
                       {getSensorIcon(sensor.template?.type ?? "")}
                     </div>
-                    <Badge bg="white" className="text-primary border border-primary-subtle px-2 py-1" style={{ fontSize: '0.6rem' }}>
-                      CH {sensor.sensorIndex}{sensor.channel ? ` · ${sensor.channel}` : ""}
-                    </Badge>
+                    <div className="d-flex align-items-center gap-1">
+                      <Badge bg="white" className="text-primary border border-primary-subtle px-2 py-1" style={{ fontSize: '0.6rem' }}>
+                        CH {sensor.sensorIndex}{sensor.channel ? ` · ${sensor.channel}` : ""}
+                      </Badge>
+                      {/* MAJOR del template DEL SENSORE: è un'altra versione rispetto a
+                          quella della MU in testata — lì il modello che compone gli slot,
+                          qui il documento con cui si converte questa misura. */}
+                      {sensor.template && (
+                        <Badge
+                          bg="white"
+                          className="text-muted border px-2 py-1"
+                          style={{ fontSize: '0.6rem' }}
+                          title={t("sensor.templateMajorTitle", {
+                            major: sensor.template.major,
+                            version: sensor.template.resolvedVersion,
+                          })}
+                        >
+                          v{sensor.template.major}
+                        </Badge>
+                      )}
+                    </div>
                   </div>
 
                   {/* CENTER: Valore (Grosso e centrato) */}

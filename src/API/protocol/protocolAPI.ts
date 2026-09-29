@@ -14,6 +14,15 @@ const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 /** Quanto si aspetta il dizionario prima di partire con la tabella incorporata. */
 const TIMEOUT_MS = 2500;
 
+/**
+ * ProtoVer viaggia su un byte, un nibble per numero: 0x12 è il protocollo v1.2.
+ * Sta qui e non nella pagina perché la versione si mostra in più punti (intestazione
+ * della CU, stato dichiarato) e la codifica è una sola.
+ */
+export function formatProtocolVersion(raw: number): string {
+  return `${(raw >> 4) & 0x0f}.${raw & 0x0f}`;
+}
+
 export async function fetchProtocol(): Promise<ProtocolDictionary | null> {
   const abort = new AbortController();
   const timer = setTimeout(() => abort.abort(), TIMEOUT_MS);
