@@ -1,22 +1,32 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button, Modal, Card, Form, Spinner } from "react-bootstrap";
 import { SensorDTO } from "../API/interfaces";
+import { useAutoRefresh } from "../API/useAutoRefresh";
 import { useI18n } from "../i18n/I18nContext";
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 /**
- * Ogni quanto il pannello incorporato si aggiorna DA SOLO.
+ * Ogni quanto si riaggiorna un pannello incorporato.
  *
- * È il punto che evita il logo di Grafana: l'iframe resta quello che è e a
- * ricaricare i dati ci pensa Grafana al suo interno. Se invece si ricarica la
- * pagina (o cambia l'URL dell'iframe) l'applicazione Grafana riparte da capo, e
- * quei due o tre secondi di splash si rivedono.
+ * PERCHE' LO FACCIAMO NOI. Il parametro `&refresh=` di Grafana qui non serve:
+ * sulla rotta `d-solo` il timer di auto-refresh non parte, perche' vive nel
+ * refresh picker della barra del dashboard, che in modalita' solo-pannello non
+ * viene montata. Misurato sul pannello reale: con `refresh=5s`, in 25 secondi
+ * una sola query al datasource e nessuna successiva.
  *
- * Corollario: l'URL dell'iframe non deve cambiare tra un render e l'altro —
- * niente parametri anti-cache, niente `Date.now()`. Per questo è in `useMemo`.
+ * COME LO FACCIAMO SENZA IL LOGO. Doppio buffer: si monta un secondo iframe
+ * *nascosto* con lo stesso URL, e solo quando ha finito di caricare prende il
+ * posto del primo. Chi guarda continua a vedere il grafico precedente fino allo
+ * scambio, quindi lo splash di Grafana non compare mai dopo il primo caricamento.
  */
-const PANEL_REFRESH = "1m";
+const CHART_REFRESH_MS = 60_000;
+
+/** Un iframe del buffer: `ready` diventa vero quando ha finito di caricare. */
+interface PanelFrame {
+  id: number;
+  ready: boolean;
+}
 
 /**
  * Riquadro neutro mostrato finché il pannello non ha finito di caricare: copre
@@ -51,9 +61,41 @@ export function ChartPreviewCard({ sensorId, sensor, measurementType, title }: P
   const [show, setShow] = useState(false);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
-  /** Il pannello dell'anteprima ha finito di caricare: si può togliere il velo. */
-  const [previewReady, setPreviewReady] = useState(false);
   const [modalReady, setModalReady] = useState(false);
+
+  /* Anteprima a doppio buffer: in coda c'è l'iframe che sta caricando, visibile
+     resta l'ultimo che ha finito. All'inizio ce n'è uno solo, ancora vuoto. */
+  const [frames, setFrames] = useState<PanelFrame[]>([{ id: 0, ready: false }]);
+  const shownFrame = [...frames].reverse().find((f) => f.ready) ?? null;
+
+  /* Si aggiorna solo ciò che è davvero sotto gli occhi: su una scheda con dodici
+     pannelli, ricaricarli tutti ogni minuto sarebbe un carico inutile sulla Pi. */
+  const boxRef = useRef<HTMLDivElement>(null);
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
+    const box = boxRef.current;
+    if (!box) return;
+    const observer = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting), {
+      threshold: 0.1,
+    });
+    observer.observe(box);
+    return () => observer.disconnect();
+  }, []);
+
+  /** Accoda un nuovo iframe; se ce n'è già uno in caricamento si aspetta quello. */
+  useAutoRefresh(() => {
+    if (!inView) return;
+    setFrames((prev) => (prev.some((f) => !f.ready) ? prev : [...prev, { id: prev[prev.length - 1].id + 1, ready: false }]));
+  }, CHART_REFRESH_MS);
+
+  /** Il nuovo pannello è pronto: prende il posto dei precedenti, che si smontano. */
+  const handleFrameLoad = (id: number) =>
+    setFrames((prev) => {
+      const updated = prev.map((f) => (f.id === id ? { ...f, ready: true } : f));
+      const newest = updated[updated.length - 1];
+      return newest.id === id && newest.ready ? [newest] : updated;
+    });
 
   const heading = title ?? `Sensore ${sensor.sensorIndex}`;
 
@@ -113,18 +155,16 @@ export function ChartPreviewCard({ sensorId, sensor, measurementType, title }: P
       ? (to ? new Date(to).toISOString() : "now")
       : "now";
 
-    /* Il refresh interno ha senso solo su un intervallo relativo ("ultima ora"):
-       su un intervallo fissato dall'utente non ci sarebbe nulla di nuovo da
-       mostrare, e si interrogherebbe il database per niente. */
-    const isRelative = !isFullView || (!from && !to);
-    const refreshParam = isRelative ? `&refresh=${PANEL_REFRESH}` : "";
-
-    return `${base}/d-solo/adlw9mw/dashboard-measurements-of-different-types?orgId=${orgId}&from=${encodeURIComponent(fromParam)}&to=${encodeURIComponent(toParam)}&timezone=browser&var-sensor_id=${sensorId}&panelId=${panelId}&theme=${theme}${refreshParam}`;
+    /* Niente `&refresh=`: su `d-solo` Grafana lo ignora (vedi CHART_REFRESH_MS).
+       L'intervallo resta relativo, cosi' ogni ricaricamento del buffer mostra
+       l'ultima ora rispetto a quel momento. */
+    return `${base}/d-solo/adlw9mw/dashboard-measurements-of-different-types?orgId=${orgId}&from=${encodeURIComponent(fromParam)}&to=${encodeURIComponent(toParam)}&timezone=browser&var-sensor_id=${sensorId}&panelId=${panelId}&theme=${theme}`;
   };
 
   /* L'URL dell'anteprima dipende solo dal sensore e dal tipo di misura: memorizzarlo
-     garantisce che resti la stessa stringa a ogni render. Un `src` che cambia è una
-     ricarica dell'iframe, cioè il logo di Grafana da capo. */
+     garantisce che resti la stessa stringa a ogni render, cosi' gli iframe gia'
+     montati non si ricaricano da soli. A ricaricare ci pensa il doppio buffer,
+     montando un elemento nuovo con lo stesso URL. */
   const previewUrl = useMemo(
     () => getGrafanaUrl(false),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -150,21 +190,32 @@ export function ChartPreviewCard({ sensorId, sensor, measurementType, title }: P
 
           {/* Due card per riga: l'anteprima può essere più alta e i punti restano leggibili. */}
           <div
+            ref={boxRef}
             className="position-relative"
             style={{ height: '320px', overflow: 'hidden', borderRadius: '4px', pointerEvents: 'none' }}
           >
-            {!previewReady && <ChartSkeleton label={t("charts.loading")} />}
-            <iframe
-              src={previewUrl}
-              width="100%"
-              height="100%"
-              frameBorder="0"
-              title={`Preview ${sensorId}`}
-              /* Da qui in poi il pannello si aggiorna da solo: nessun altro
-                 caricamento, quindi nessun altro logo. */
-              onLoad={() => setPreviewReady(true)}
-              style={{ opacity: previewReady ? 1 : 0, transition: "opacity .25s ease" }}
-            ></iframe>
+            {/* Solo il primo caricamento mostra il velo: dopo, lo scambio fra i due
+                buffer avviene sotto un grafico già disegnato. */}
+            {!shownFrame && <ChartSkeleton label={t("charts.loading")} />}
+
+            {frames.map((frame) => (
+              <iframe
+                key={frame.id}
+                src={previewUrl}
+                frameBorder="0"
+                title={`Preview ${sensorId}`}
+                onLoad={() => handleFrameLoad(frame.id)}
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  width: "100%",
+                  height: "100%",
+                  border: 0,
+                  opacity: shownFrame?.id === frame.id ? 1 : 0,
+                  transition: "opacity .25s ease",
+                }}
+              ></iframe>
+            ))}
           </div>
         </Card.Body>
       </Card>
