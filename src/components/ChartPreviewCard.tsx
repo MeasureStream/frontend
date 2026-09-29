@@ -49,14 +49,19 @@ interface Props {
   sensor: SensorDTO;
   measurementType: string;
   /**
-   * Intestazione della card e titolo della finestra: "MU hA1B2 · Temperatura".
-   * La compone chi conosce la MU (ChartsTab); senza, si ricade sul numero del canale,
-   * che da solo dice poco all'utente.
+   * Intestazione della card: il tipo di sensore, es. "Temperatura". Senza, si ricade
+   * sul numero del canale, che da solo dice poco all'utente.
    */
   title?: string;
+  /**
+   * MU di appartenenza, es. "MU hA1B2". Compare SOLO nel modal: nella griglia la MU
+   * è già scritta una volta in testa al gruppo, e ripeterla su ogni card sarebbe
+   * rumore. Il modal invece si apre da solo e deve dire di chi è il grafico.
+   */
+  muLabel?: string;
 }
 
-export function ChartPreviewCard({ sensorId, sensor, measurementType, title }: Props) {
+export function ChartPreviewCard({ sensorId, sensor, measurementType, title, muLabel }: Props) {
   const { t } = useI18n();
   const [show, setShow] = useState(false);
   const [from, setFrom] = useState("");
@@ -98,6 +103,8 @@ export function ChartPreviewCard({ sensorId, sensor, measurementType, title }: P
     });
 
   const heading = title ?? `Sensore ${sensor.sensorIndex}`;
+  /** Nel modal si antepone la MU, che nella griglia è già scritta sopra il gruppo. */
+  const modalHeading = muLabel ? `${muLabel} · ${heading}` : heading;
 
   // Inizializziamo lo stato con measurementType (se valido), altrimenti fallback su "puntual"
   const [selectedView, setSelectedView] = useState<string>(() => {
@@ -224,7 +231,7 @@ export function ChartPreviewCard({ sensorId, sensor, measurementType, title }: P
       <Modal show={show} onHide={handleClose} size="xl" centered>
         <Modal.Header closeButton>
           <Modal.Title>
-            {heading}
+            {modalHeading}
             <small className="text-muted ms-2">
               canale {sensor.sensorIndex} · {sensor.modelName}
             </small>

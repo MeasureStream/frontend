@@ -180,6 +180,15 @@ const MOCK_CUS: ControlUnitDTO[] = [
     measurementUnits: [mockMU(0, 0xb0e9)],
   }),
   mockCU({
+    id: 5,
+    name: "CU disallineata — CFG_VER",
+    devEui: "0x70B3D57ED0012345",
+    // La CU dichiara una configurazione diversa da quella attesa: pallino ocra.
+    configVersion: 42,
+    lastReportedConfigVersion: 41,
+    measurementUnits: [mockMU(0, 0xc0de)],
+  }),
+  mockCU({
     id: 3,
     name: "MS — offline, batteria scarica",
     devEui: "0x70B3D3069B8334E0",
