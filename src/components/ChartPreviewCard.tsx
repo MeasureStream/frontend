@@ -1,8 +1,38 @@
-import { useState } from "react";
-import { Button, Modal, Card, Form } from "react-bootstrap";
+import { useMemo, useState } from "react";
+import { Button, Modal, Card, Form, Spinner } from "react-bootstrap";
 import { SensorDTO } from "../API/interfaces";
+import { useI18n } from "../i18n/I18nContext";
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
+/**
+ * Ogni quanto il pannello incorporato si aggiorna DA SOLO.
+ *
+ * È il punto che evita il logo di Grafana: l'iframe resta quello che è e a
+ * ricaricare i dati ci pensa Grafana al suo interno. Se invece si ricarica la
+ * pagina (o cambia l'URL dell'iframe) l'applicazione Grafana riparte da capo, e
+ * quei due o tre secondi di splash si rivedono.
+ *
+ * Corollario: l'URL dell'iframe non deve cambiare tra un render e l'altro —
+ * niente parametri anti-cache, niente `Date.now()`. Per questo è in `useMemo`.
+ */
+const PANEL_REFRESH = "1m";
+
+/**
+ * Riquadro neutro mostrato finché il pannello non ha finito di caricare: copre
+ * lo splash di Grafana al primo caricamento e a ogni ricarica vera della pagina.
+ */
+function ChartSkeleton({ label }: { label: string }) {
+  return (
+    <div
+      className="d-flex flex-column align-items-center justify-content-center h-100 w-100 position-absolute top-0 start-0"
+      style={{ background: "var(--ms-surface, #fbfcfc)", zIndex: 2 }}
+    >
+      <Spinner animation="border" size="sm" style={{ color: "var(--ms-powder)" }} />
+      <span className="ms-cfg-note mt-2">{label}</span>
+    </div>
+  );
+}
 
 interface Props {
   sensorId: string | number;
@@ -17,9 +47,13 @@ interface Props {
 }
 
 export function ChartPreviewCard({ sensorId, sensor, measurementType, title }: Props) {
+  const { t } = useI18n();
   const [show, setShow] = useState(false);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
+  /** Il pannello dell'anteprima ha finito di caricare: si può togliere il velo. */
+  const [previewReady, setPreviewReady] = useState(false);
+  const [modalReady, setModalReady] = useState(false);
 
   const heading = title ?? `Sensore ${sensor.sensorIndex}`;
 
@@ -29,11 +63,19 @@ export function ChartPreviewCard({ sensorId, sensor, measurementType, title }: P
     return validViews.includes(measurementType) ? measurementType : "puntual";
   });
 
+  /* Cambiare vista o intervallo ricarica il pannello: il velo torna su, altrimenti
+     si vedrebbe lo splash di Grafana al posto del grafico precedente. */
+  const reloadModalWith = (apply: () => void) => {
+    setModalReady(false);
+    apply();
+  };
+
   const handleClose = () => setShow(false);
   const handleShow = () => {
     // Quando apriamo il modal, impostiamo il default sul measurementType della prop
     const validViews = ["puntual", "avg-std", "max-min", "integral"];
     setSelectedView(validViews.includes(measurementType) ? measurementType : "puntual");
+    setModalReady(false);
     setShow(true);
   };
 
@@ -49,6 +91,9 @@ export function ChartPreviewCard({ sensorId, sensor, measurementType, title }: P
   };
 
   // --- GENERAZIONE URL GRAFANA ---
+  /**
+   * @param isFullView pannello del modal (intervallo scelto dall'utente) invece dell'anteprima
+   */
   const getGrafanaUrl = (isFullView: boolean) => {
     const base = BASE_URL === "https://www.christiandellisanti.uk"
       ? "https://grafana.christiandellisanti.uk"
@@ -68,8 +113,23 @@ export function ChartPreviewCard({ sensorId, sensor, measurementType, title }: P
       ? (to ? new Date(to).toISOString() : "now")
       : "now";
 
-    return `${base}/d-solo/adlw9mw/dashboard-measurements-of-different-types?orgId=${orgId}&from=${encodeURIComponent(fromParam)}&to=${encodeURIComponent(toParam)}&timezone=browser&var-sensor_id=${sensorId}&panelId=${panelId}&theme=${theme}`;
+    /* Il refresh interno ha senso solo su un intervallo relativo ("ultima ora"):
+       su un intervallo fissato dall'utente non ci sarebbe nulla di nuovo da
+       mostrare, e si interrogherebbe il database per niente. */
+    const isRelative = !isFullView || (!from && !to);
+    const refreshParam = isRelative ? `&refresh=${PANEL_REFRESH}` : "";
+
+    return `${base}/d-solo/adlw9mw/dashboard-measurements-of-different-types?orgId=${orgId}&from=${encodeURIComponent(fromParam)}&to=${encodeURIComponent(toParam)}&timezone=browser&var-sensor_id=${sensorId}&panelId=${panelId}&theme=${theme}${refreshParam}`;
   };
+
+  /* L'URL dell'anteprima dipende solo dal sensore e dal tipo di misura: memorizzarlo
+     garantisce che resti la stessa stringa a ogni render. Un `src` che cambia è una
+     ricarica dell'iframe, cioè il logo di Grafana da capo. */
+  const previewUrl = useMemo(
+    () => getGrafanaUrl(false),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [sensorId, measurementType],
+  );
 
   return (
     <>
@@ -89,13 +149,21 @@ export function ChartPreviewCard({ sensorId, sensor, measurementType, title }: P
           </div>
 
           {/* Due card per riga: l'anteprima può essere più alta e i punti restano leggibili. */}
-          <div style={{ height: '320px', overflow: 'hidden', borderRadius: '4px', pointerEvents: 'none' }}>
+          <div
+            className="position-relative"
+            style={{ height: '320px', overflow: 'hidden', borderRadius: '4px', pointerEvents: 'none' }}
+          >
+            {!previewReady && <ChartSkeleton label={t("charts.loading")} />}
             <iframe
-              src={getGrafanaUrl(false)}
+              src={previewUrl}
               width="100%"
               height="100%"
               frameBorder="0"
               title={`Preview ${sensorId}`}
+              /* Da qui in poi il pannello si aggiorna da solo: nessun altro
+                 caricamento, quindi nessun altro logo. */
+              onLoad={() => setPreviewReady(true)}
+              style={{ opacity: previewReady ? 1 : 0, transition: "opacity .25s ease" }}
             ></iframe>
           </div>
         </Card.Body>
@@ -122,7 +190,7 @@ export function ChartPreviewCard({ sensorId, sensor, measurementType, title }: P
               <Form.Select
                 size="sm"
                 value={selectedView}
-                onChange={(e) => setSelectedView(e.target.value)}
+                onChange={(e) => reloadModalWith(() => setSelectedView(e.target.value))}
                 style={{ width: '160px' }}
               >
                 <option value="puntual">Puntual</option>
@@ -137,7 +205,7 @@ export function ChartPreviewCard({ sensorId, sensor, measurementType, title }: P
               <input
                 type="datetime-local"
                 value={from}
-                onChange={(e) => setFrom(e.target.value)}
+                onChange={(e) => reloadModalWith(() => setFrom(e.target.value))}
                 className="form-control form-control-sm"
               />
             </div>
@@ -146,12 +214,16 @@ export function ChartPreviewCard({ sensorId, sensor, measurementType, title }: P
               <input
                 type="datetime-local"
                 value={to}
-                onChange={(e) => setTo(e.target.value)}
+                onChange={(e) => reloadModalWith(() => setTo(e.target.value))}
                 className="form-control form-control-sm"
               />
             </div>
 
-            <Button variant="secondary" size="sm" onClick={() => { setFrom(""); setTo(""); }}>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => reloadModalWith(() => { setFrom(""); setTo(""); })}
+            >
               Reset (Last 6h)
             </Button>
             {/* «Download JSON» e «Delete Range» tolti il 14/09/2026: chiamavano measure-manager,
@@ -159,13 +231,19 @@ export function ChartPreviewCard({ sensorId, sensor, measurementType, title }: P
           </div>
 
           {/* GRAFICO FULL SIZE */}
-          <div className="flex-grow-1">
+          <div className="flex-grow-1 position-relative">
+            {!modalReady && <ChartSkeleton label={t("charts.loading")} />}
             <iframe
+              /* Qui l'URL cambia quando l'utente sceglie vista o intervallo: è una
+                 ricarica voluta, e il velo torna finché il pannello non è pronto. */
+              key={`${selectedView}-${from}-${to}`}
               src={getGrafanaUrl(true)}
               width="100%"
               height="100%"
               frameBorder="0"
               title="Grafana Full Panel"
+              onLoad={() => setModalReady(true)}
+              style={{ opacity: modalReady ? 1 : 0, transition: "opacity .25s ease" }}
             ></iframe>
           </div>
         </Modal.Body>

@@ -316,6 +316,7 @@ export const it = {
   "charts.title": "Grafici dei sensori",
   "charts.subtitle": "Andamento delle misure, una card per sensore",
   "charts.empty": "Nessuna MU associata a questa Control Unit.",
+  "charts.loading": "Caricamento del grafico…",
 
   // --- Scheda Storico allarmi ---
   "alarms.title": "Storico allarmi",

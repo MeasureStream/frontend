@@ -7,6 +7,7 @@
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getMessages, markMessagesRead, type MessageDTO } from "./messages";
+import { useAutoRefresh } from "./useAutoRefresh";
 
 export function useMessages() {
   const [messages, setMessages] = useState<MessageDTO[]>([]);
@@ -27,6 +28,10 @@ export function useMessages() {
   useEffect(() => {
     load();
   }, [load]);
+
+  /* Il badge dei non letti nella barra deve contarli anche mentre si sta su
+     un'altra pagina: l'hook vive in ogni schermata che usa questo stato. */
+  useAutoRefresh(load);
 
   const unreadCount = useMemo(() => messages.filter((m) => !m.read).length, [messages]);
 

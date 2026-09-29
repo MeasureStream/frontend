@@ -22,6 +22,7 @@ import {
   type UplinkFrameDTO,
 } from "../../../API/framesAPI";
 import { useAuth } from "../../../API/AuthContext";
+import { useAutoRefresh } from "../../../API/useAutoRefresh";
 import { useI18n } from "../../../i18n/I18nContext";
 import type { TranslationKey } from "../../../i18n/translations";
 
@@ -84,6 +85,10 @@ export function AlarmsTab({ cu, onRefresh }: Props) {
   }, [cu.id]);
 
   useEffect(load, [load]);
+
+  /* Allarmi ed eventi arrivano quando arrivano: la scheda si riallinea da sola
+     ogni minuto, senza che l'utente debba ricaricare per vedere l'ultimo. */
+  useAutoRefresh(load);
 
   const discarded = (cu.configMismatchCount ?? 0) + (cu.decodeFailureCount ?? 0);
   const active = alarms.filter((a) => !a.cleared && !a.acknowledged).length;

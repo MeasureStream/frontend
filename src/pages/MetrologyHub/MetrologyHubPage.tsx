@@ -11,6 +11,7 @@ import { BsClipboardCheck, BsJournalText, BsSliders } from "react-icons/bs";
 import { getCertificates, getHubClients, getHubSummary, type HubClient } from "../../API/metrologyHub/hubApi";
 import type { CertificateDTO, HubSummaryDTO } from "../../API/metrologyHub/hubTypes";
 import { useAuth } from "../../API/AuthContext";
+import { useAutoRefresh } from "../../API/useAutoRefresh";
 import { useI18n } from "../../i18n/I18nContext";
 import { HubHeader } from "../../components/MetrologyHubComponents/HubHeader";
 import { HubTabs, type HubTab } from "./HubTabs";
@@ -45,6 +46,10 @@ export function MetrologyHubPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  /* Certificati e scadenze cambiano mentre si guarda: si riallineano da soli,
+     senza perdere la scheda aperta né i filtri impostati. */
+  useAutoRefresh(load);
 
   /* L'elenco dei clienti serve al solo selettore dell'admin. */
   useEffect(() => {
