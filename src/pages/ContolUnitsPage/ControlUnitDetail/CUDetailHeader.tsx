@@ -9,6 +9,7 @@
 import { BsGeoFill, BsPencil } from "react-icons/bs";
 import { formatDevEui, type ControlUnitDTO } from "../../../API/interfaces";
 import { ageSince, estimateNextPoll, formatClock, parseServerDate } from "../../../API/cuTiming";
+import { formatProtocolVersion } from "../../../API/protocol/protocolAPI";
 import { BatteryDonut } from "../../../components/BatteryDonut";
 import { useI18n } from "../../../i18n/I18nContext";
 import type { TranslationKey } from "../../../i18n/translations";
@@ -58,6 +59,13 @@ export function CUDetailHeader({ cu, isOnline, onEditMetadata }: Props) {
             onClick={onEditMetadata}
             title={t("detail.editMetadata")}
           />
+          {/* Versione di protocollo dichiarata nel poll: sta accanto allo stato perché
+              è l'altra cosa che la CU dice di sé, e cambia come leggerla tutta. */}
+          {cu.protocolVer != null && (
+            <span className="ms-state-pill">
+              {t("detail.deviceStatus.protocol", { version: formatProtocolVersion(cu.protocolVer) })}
+            </span>
+          )}
           <span className="ms-state-pill">{isOnline ? t("devices.active") : t("devices.inactive")}</span>
         </div>
         <small className="text-muted font-monospace">

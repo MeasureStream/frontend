@@ -1,9 +1,10 @@
 import { Container, Row, Col, Card, ProgressBar } from "react-bootstrap";
 import { BsBarChartFill, BsBroadcast, BsBatteryFull, BsCpu, BsArrowRight, BsTrash } from "react-icons/bs";
-import { BsBatteryCharging, BsUsbPlugFill} from "react-icons/bs";
+import { BsBatteryCharging, BsUsbPlugFill, BsCheck2Circle, BsXCircle } from "react-icons/bs";
 import { Link } from "react-router";
 import { useMemo, useState } from "react";
 import { ControlUnitDTO, formatDevEui } from "../../API/interfaces";
+import { useActiveAlarms } from "../../API/useActiveAlarms";
 import { DeleteCUModal } from "../../components/DeleteCUModal";
 import { CUsFilterComponent, normalizeLocation } from "../../components/CUsFilterComponent";
 import { EmptyDevicesLanding } from "./EmptyDevicesLanding";
@@ -91,6 +92,8 @@ export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPagePr
   /** Località selezionata nel filtro; `null` = tutte. */
   const [locationFilter, setLocationFilter] = useState<string | null>(null);
   const { t, locale } = useI18n();
+  /** Allarmi aperti per CU: alimenta il pallino verde/rosso sulle card. */
+  const activeAlarms = useActiveAlarms(controlUnits);
 
   /* Ordine di visualizzazione (con o senza filtro): prima le CU attive, poi le
      inattive; dentro ciascun gruppo, in ordine alfabetico per nome. */
@@ -156,6 +159,8 @@ export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPagePr
           const powerSource = getPowerSource(cu);
           const percent = batteryPercent(cu);
           const batteryTint = batteryColor(percent, powerSource);
+          /** `undefined` = allarmi non letti per questa CU: nessun pallino. */
+          const alarmCount = activeAlarms.get(cu.id);
 
           return (
             <Col key={cu.id} xs={12} lg={6} xl={4} className="mb-4">
@@ -173,15 +178,39 @@ export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPagePr
                         </code>
                       </div>
 
-                      {/* Tasto eliminazione con animazione hover */}
-                      <button
-                        className="btn btn-link text-muted p-1 border-0 "
-                        onClick={() => openDeleteModal(cu)}
-                        title={t("devices.deleteTitle", { name: cu.name })}
-                        style={{ background: 'none' }}
-                      >
-                        <BsTrash size={18} className="text-danger" />
-                      </button>
+                      <div className="d-flex align-items-center gap-1">
+                        {/* Stato allarmi: compare solo se lo si è potuto leggere —
+                            un servizio muto non deve somigliare a un "tutto ok". */}
+                        {alarmCount !== undefined && (
+                          alarmCount > 0 ? (
+                            <BsXCircle
+                              size={20}
+                              className="text-danger"
+                              title={
+                                alarmCount === 1
+                                  ? t("devices.alarmsActiveOne")
+                                  : t("devices.alarmsActive", { count: alarmCount })
+                              }
+                            />
+                          ) : (
+                            <BsCheck2Circle
+                              size={20}
+                              style={{ color: "var(--ms-marrs-green)" }}
+                              title={t("devices.alarmsOk")}
+                            />
+                          )
+                        )}
+
+                        {/* Tasto eliminazione con animazione hover */}
+                        <button
+                          className="btn btn-link text-muted p-1 border-0 "
+                          onClick={() => openDeleteModal(cu)}
+                          title={t("devices.deleteTitle", { name: cu.name })}
+                          style={{ background: 'none' }}
+                        >
+                          <BsTrash size={18} className="text-danger" />
+                        </button>
+                      </div>
                     </div>
 
                     <Row className="text-center mb-3">

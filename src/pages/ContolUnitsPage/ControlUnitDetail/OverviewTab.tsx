@@ -22,13 +22,6 @@ import {
 
 const AIRTIME_LIMIT_MS = 30000;
 
-/**
- * ProtoVer viaggia su un byte, un nibble per numero: 0x12 e' il protocollo v1.2.
- */
-function protocolLabel(raw: number): string {
-  return `${(raw >> 4) & 0x0f}.${raw & 0x0f}`;
-}
-
 type Translate = (key: TranslationKey, params?: Record<string, string | number>) => string;
 
 /**
@@ -149,16 +142,8 @@ export function OverviewTab({ cu, onRefresh }: Props) {
         * dizionario di protocollo e non passano da translations.ts: nascono da un documento
         * pubblicato dopo la compilazione (eccezione i18n documentata in CLAUDE.md).
         */}
-      {(cu.protocolVer != null || (cu.statusFlags?.length ?? 0) > 0) && (
+      {(cu.statusFlags?.length ?? 0) > 0 && (
         <div className="d-flex flex-wrap align-items-center gap-2 mb-4">
-          <span className="text-muted small text-uppercase fw-bold">
-            {t("detail.deviceStatus.title")}
-          </span>
-          {cu.protocolVer != null && (
-            <Badge bg="light" text="dark" className="border">
-              {t("detail.deviceStatus.protocol", { version: protocolLabel(cu.protocolVer) })}
-            </Badge>
-          )}
           {(cu.statusFlags ?? []).map((flag) => (
             <Badge
               key={flag.bit}
@@ -209,14 +194,10 @@ export function OverviewTab({ cu, onRefresh }: Props) {
             style={{ cursor: "pointer" }}
             onClick={() => setShowSignalModal(true)}
           >
-            <div className="d-flex align-items-center justify-content-between mb-3 text-primary">
-              <div className="d-flex align-items-center gap-2">
-                <BsBroadcast size={18} className="flex-shrink-0" />
-                <span className="fw-bold small text-uppercase">{t("detail.radioSignals")}</span>
-              </div>
-              <span className="badge bg-primary-subtle text-primary border border-primary-subtle" style={{ fontSize: "0.65rem" }}>
-                Grafici 📊
-              </span>
+            {/* Nessuna etichetta "Grafici": è l'intero riquadro a essere cliccabile. */}
+            <div className="d-flex align-items-center gap-2 mb-3 text-primary">
+              <BsBroadcast size={18} className="flex-shrink-0" />
+              <span className="fw-bold small text-uppercase">{t("detail.radioSignals")}</span>
             </div>
             <Row className="g-2 text-center">
               <Col xs={4}>

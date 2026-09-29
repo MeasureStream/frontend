@@ -117,6 +117,9 @@ function mockMU(muIndex: number, extendedId: number): MeasurementUnitDTO {
     extendedId,
     localId: muIndex,
     model: 1,
+    // MAJOR del modello di MU: arriva col 5° byte di ogni record della 0x11.
+    // La seconda MU è ferma alla v1, così si vede che le versioni convivono.
+    modelMajor: muIndex === 0 ? 2 : 1,
     controlUnitId: 1,
     sensors: SENSOR_SEEDS.map((seed, i) => mockSensor(seed, i, muIndex)),
   };
@@ -137,6 +140,8 @@ function mockCU(over: Partial<ControlUnitDTO> & { id: number; name: string }): C
     rssi: -41,
     model: 1,
     status: 1,
+    // ProtoVer del poll: 0x12 = protocollo v1.2 (i firmware precedenti non lo mandano).
+    protocolVer: 0x12,
     dataRate: 0,
     usedDC: 0,
     hasGPS: false,
