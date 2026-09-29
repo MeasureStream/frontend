@@ -44,12 +44,27 @@ export async function fetchProtocol(): Promise<ProtocolDictionary | null> {
   }
 }
 
+/** Un solo scaricamento per sessione: il documento è immutabile, non serve ripeterlo. */
+let loading: Promise<void> | null = null;
+
 /**
- * Da chiamare una volta sola prima di montare l'app: da quel momento le scale usate dagli
- * slider sono quelle pubblicate. Non solleva mai: un dizionario mancante non deve impedire
- * all'interfaccia di partire.
+ * Da chiamare A SESSIONE APERTA, non prima di montare l'app.
+ *
+ * `/API/protocol` è una rotta protetta: chiamandola da anonimo il gateway la
+ * salva come "richiesta in sospeso" e, a login fatto, ci rimanda il browser —
+ * è l'atterraggio su `/API/protocol?continue` al posto dell'interfaccia
+ * (`continue` è il marcatore con cui Spring Security ripropone la richiesta
+ * salvata). Chiamandola solo quando `/me` ha confermato l'utente, quella
+ * richiesta non esiste mai da anonimo.
+ *
+ * Non solleva mai: un dizionario mancante non deve impedire all'interfaccia di
+ * partire, perché `scales.ts` ha la tabella incorporata come rete di sicurezza.
  */
-export async function loadProtocolDictionary(): Promise<void> {
-  const dictionary = await fetchProtocol();
-  if (dictionary) applyProtocolDictionary(dictionary);
+export function loadProtocolDictionary(): Promise<void> {
+  if (!loading) {
+    loading = fetchProtocol().then((dictionary) => {
+      if (dictionary) applyProtocolDictionary(dictionary);
+    });
+  }
+  return loading;
 }

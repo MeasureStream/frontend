@@ -206,6 +206,8 @@ export const it = {
   "devices.subtitle": "Monitoraggio in tempo reale del network LoRaWAN",
   "devices.deleteTitle": "Elimina {name}",
   "devices.alarmsOk": "Nessun allarme attivo",
+  "devices.versionMismatch":
+    "Configurazione disallineata: la CU dichiara una versione diversa da quella attesa (CFG_VER o CMD_SEQ)",
   "devices.alarmsActiveOne": "1 allarme attivo da prendere in carico",
   "devices.alarmsActive": "{count} allarmi attivi da prendere in carico",
   "mu.modelMajorTitle": "MAJOR {major} del modello di MU: la versione con cui il server compone gli slot e legge il report",
@@ -314,8 +316,8 @@ export const it = {
 
   // --- Scheda Grafici ---
   "charts.title": "Grafici dei sensori",
-  "charts.subtitle": "Andamento delle misure, una card per sensore",
   "charts.empty": "Nessuna MU associata a questa Control Unit.",
+  "charts.loading": "Caricamento del grafico…",
 
   // --- Scheda Storico allarmi ---
   "alarms.title": "Storico allarmi",

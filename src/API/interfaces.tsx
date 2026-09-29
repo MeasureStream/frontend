@@ -47,6 +47,14 @@ export interface ControlUnitDTO {
   /** I bit di stato alzati nell'ultimo poll, già tradotti dal dizionario di protocollo. */
   statusFlags?: StatusFlagDTO[];
   statusAt?: string | null;
+  /** Ultimo comando di configurazione inviato dal server. */
+  cmdSeq?: number;
+  /**
+   * Ultimo comando che la CU dichiara di aver applicato, dal poll. Diverso da `cmdSeq`
+   * significa che una configurazione non è arrivata a destinazione; assente se il firmware
+   * non lo trasmette ancora.
+   */
+  appliedCmdSeq?: number | null;
 
 
   // Airtime totale giornaliero in ms (Soglia TTN: 30000)

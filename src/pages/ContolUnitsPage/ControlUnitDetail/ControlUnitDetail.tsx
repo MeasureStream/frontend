@@ -8,9 +8,10 @@
  */
 import { Container } from "react-bootstrap";
 import { useParams } from "react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { formatDevEui, type ControlUnitDTO } from "../../../API/interfaces";
 import { getControlUnitById } from "../../../API/ControlUnitAPI";
+import { useAutoRefresh } from "../../../API/useAutoRefresh";
 import { EditMetadataModal } from "../../../components/EditMetadataModal";
 import { rankedLocations } from "../../../components/CUsFilterComponent";
 import { useI18n } from "../../../i18n/I18nContext";
@@ -40,18 +41,17 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
     if (found) setCurrentCU(found);
   }, [allControlUnits, cuId]);
 
-  const refreshSingleCU = async () => {
+  const refreshSingleCU = useCallback(async () => {
     try {
       setCurrentCU(await getControlUnitById(cuId));
     } catch (err) {
+      // Si tiene l'ultima lettura buona: meglio un dato di un minuto fa che la pagina vuota.
       console.error("Refresh fallito:", err);
     }
-  };
-
-  useEffect(() => {
-    const interval = setInterval(refreshSingleCU, 60000);
-    return () => clearInterval(interval);
   }, [cuId]);
+
+  /* Aggiornamento automatico: cambiano solo i numeri, la scheda aperta resta. */
+  useAutoRefresh(refreshSingleCU);
 
   /** Località già usate dalle altre CU: suggerimenti del modale metadati. */
   const locationSuggestions = useMemo(

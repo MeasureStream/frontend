@@ -1,6 +1,6 @@
 import { Container, Row, Col, Card, ProgressBar } from "react-bootstrap";
 import { BsBarChartFill, BsBroadcast, BsBatteryFull, BsCpu, BsArrowRight, BsTrash } from "react-icons/bs";
-import { BsBatteryCharging, BsUsbPlugFill, BsCheck2Circle, BsXCircle } from "react-icons/bs";
+import { BsBatteryCharging, BsUsbPlugFill, BsCheck2Circle, BsXCircle, BsExclamationCircle } from "react-icons/bs";
 import { Link } from "react-router";
 import { useMemo, useState } from "react";
 import { ControlUnitDTO, formatDevEui } from "../../API/interfaces";
@@ -30,6 +30,47 @@ const POWER_LABEL_KEY: Record<PowerSource, TranslationKey> = {
   CHARGING: "devices.power.charging",
   EXTERNAL: "devices.power.external",
 };
+
+/**
+ * Configurazione disallineata: il server e la CU non parlano della stessa versione.
+ *
+ * Due sintomi distinti, stesso significato pratico — quello che si vede in pagina
+ * non è detto sia quello che il dispositivo sta applicando:
+ * — `CFG_VER`: la CU dichiara una versione di configurazione diversa da quella attesa,
+ *   oppure ha fatto scartare dei report per questo motivo;
+ * — `CMD_SEQ`: l'ultimo comando inviato non risulta applicato.
+ */
+export function hasVersionMismatch(cu: ControlUnitDTO): boolean {
+  const cfgMismatch =
+    (cu.configMismatchCount ?? 0) > 0 ||
+    (cu.lastReportedConfigVersion != null && cu.lastReportedConfigVersion !== cu.configVersion);
+  const cmdMismatch = cu.appliedCmdSeq != null && cu.appliedCmdSeq !== cu.cmdSeq;
+  return cfgMismatch || cmdMismatch;
+}
+
+/** Icona, colore e spiegazione dello stato di salute mostrato sulla card. */
+function deviceHealth(
+  cu: ControlUnitDTO,
+  alarmCount: number | undefined,
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string,
+) {
+  // Ordine di precedenza: un allarme attivo conta più di un disallineamento,
+  // che a sua volta conta più del "tutto a posto".
+  if (alarmCount !== undefined && alarmCount > 0) {
+    return {
+      Icon: BsXCircle,
+      color: "var(--ms-crimson)",
+      title: alarmCount === 1 ? t("devices.alarmsActiveOne") : t("devices.alarmsActive", { count: alarmCount }),
+    };
+  }
+  if (hasVersionMismatch(cu)) {
+    return { Icon: BsExclamationCircle, color: "var(--ms-ochre)", title: t("devices.versionMismatch") };
+  }
+  // Allarmi non leggibili e nessun disallineamento: meglio nessun pallino che
+  // un "tutto ok" che non si è potuto verificare.
+  if (alarmCount === undefined) return null;
+  return { Icon: BsCheck2Circle, color: "var(--ms-marrs-green)", title: t("devices.alarmsOk") };
+}
 
 /** Percentuale mostrata: i valori riservati non sono livelli di carica. */
 function batteryPercent(cu: ControlUnitDTO): number {
@@ -161,6 +202,7 @@ export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPagePr
           const batteryTint = batteryColor(percent, powerSource);
           /** `undefined` = allarmi non letti per questa CU: nessun pallino. */
           const alarmCount = activeAlarms.get(cu.id);
+          const health = deviceHealth(cu, alarmCount, t);
 
           return (
             <Col key={cu.id} xs={12} lg={6} xl={4} className="mb-4">
@@ -178,32 +220,18 @@ export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPagePr
                         </code>
                       </div>
 
-                      <div className="d-flex align-items-center gap-1">
-                        {/* Stato allarmi: compare solo se lo si è potuto leggere —
+                      {/* `lh-1` su entrambi: senza, il pulsante porta con sé l'interlinea
+                          del testo e il cestino scende di qualche pixel rispetto al pallino. */}
+                      <div className="d-flex align-items-center gap-2 lh-1">
+                        {/* Stato del dispositivo: compare solo se lo si è potuto leggere —
                             un servizio muto non deve somigliare a un "tutto ok". */}
-                        {alarmCount !== undefined && (
-                          alarmCount > 0 ? (
-                            <BsXCircle
-                              size={20}
-                              className="text-danger"
-                              title={
-                                alarmCount === 1
-                                  ? t("devices.alarmsActiveOne")
-                                  : t("devices.alarmsActive", { count: alarmCount })
-                              }
-                            />
-                          ) : (
-                            <BsCheck2Circle
-                              size={20}
-                              style={{ color: "var(--ms-marrs-green)" }}
-                              title={t("devices.alarmsOk")}
-                            />
-                          )
+                        {health && (
+                          <health.Icon size={20} style={{ color: health.color }} title={health.title} />
                         )}
 
                         {/* Tasto eliminazione con animazione hover */}
                         <button
-                          className="btn btn-link text-muted p-1 border-0 "
+                          className="btn btn-link text-muted p-0 border-0 d-flex align-items-center lh-1"
                           onClick={() => openDeleteModal(cu)}
                           title={t("devices.deleteTitle", { name: cu.name })}
                           style={{ background: 'none' }}

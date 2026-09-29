@@ -19,6 +19,8 @@
   --ms-teal-tint: #e6f2f5;   /* Tinta chiarissima ottanio */
   --ms-offwhite: #EDE7E3;    /* Bianco sporco — sfondi neutri */
   --ms-orange: #FFA62B;      /* Arancione oro — attenzione */
+  --ms-ochre: #C8860D;       /* Ocra — attenzione su fondo chiaro: l'arancione oro,
+                                scurito quanto basta perché un'icona piccola si legga */
   --ms-green: #D6EAD4;       /* Verde chiaro — stati safe */
   --ms-sage: #7db499;        /* Verde salvia scuro — stati positivi */
   --ms-crimson: #dc3545;     /* Rosso cremisi — errori, stati critici */

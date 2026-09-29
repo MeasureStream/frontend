@@ -11,7 +11,6 @@ import './App.css';
 import App from './App.js'
 import { AuthProvider } from "./API/AuthContext";
 import { I18nProvider } from "./i18n/I18nContext";
-import { loadProtocolDictionary } from "./API/protocol/protocolAPI";
 
 const rootElement = document.getElementById('root');
 
@@ -20,21 +19,22 @@ if (!rootElement) {
 }
 
 /*
- * Le scale dei periodi (slider di campionamento e di trasmissione) arrivano dal dizionario
- * di protocollo pubblicato nel registro. Si scarica prima di montare l'app, cosi' gli slider
- * nascono gia' con la scala giusta; se non risponde entro pochi secondi si prosegue con la
- * tabella incorporata in scales.ts, e l'interfaccia parte comunque.
+ * L'app si monta subito.
+ *
+ * Il dizionario di protocollo (le scale dei periodi) NON si scarica piu' qui: `/API/protocol`
+ * e' una rotta protetta, e chiamarla prima che esista una sessione faceva salvare al gateway
+ * quella richiesta come "pagina richiesta", con l'atterraggio su /API/protocol?continue dopo
+ * il login. Ora lo scarica App quando /me ha confermato l'utente; fino a quel momento gli
+ * slider usano la tabella incorporata in scales.ts.
  */
-loadProtocolDictionary().finally(() => {
-  createRoot(rootElement).render(
+createRoot(rootElement).render(
 
-    <StrictMode>
-      <I18nProvider>
-        <AuthProvider>
-          <App />
-        </AuthProvider>
-      </I18nProvider>
-    </StrictMode>,
+  <StrictMode>
+    <I18nProvider>
+      <AuthProvider>
+        <App />
+      </AuthProvider>
+    </I18nProvider>
+  </StrictMode>,
 
-  )
-})
+)

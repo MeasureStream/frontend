@@ -1,11 +1,13 @@
 import MyNavbar from "./components/MyNavbar";
 import { Container } from "react-bootstrap";
 import { BrowserRouter as Router, Route, Routes } from "react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ControlUnitDTO, MeInterface, UserDTO } from "./API/interfaces";
 import { getMe } from "./API/MeAPI";
 import LandingPageENG from "./pages/LandingPageENG";
 import { getAllCu } from "./API/ControlUnitAPI";
+import { loadProtocolDictionary } from "./API/protocol/protocolAPI";
+import { useAutoRefresh } from "./API/useAutoRefresh";
 
 import { useAuth } from "./API/AuthContext";
 import { ControlUnitsPage } from "./pages/ContolUnitsPage/ControlUnitsPage";
@@ -75,6 +77,11 @@ function App() {
 
 
           if (me_.name !== "") {
+            /* Sessione confermata: solo ora si puo' chiedere il dizionario di protocollo.
+               Da anonimo la stessa chiamata farebbe salvare al gateway `/API/protocol`
+               come pagina richiesta, e a login fatto ci si atterrerebbe sopra. */
+            loadProtocolDictionary();
+
             try {
               const cu_fetch = await getAllCu();
 
@@ -100,6 +107,25 @@ function App() {
     fetch()
   }, [dirty])
 
+  /**
+   * Aggiornamento periodico dell'elenco delle CU.
+   *
+   * Si ricarica solo il dato, non la pagina: la rotta, la scheda aperta e gli
+   * iframe dei grafici restano dove sono. Le sessioni anonime non interrogano
+   * nulla, perché non c'è niente da vedere.
+   */
+  const refreshControlUnits = useCallback(async () => {
+    if (!me.name) return;
+    try {
+      setControlUnits(await getAllCu());
+    } catch (err) {
+      // Un giro a vuoto non deve svuotare la pagina: si tengono i dati precedenti.
+      console.error("Aggiornamento delle CU fallito:", err);
+    }
+  }, [me.name]);
+
+  useAutoRefresh(refreshControlUnits);
+
   return (
     <>
 
@@ -110,7 +136,9 @@ function App() {
           <Routes>
             <Route path="/" element={
               me.name ?
-                <ControlUnitsPage controlUnits={controlUnits} /> :
+                /* `onRefresh` evita l'unico ricaricamento di pagina rimasto: dopo
+                   un'eliminazione si riscarica solo l'elenco. */
+                <ControlUnitsPage controlUnits={controlUnits} onRefresh={refreshControlUnits} /> :
                 <LandingPageENG loginUrl={me.loginUrl} />} />
 
             <Route path="/cus/:id" element={<ControlUnitDetail allControlUnits={controlUnits} />} />
