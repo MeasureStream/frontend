@@ -22,6 +22,16 @@ const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
  */
 const CHART_REFRESH_MS = 60_000;
 
+/**
+ * Distanza minima fra due ricaricamenti dello stesso pannello.
+ *
+ * Il grafico si ridisegna solo quando c'è qualcosa di nuovo da disegnare: se la CU
+ * non si è fatta viva, i dati sono gli stessi di un minuto fa e ricaricare sarebbe
+ * solo lavoro per la Pi. Le due condizioni valgono insieme — almeno 78 secondi dal
+ * precedente caricamento E un contatto nuovo dalla CU.
+ */
+const MIN_RELOAD_GAP_MS = 78_000;
+
 /** Un iframe del buffer: `ready` diventa vero quando ha finito di caricare. */
 interface PanelFrame {
   id: number;
@@ -59,9 +69,14 @@ interface Props {
    * rumore. Il modal invece si apre da solo e deve dire di chi è il grafico.
    */
   muLabel?: string;
+  /**
+   * Ultimo contatto della CU (`lastSeen`). È il segnale che dice se c'è davvero
+   * qualcosa di nuovo: finché non cambia, il pannello non viene ricaricato.
+   */
+  lastContact?: string | null;
 }
 
-export function ChartPreviewCard({ sensorId, sensor, measurementType, title, muLabel }: Props) {
+export function ChartPreviewCard({ sensorId, sensor, measurementType, title, muLabel, lastContact }: Props) {
   const { t } = useI18n();
   const [show, setShow] = useState(false);
   const [from, setFrom] = useState("");
@@ -88,19 +103,31 @@ export function ChartPreviewCard({ sensorId, sensor, measurementType, title, muL
     return () => observer.disconnect();
   }, []);
 
-  /** Accoda un nuovo iframe; se ce n'è già uno in caricamento si aspetta quello. */
+  /** Quando e con quale contatto è stato caricato l'ultimo pannello. */
+  const lastLoad = useRef({ at: Date.now(), contact: lastContact ?? null });
+
+  /**
+   * Accoda un nuovo iframe, ma solo se ne vale la pena: deve essere passato il tempo
+   * minimo E la CU deve essersi fatta viva da allora. Se c'è già un buffer in
+   * caricamento si aspetta quello.
+   */
   useAutoRefresh(() => {
     if (!inView) return;
+    if (Date.now() - lastLoad.current.at < MIN_RELOAD_GAP_MS) return;
+    if ((lastContact ?? null) === lastLoad.current.contact) return;
+
     setFrames((prev) => (prev.some((f) => !f.ready) ? prev : [...prev, { id: prev[prev.length - 1].id + 1, ready: false }]));
   }, CHART_REFRESH_MS);
 
   /** Il nuovo pannello è pronto: prende il posto dei precedenti, che si smontano. */
-  const handleFrameLoad = (id: number) =>
+  const handleFrameLoad = (id: number) => {
+    lastLoad.current = { at: Date.now(), contact: lastContact ?? null };
     setFrames((prev) => {
       const updated = prev.map((f) => (f.id === id ? { ...f, ready: true } : f));
       const newest = updated[updated.length - 1];
       return newest.id === id && newest.ready ? [newest] : updated;
     });
+  };
 
   const heading = title ?? `Sensore ${sensor.sensorIndex}`;
   /** Nel modal si antepone la MU, che nella griglia è già scritta sopra il gruppo. */

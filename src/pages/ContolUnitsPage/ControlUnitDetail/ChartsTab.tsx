@@ -36,7 +36,9 @@ export function ChartsTab({ cu }: Props) {
 
   return (
     <section>
-      <h4 className="d-flex align-items-center gap-2 fw-bold mb-1">
+      {/* Un po' d'aria prima del primo gruppo: senza il sottotitolo, titolo e nome
+          della MU si toccavano. */}
+      <h4 className="d-flex align-items-center gap-2 fw-bold mb-4">
         <BsBarChartFill className="text-primary" /> {t("charts.title")}
       </h4>
 
@@ -60,6 +62,9 @@ export function ChartsTab({ cu }: Props) {
                       // che si apre da solo e deve bastare a sé stesso.
                       title={sensorType(sensor.template, t).label}
                       muLabel={muLabel(mu.extendedId)}
+                      // Il pannello si ricarica solo se la CU si è fatta viva: senza
+                      // un contatto nuovo i dati sarebbero gli stessi.
+                      lastContact={cu.lastSeen}
                       // TODO passo 11: il tipo di misura attivo si ricava dalle metriche
                       // dello slot nel modello di MU, non piu' da una costante.
                       measurementType={"avg-std"}
