@@ -51,8 +51,17 @@ export interface AlarmDTO {
   acknowledged: boolean;
 }
 
+/**
+ * Chi ha osservato l'evento.
+ * - `device`: dichiarato dal dispositivo sulla FPort 0xA2
+ * - `status`: letto dal server nella parola di stato del poll, sul fronte di salita
+ * - `server`: osservato dal server (es. un comando che non risulta applicato)
+ */
+export type EventOrigin = "device" | "status" | "server";
+
 export interface DeviceEventDTO {
   id: number;
+  origin: EventOrigin;
   receivedAt: string;
   /** Ricavato dall'età dichiarata dalla CU, con l'incertezza della fascia di codifica. */
   occurredAt?: string | null;
@@ -84,6 +93,25 @@ export async function getEvents(controlUnitId: number): Promise<DeviceEventDTO[]
   });
   if (!response.ok) throw new Error(`Eventi della CU ${controlUnitId}: HTTP ${response.status}`);
   return (await response.json()) as DeviceEventDTO[];
+}
+
+/**
+ * Presa in carico di un singolo evento: è la X sul badge dell'avviso.
+ *
+ * La riga resta nello storico con l'istante in cui è stata vista: sparisce solo dall'elenco
+ * di ciò che è aperto adesso. Se il fatto si ripete, il server ne scrive uno nuovo.
+ */
+export async function acknowledgeEvent(
+  xsrfToken: string,
+  controlUnitId: number,
+  eventId: number,
+): Promise<DeviceEventDTO> {
+  const response = await fetch(`${API_URL}/${controlUnitId}/events/${eventId}/acknowledge`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-XSRF-TOKEN": xsrfToken },
+  });
+  if (!response.ok) throw new Error(`Presa in carico dell'evento: HTTP ${response.status}`);
+  return (await response.json()) as DeviceEventDTO;
 }
 
 /** Gli ultimi frame ricevuti, dal più recente. */
