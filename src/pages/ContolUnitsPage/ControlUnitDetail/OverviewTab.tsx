@@ -74,6 +74,8 @@ export function OverviewTab({ cu, onRefresh }: Props) {
   const { xsrfToken } = useAuth();
 
   const [acqIndex, setAcqIndex] = useState(cu.transmissionInterval);
+  /** Comando di trasmissione in volo: blocca i due pulsanti finché il server non risponde. */
+  const [sendingTransmission, setSendingTransmission] = useState(false);
   const [schedule, setSchedule] = useState<AcquisitionSchedule | null>(null);
   const [showConfig, setShowConfig] = useState(false);
   const [showSignalModal, setShowSignalModal] = useState(false);
@@ -91,8 +93,20 @@ export function OverviewTab({ cu, onRefresh }: Props) {
     });
   };
 
+  /*
+   * Un comando alla volta.
+   *
+   * Non è prudenza astratta: il 23 ottobre 2026, con il pulsante che non si bloccava, sono
+   * usciti diciannove comandi 0x24 in cinque secondi. Su LoRaWAN la coda si smaltisce a un
+   * downlink per finestra di ricezione, cioè a un comando per poll, e ci sono voluti venti
+   * minuti per svuotarla. In più, due richieste in parallelo si contendevano lo stesso
+   * CMD_SEQ, e la CU scarta come ritrasmissione il secondo comando che porta un numero già
+   * visto: un comando spariva in silenzio.
+   */
   const handleStartAcquisition = async () => {
     if (schedule && !schedule.valid) return;
+    if (sendingTransmission) return;
+    setSendingTransmission(true);
     try {
       if (schedule?.complete) {
         console.log("Sessione programmata (solo UI per ora):", schedule);
@@ -100,15 +114,21 @@ export function OverviewTab({ cu, onRefresh }: Props) {
       await ControlTransmission(xsrfToken, { devEui: cu.devEui, transmissionIndex: acqIndex });
     } catch (err) {
       console.error("Errore nell'avvio della sessione:", err);
+    } finally {
+      setSendingTransmission(false);
     }
   };
 
   const handleStopAcquisition = async () => {
+    if (sendingTransmission) return;
+    setSendingTransmission(true);
     try {
       await ControlTransmission(xsrfToken, { devEui: cu.devEui, transmissionIndex: 0 });
       setAcqIndex(0);
     } catch (err) {
       console.error("Errore nel fermare la sessione:", err);
+    } finally {
+      setSendingTransmission(false);
     }
   };
 
@@ -321,7 +341,9 @@ export function OverviewTab({ cu, onRefresh }: Props) {
                 <Button
                   variant="outline-primary"
                   className="fw-bold px-4 py-2 d-flex align-items-center justify-content-center gap-2 shadow hover-slide-right"
-                  disabled={acqIndex === 0 || (schedule !== null && !schedule.valid)}
+                  disabled={
+                    acqIndex === 0 || sendingTransmission || (schedule !== null && !schedule.valid)
+                  }
                   onClick={handleStartAcquisition}
                 >
                   <BsPlayFill size={20} /> {t("detail.startButton")}
@@ -329,6 +351,7 @@ export function OverviewTab({ cu, onRefresh }: Props) {
                 <Button
                   variant="outline-danger"
                   className="fw-bold px-4 py-2 d-flex align-items-center justify-content-center gap-2 hover-slide-right"
+                  disabled={sendingTransmission}
                   onClick={handleStopAcquisition}
                 >
                   <BsStopFill size={18} /> {t("detail.stopButton")}

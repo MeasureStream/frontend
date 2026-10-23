@@ -109,6 +109,9 @@ export function AdvancedConfigPanel({ state }: { state: SensorConfigState }) {
           <PendingActionsFooter
             pendingCount={pendingRows.length}
             justSaved={state.justSaved}
+            sending={state.sending}
+            lastError={state.lastError}
+            warnings={state.warnings}
             onRevert={state.revert}
             onSave={state.save}
           >
