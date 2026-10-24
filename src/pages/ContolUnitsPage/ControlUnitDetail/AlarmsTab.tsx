@@ -10,9 +10,10 @@
  */
 import { useCallback, useEffect, useState } from "react";
 import { Alert, Badge, Button, Spinner, Table } from "react-bootstrap";
-import { BsBellSlash, BsExclamationTriangle } from "react-icons/bs";
+import { BsBellSlash, BsExclamationTriangle, BsXCircle } from "react-icons/bs";
 import type { ControlUnitDTO } from "../../../API/interfaces";
 import {
+  acknowledgeEvent,
   acknowledgeFrames,
   getAlarms,
   getEvents,
@@ -44,6 +45,25 @@ function statusBadge(status: UplinkFrameDTO["status"]) {
     default:
       return { key: "frames.status.decodeError", variant: "danger" as const };
   }
+}
+
+/**
+ * Da dove arriva l'evento.
+ *
+ * Per quelli del dispositivo resta l'indicazione utile — quale MU, quale canale — perché
+ * «device» non direbbe niente che non si sappia già. Per gli altri due conta invece sapere
+ * che a vederli è stato il server, e come: leggendo la parola di stato del poll, oppure
+ * confrontando ciò che ha inviato con ciò che la CU risponde.
+ */
+function eventOrigin(
+  event: DeviceEventDTO,
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string,
+): string {
+  if (event.origin === "status") return t("events.origin.status");
+  if (event.origin === "server") return t("events.origin.server");
+  if (event.source === 0) return "CU";
+  const slot = event.sensorIndex === 255 ? "" : ` · ${t("alarms.slot")} ${event.sensorIndex}`;
+  return `MU ${event.source}${slot}`;
 }
 
 /** "22/09, 14:05 (± 5 min)": l'incertezza fa parte del dato, non è un dettaglio. */
@@ -92,6 +112,16 @@ export function AlarmsTab({ cu, onRefresh }: Props) {
 
   const discarded = (cu.configMismatchCount ?? 0) + (cu.decodeFailureCount ?? 0);
   const active = alarms.filter((a) => !a.cleared && !a.acknowledged).length;
+
+  /** La X su una riga aperta: la marca come vista, lo storico non cambia. */
+  const dismissEvent = async (eventId: number) => {
+    try {
+      await acknowledgeEvent(xsrfToken ?? "", cu.id, eventId);
+      load();
+    } catch (err) {
+      console.error("Presa in carico dell'evento fallita:", err);
+    }
+  };
 
   const handleAcknowledge = async () => {
     setWorking(true);
@@ -216,6 +246,7 @@ export function AlarmsTab({ cu, onRefresh }: Props) {
                 <th>{t("events.origin")}</th>
                 <th>{t("events.what")}</th>
                 <th>{t("events.code")}</th>
+                <th />
               </tr>
             </thead>
             <tbody>
@@ -224,18 +255,22 @@ export function AlarmsTab({ cu, onRefresh }: Props) {
                   <td className="font-monospace small text-nowrap">
                     {whenHappened(event, locale)}
                   </td>
-                  <td className="small">
-                    {event.source === 0
-                      ? "CU"
-                      : `MU ${event.source}${
-                          event.sensorIndex === 255
-                            ? ""
-                            : ` · ${t("alarms.slot")} ${event.sensorIndex}`
-                        }`}
-                  </td>
+                  <td className="small">{eventOrigin(event, t)}</td>
                   <td className="small">{event.description}</td>
                   <td className="font-monospace small">
                     0x{event.code.toString(16).toUpperCase().padStart(2, "0")}
+                  </td>
+                  <td className="text-end">
+                    {/* La X solo su ciò che è ancora aperto: lo storico non si chiude due volte. */}
+                    {!event.acknowledged && (
+                      <BsXCircle
+                        role="button"
+                        aria-label={t("events.dismiss")}
+                        title={t("events.dismiss")}
+                        onClick={() => dismissEvent(event.id)}
+                        style={{ cursor: "pointer" }}
+                      />
+                    )}
                   </td>
                 </tr>
               ))}

@@ -1,11 +1,14 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Row, Col, Card, ProgressBar, Button, Form, Alert, Badge } from "react-bootstrap";
 import {
   BsActivity, BsBroadcast, BsCalendarEvent, BsGear, BsOpencollective,
   BsPlayFill, BsStopFill, BsToggles, BsWrenchAdjustableCircle, BsExclamationTriangle,
+  BsXCircle,
 } from "react-icons/bs";
 import type { AcquisitionSchedule, ControlUnitDTO } from "../../../API/interfaces";
 import { ControlTransmission } from "../../../API/ControlUnitAPI";
+import { acknowledgeEvent, getEvents, type DeviceEventDTO } from "../../../API/framesAPI";
+import { useAutoRefresh } from "../../../API/useAutoRefresh";
 import { useAuth } from "../../../API/AuthContext";
 import { useI18n } from "../../../i18n/I18nContext";
 import type { TranslationKey } from "../../../i18n/translations";
@@ -74,6 +77,47 @@ export function OverviewTab({ cu, onRefresh }: Props) {
   const { xsrfToken } = useAuth();
 
   const [acqIndex, setAcqIndex] = useState(cu.transmissionInterval);
+  /** Comando di trasmissione in volo: blocca i due pulsanti finché il server non risponde. */
+  const [sendingTransmission, setSendingTransmission] = useState(false);
+
+  /*
+   * Gli avvisi ancora aperti.
+   *
+   * Non sono i bit di stato: quelli dicono com'è il dispositivo adesso. Questi sono fatti
+   * accaduti — la topologia è cambiata, un comando non risulta applicato — che il server
+   * registra nel suo taccuino e che restano finché qualcuno non dice «visto». Prima
+   * vivevano solo come badge calcolato dalla parola di stato: comparivano e sparivano con
+   * il bit, nessuno poteva chiuderli e nella scheda degli eventi non c'era traccia.
+   */
+  const [openEvents, setOpenEvents] = useState<DeviceEventDTO[]>([]);
+
+  const loadOpenEvents = useCallback(() => {
+    getEvents(cu.id)
+      .then((list) => setOpenEvents(list.filter((e) => !e.acknowledged)))
+      // Si tiene l'ultima lettura buona: far sparire un avviso perché la rete è andata giù
+      // sarebbe la bugia peggiore proprio qui.
+      .catch(() => undefined);
+  }, [cu.id]);
+
+  useEffect(loadOpenEvents, [loadOpenEvents]);
+  useAutoRefresh(loadOpenEvents);
+
+  /*
+   * I bit che descrivono una condizione. Quelli di tipo «evento» non si mostrano più qui:
+   * sono diventati righe nel taccuino, perché un fatto accaduto ha bisogno di una storia e
+   * di un modo per essere chiuso, e un bit latchato non ne ha né l'una né l'altro.
+   */
+  const stateFlags = (cu.statusFlags ?? []).filter((flag) => flag.kind !== "event");
+
+  /** La X sul badge: l'avviso esce dagli aperti, la riga resta nello storico. */
+  const dismissEvent = async (eventId: number) => {
+    try {
+      await acknowledgeEvent(xsrfToken ?? "", cu.id, eventId);
+      setOpenEvents((prev) => prev.filter((e) => e.id !== eventId));
+    } catch (err) {
+      console.error("Presa in carico dell'evento fallita:", err);
+    }
+  };
   const [schedule, setSchedule] = useState<AcquisitionSchedule | null>(null);
   const [showConfig, setShowConfig] = useState(false);
   const [showSignalModal, setShowSignalModal] = useState(false);
@@ -91,8 +135,20 @@ export function OverviewTab({ cu, onRefresh }: Props) {
     });
   };
 
+  /*
+   * Un comando alla volta.
+   *
+   * Non è prudenza astratta: il 23 ottobre 2026, con il pulsante che non si bloccava, sono
+   * usciti diciannove comandi 0x24 in cinque secondi. Su LoRaWAN la coda si smaltisce a un
+   * downlink per finestra di ricezione, cioè a un comando per poll, e ci sono voluti venti
+   * minuti per svuotarla. In più, due richieste in parallelo si contendevano lo stesso
+   * CMD_SEQ, e la CU scarta come ritrasmissione il secondo comando che porta un numero già
+   * visto: un comando spariva in silenzio.
+   */
   const handleStartAcquisition = async () => {
     if (schedule && !schedule.valid) return;
+    if (sendingTransmission) return;
+    setSendingTransmission(true);
     try {
       if (schedule?.complete) {
         console.log("Sessione programmata (solo UI per ora):", schedule);
@@ -100,15 +156,21 @@ export function OverviewTab({ cu, onRefresh }: Props) {
       await ControlTransmission(xsrfToken, { devEui: cu.devEui, transmissionIndex: acqIndex });
     } catch (err) {
       console.error("Errore nell'avvio della sessione:", err);
+    } finally {
+      setSendingTransmission(false);
     }
   };
 
   const handleStopAcquisition = async () => {
+    if (sendingTransmission) return;
+    setSendingTransmission(true);
     try {
       await ControlTransmission(xsrfToken, { devEui: cu.devEui, transmissionIndex: 0 });
       setAcqIndex(0);
     } catch (err) {
       console.error("Errore nel fermare la sessione:", err);
+    } finally {
+      setSendingTransmission(false);
     }
   };
 
@@ -142,17 +204,36 @@ export function OverviewTab({ cu, onRefresh }: Props) {
         * dizionario di protocollo e non passano da translations.ts: nascono da un documento
         * pubblicato dopo la compilazione (eccezione i18n documentata in CLAUDE.md).
         */}
-      {(cu.statusFlags?.length ?? 0) > 0 && (
+      {(stateFlags.length > 0 || openEvents.length > 0) && (
         <div className="d-flex flex-wrap align-items-center gap-2 mb-4">
-          {(cu.statusFlags ?? []).map((flag) => (
+          {/* Condizioni: com'è il dispositivo adesso. Cambiano da sole, non si chiudono. */}
+          {stateFlags.map((flag) => (
             <Badge
               key={flag.bit}
-              bg={flag.kind === "event" ? "warning" : "secondary"}
-              text={flag.kind === "event" ? "dark" : undefined}
+              bg="secondary"
               /* Il bit serve a chi confronta con la documentazione, non all'utente comune. */
               title={t("detail.deviceStatus.bit", { bit: flag.bit })}
             >
               {flag.description}
+            </Badge>
+          ))}
+
+          {/* Avvisi: fatti accaduti. Restano finché l'utente non dice «visto». */}
+          {openEvents.map((event) => (
+            <Badge
+              key={event.id}
+              bg="warning"
+              text="dark"
+              className="d-inline-flex align-items-center gap-2"
+            >
+              {event.description}
+              <BsXCircle
+                role="button"
+                aria-label={t("detail.deviceStatus.dismiss")}
+                title={t("detail.deviceStatus.dismiss")}
+                onClick={() => dismissEvent(event.id)}
+                style={{ cursor: "pointer" }}
+              />
             </Badge>
           ))}
         </div>
@@ -321,7 +402,9 @@ export function OverviewTab({ cu, onRefresh }: Props) {
                 <Button
                   variant="outline-primary"
                   className="fw-bold px-4 py-2 d-flex align-items-center justify-content-center gap-2 shadow hover-slide-right"
-                  disabled={acqIndex === 0 || (schedule !== null && !schedule.valid)}
+                  disabled={
+                    acqIndex === 0 || sendingTransmission || (schedule !== null && !schedule.valid)
+                  }
                   onClick={handleStartAcquisition}
                 >
                   <BsPlayFill size={20} /> {t("detail.startButton")}
@@ -329,6 +412,7 @@ export function OverviewTab({ cu, onRefresh }: Props) {
                 <Button
                   variant="outline-danger"
                   className="fw-bold px-4 py-2 d-flex align-items-center justify-content-center gap-2 hover-slide-right"
+                  disabled={sendingTransmission}
                   onClick={handleStopAcquisition}
                 >
                   <BsStopFill size={18} /> {t("detail.stopButton")}

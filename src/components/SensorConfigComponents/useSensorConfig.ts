@@ -19,6 +19,7 @@ import {
 } from "../../API/sensorConfig/sensorConfigTypes";
 import { buildSensorConfigCommands } from "../../API/sensorConfig/sensorConfigCommands";
 import { sendSensorConfig } from "../../API/sensorConfig/sensorConfigApi";
+import { useAuth } from "../../API/AuthContext";
 import { useI18n } from "../../i18n/I18nContext";
 
 /** Filtri rapidi della tabella avanzata. */
@@ -26,6 +27,8 @@ export type RowFilter = "all" | "pending" | "divergent" | "withThresholds" | "of
 
 export function useSensorConfig(cu: ControlUnitDTO) {
   const { t } = useI18n();
+  /* Il token CSRF: il gateway lo pretende su ogni scrittura, come negli altri moduli API. */
+  const { xsrfToken } = useAuth();
   /* I documenti dei template arrivano dal registro: pochi modelli distinti, una chiamata
      ciascuno, poi restano in cache perché una versione pubblicata non cambia. */
   const resolveTemplate = useCuTemplates(cu);
@@ -40,7 +43,14 @@ export function useSensorConfig(cu: ControlUnitDTO) {
   const [dense, setDense] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
-  const [configVersion, setConfigVersion] = useState(0);
+  /** Invio in corso: blocca il pulsante, così un clic ripetuto non diventa un downlink in più. */
+  const [sending, setSending] = useState(false);
+  /** Errore dell'ultimo invio, già in forma leggibile (arriva dal server). */
+  const [lastError, setLastError] = useState<string | null>(null);
+  /** Cosa il server non ha applicato, e perché: frasi sue, non chiavi di traduzione. */
+  const [warnings, setWarnings] = useState<string[]>([]);
+  /** CFG_VER su cui la pagina sta lavorando: lo decide il server, qui si segue. */
+  const [configVersion, setConfigVersion] = useState(cu.configVersion ?? 0);
 
   /*
    * La CU si aggiorna da sola ogni 60 s: ricostruire le righe a ogni refresh
@@ -199,18 +209,41 @@ export function useSensorConfig(cu: ControlUnitDTO) {
     setRows((prev) => prev.map((r) => ({ ...r, values: { ...r.saved } })));
   }, []);
 
-  /** Salva: costruisce i comandi, li consegna e allinea lo stato "salvato". */
+  /**
+   * Salva: costruisce i comandi, li consegna e allinea lo stato "salvato".
+   *
+   * Il CFG_VER **non** si inventa più qui. Ha un autore solo, il server, che lo incrementa
+   * di uno per ogni comando che parte davvero: una richiesta può diventare due comandi
+   * (periodi e funzioni) o nessuno, se i valori erano già quelli in opera. Si manda quello su
+   * cui la pagina ha lavorato, e si adotta quello che torna indietro.
+   *
+   * La guardia su `sending` non è cosmetica: due salvataggi in volo insieme sono due comandi
+   * in coda sulla stessa CU, e su LoRaWAN la coda si smaltisce a un downlink per finestra di
+   * ricezione.
+   */
   const save = useCallback(async () => {
-    if (!pendingRows.length) return;
-    const nextVersion = (configVersion + 1) % 256; // CFG_VER è a 8 bit, il wrap è ammesso
-    const commands = buildSensorConfigCommands(rows, { devEui: cu.devEui, configVersion: nextVersion });
-    const result = await sendSensorConfig(commands);
-    if (!result.ok) return;
+    if (!pendingRows.length || sending) return;
 
-    setConfigVersion(nextVersion);
-    setRows((prev) => prev.map((r) => ({ ...r, saved: { ...r.values } })));
-    setJustSaved(true);
-  }, [pendingRows.length, rows, cu.devEui, configVersion]);
+    setSending(true);
+    setLastError(null);
+    try {
+      const commands = buildSensorConfigCommands(rows, { devEui: cu.devEui, configVersion });
+      const outcome = await sendSensorConfig(xsrfToken, cu.id, commands);
+
+      if (!outcome.ok) {
+        setLastError(outcome.error ?? "");
+        setWarnings([]);
+        return;
+      }
+
+      setConfigVersion(outcome.result?.configVersion ?? configVersion);
+      setWarnings(outcome.result?.warnings ?? []);
+      setRows((prev) => prev.map((r) => ({ ...r, saved: { ...r.values } })));
+      setJustSaved(true);
+    } finally {
+      setSending(false);
+    }
+  }, [pendingRows.length, sending, rows, cu.devEui, cu.id, configVersion, xsrfToken]);
 
   /* ---------------------------------------------------------------- *
    * Ambito e selezione
@@ -285,7 +318,7 @@ export function useSensorConfig(cu: ControlUnitDTO) {
   return {
     rows, pendingRows, visibleRows, scopeRows, targetRows, singleCategory,
     categories, mus, estimate,
-    scope, selected, query, filter, dense, advancedOpen, justSaved,
+    scope, selected, query, filter, dense, advancedOpen, justSaved, sending, lastError, warnings,
     setQuery, setFilter, setDense, setAdvancedOpen,
     toggleWholeDevice, toggleMu, toggleCategory, toggleRow, toggleRows, clearSelection,
     setValues, setRowField, setRowPeriod, setRowMeasure, resetToTemplate, revert, save,
