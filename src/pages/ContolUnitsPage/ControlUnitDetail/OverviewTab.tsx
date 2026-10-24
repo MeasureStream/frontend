@@ -11,61 +11,17 @@ import { acknowledgeEvent, getEvents, type DeviceEventDTO } from "../../../API/f
 import { useAutoRefresh } from "../../../API/useAutoRefresh";
 import { useAuth } from "../../../API/AuthContext";
 import { useI18n } from "../../../i18n/I18nContext";
-import type { TranslationKey } from "../../../i18n/translations";
+import {
+  transmissionLabel,
+  transmissionTickLabel,
+} from "../../../components/TransmissionInterval/transmissionLabels";
 import { MeasurementUnitCard } from "../../../components/MeasurementUnitCard";
 import { ConfigCUModal } from "../../../components/ConfigCUModal";
 import { SignalQualityModal } from "../../../components/SignalQualityModal";
 import { RangeTicks } from "../../../components/RangeTicks";
-import {
-  TRANSMISSION_FAST_INDEX,
-  maxTransmissionIndex,
-  transmissionMinutes,
-  transmissionTicks,
-} from "../../../API/protocol/scales";
+import { maxTransmissionIndex, transmissionTicks } from "../../../API/protocol/scales";
 
 const AIRTIME_LIMIT_MS = 30000;
-
-type Translate = (key: TranslationKey, params?: Record<string, string | number>) => string;
-
-/**
- * Etichetta compatta per le tacche sotto lo slider: "6h", "24h", "7g". Sono gli stessi
- * indici del cursore, letti con meno parole perche' stanno in mezzo centimetro.
- */
-function tickLabel(idx: number, t: Translate): string {
-  if (idx === 0) return t("detail.interval.tick.off");
-
-  const minutes = transmissionMinutes(idx);
-  if (minutes === null) return "—";
-
-  const days = minutes / (24 * 60);
-  // I giorni si usano da due in su: "24h" accanto a "6h" e "12h" si legge meglio di "1g".
-  return days >= 2 && Number.isInteger(days)
-    ? t("detail.interval.tick.days", { days })
-    : t("detail.interval.tick.hours", { hours: Math.round(minutes / 60) });
-}
-
-/**
- * Etichetta dell'indice di trasmissione. La scala sta in `API/protocol/scales`: qui si
- * sceglie solo in che unita' leggerla, perche' le stringhe passano dalle traduzioni.
- */
-function decodeIndexToLabel(idx: number, t: Translate): string {
-  if (idx === 0) return t("detail.interval.off");
-
-  const minutes = transmissionMinutes(idx);
-  if (minutes === null) return t("detail.interval.outOfRange");
-
-  if (idx === TRANSMISSION_FAST_INDEX || minutes < 60)
-    return t("detail.interval.minutes", { value: minutes });
-  if (minutes < 24 * 60)
-    return t("detail.interval.hoursMinutes", {
-      hours: Math.trunc(minutes / 60),
-      minutes: minutes % 60,
-    });
-  return t("detail.interval.daysHours", {
-    days: Math.trunc(minutes / (24 * 60)),
-    hours: Math.trunc((minutes % (24 * 60)) / 60),
-  });
-}
 
 interface Props {
   cu: ControlUnitDTO;
@@ -338,7 +294,7 @@ export function OverviewTab({ cu, onRefresh }: Props) {
                 <div className="d-flex justify-content-between align-items-end mb-2">
                   <label className="fw-bold small text-uppercase text-muted">{t("detail.transmissionInterval")}</label>
                   <span className={`ms-badge font-monospace ${acqIndex === 0 ? "ms-badge-muted" : "ms-badge-alert"}`}>
-                    {decodeIndexToLabel(acqIndex, t)}
+                    {transmissionLabel(acqIndex, t)}
                   </span>
                 </div>
                 <input
@@ -350,7 +306,7 @@ export function OverviewTab({ cu, onRefresh }: Props) {
                   value={acqIndex}
                   onChange={(e) => setAcqIndex(parseInt(e.target.value))}
                 />
-                <RangeTicks max={maxTransmissionIndex()} ticks={transmissionTicks((i) => tickLabel(i, t))} />
+                <RangeTicks max={maxTransmissionIndex()} ticks={transmissionTicks((i) => transmissionTickLabel(i, t))} />
               </Col>
 
               <Col lg={5} md={8} className="ps-lg-4">

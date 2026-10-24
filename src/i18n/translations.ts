@@ -367,6 +367,11 @@ export const it = {
   "sensorConfig.revert": "Annulla modifiche in attesa",
   "sensorConfig.save": "Salva configurazione",
   "sensorConfig.saveWithCount": "Salva configurazione ({count})",
+  "sensorConfig.transmission.title": "Intervallo di trasmissione",
+  "sensorConfig.transmission.subtitle": "Ogni quanto la CU invia i dati raccolti",
+  "sensorConfig.transmission.apply": "Applica",
+  "sensorConfig.transmission.required":
+    "Senza un intervallo di trasmissione la configurazione dei sensori non può partire: il comando dei periodi lo trasporta come valore assoluto, e zero significa «non trasmettere». Impostalo qui sopra.",
   "sensorConfig.saved": "✓ Configurazione salvata",
   "sensorConfig.sending": "Invio in corso…",
   "sensorConfig.saveError": "Configurazione non inviata",
