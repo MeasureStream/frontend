@@ -380,8 +380,8 @@ export const it = {
   "sensorConfig.saveError": "Configurazione non inviata",
   "sensorConfig.saveWarnings": "Inviata, ma non per intero",
   "sensorConfig.saveHintNone": "Nessuna modifica da salvare",
-  "sensorConfig.saveHintPending": "Applicata al prossimo contatto della CU",
-  "sensorConfig.saveHintSaved": "In coda (down/replace) · consegna al prossimo poll",
+  "sensorConfig.saveHintPending": "Parte alla prima finestra di ricezione, cioè dopo il prossimo uplink della CU",
+  "sensorConfig.saveHintSaved": "In coda su TTN · si consegna un comando per finestra di ricezione",
 
   // --- Configurazione sensori: filtri e selezione ---
   "sensorConfig.filter": "Filtra",
