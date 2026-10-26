@@ -92,13 +92,14 @@ export function QuickConfigPanel({ state }: { state: SensorConfigState }) {
 
   return (
     <section className="mb-4">
-      <div className="d-flex align-items-center gap-2 mb-2">
-        <BsGearWideConnected size={17} className="text-primary" />
-        <span className="ms-cfg-title">{t("sensorConfig.quickTitle")}</span>
-        <span className="ms-cfg-note">{t("sensorConfig.quickSubtitle")}</span>
-      </div>
-
       <div className="ms-cfg-panel shadow-sm">
+        {/* L'intestazione sta dentro il riquadro, come negli altri due blocchi della scheda. */}
+        <div className="ms-cfg-section d-flex align-items-center gap-2 flex-wrap">
+          <BsGearWideConnected size={17} className="text-primary" />
+          <span className="ms-cfg-title">{t("sensorConfig.quickTitle")}</span>
+          <span className="ms-cfg-note">{t("sensorConfig.quickSubtitle")}</span>
+        </div>
+
         <ScopeSelector
           scope={state.scope}
           totalSensors={rows.length}

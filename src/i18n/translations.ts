@@ -372,13 +372,16 @@ export const it = {
   "sensorConfig.transmission.apply": "Applica",
   "sensorConfig.transmission.required":
     "Senza un intervallo di trasmissione la configurazione dei sensori non può partire: il comando dei periodi lo trasporta come valore assoluto, e zero significa «non trasmettere». Impostalo qui sopra.",
+  "sensorConfig.autoRestore.title": "Ripristino automatico",
+  "sensorConfig.autoRestore.body":
+    "La configurazione verrà ripristinata automaticamente in caso di riavvio del dispositivo, se le MU collegate sono rimaste le stesse.",
   "sensorConfig.saved": "✓ Configurazione salvata",
   "sensorConfig.sending": "Invio in corso…",
   "sensorConfig.saveError": "Configurazione non inviata",
   "sensorConfig.saveWarnings": "Inviata, ma non per intero",
   "sensorConfig.saveHintNone": "Nessuna modifica da salvare",
-  "sensorConfig.saveHintPending": "Applicata al prossimo contatto della CU",
-  "sensorConfig.saveHintSaved": "In coda (down/replace) · consegna al prossimo poll",
+  "sensorConfig.saveHintPending": "Parte alla prima finestra di ricezione, cioè dopo il prossimo uplink della CU",
+  "sensorConfig.saveHintSaved": "In coda su TTN · si consegna un comando per finestra di ricezione",
 
   // --- Configurazione sensori: filtri e selezione ---
   "sensorConfig.filter": "Filtra",
