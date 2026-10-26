@@ -189,6 +189,33 @@ async function ConfigureCu(xsrfToken: string | null, command: CUConfigCommandDTO
 }
 
 /**
+ * Accende o spegne il ripristino automatico della configurazione per una CU.
+ *
+ * Lo stato vive sul dispositivo e non nella pagina: vale per chiunque lo usi.
+ */
+async function setAutoRestore(
+  xsrfToken: string | null,
+  controlUnitId: number,
+  enabled: boolean,
+): Promise<ControlUnitDTO> {
+  const url = `${API_URL}/${controlUnitId}/auto-restore?enabled=${enabled}`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-XSRF-TOKEN': xsrfToken || '',
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Auto Restore Error: ${response.status} - ${errorText}`);
+  }
+  return (await response.json()) as ControlUnitDTO;
+}
+
+/**
  * Invia la configurazione dei periodi di campionamento per i sensori di una CU.
  * Endpoint: /API/controlunits/sensors-config
  */
@@ -279,5 +306,5 @@ async function UpdateCuMetadata(
 export {
   CreateCu, EditCu, getAllAvailableCuList, getAllCu, DeleteCu,
   getfirstavailableCU, CreateCuAdmin, ConfigureCu, UpdateSensorsConfig,
-  ControlTransmission, UpdateCuMetadata
+  ControlTransmission, UpdateCuMetadata, setAutoRestore
 }

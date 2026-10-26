@@ -13,6 +13,7 @@
  *
  * Lo stato vive in `useSensorConfig`; qui si compone soltanto la pagina.
  */
+import { Col, Row } from "react-bootstrap";
 import type { ControlUnitDTO } from "../../../API/interfaces";
 import { useI18n } from "../../../i18n/I18nContext";
 import { useSensorConfig } from "../../../components/SensorConfigComponents/useSensorConfig";
@@ -20,6 +21,7 @@ import { QuickConfigPanel } from "../../../components/SensorConfigComponents/Qui
 import { AdvancedConfigPanel } from "../../../components/SensorConfigComponents/AdvancedConfigPanel";
 import { ConfigStatusLegend } from "../../../components/SensorConfigComponents/ConfigStatusLegend";
 import { TransmissionIntervalBar } from "../../../components/TransmissionInterval/TransmissionIntervalBar";
+import { AutoRestoreCard } from "../../../components/TransmissionInterval/AutoRestoreCard";
 
 export function SensorConfigTab({ cu, onRefresh }: { cu: ControlUnitDTO; onRefresh: () => void }) {
   const { t } = useI18n();
@@ -28,7 +30,14 @@ export function SensorConfigTab({ cu, onRefresh }: { cu: ControlUnitDTO; onRefre
   if (!state.rows.length) {
     return (
       <section className="d-flex flex-column gap-3">
-        <TransmissionIntervalBar cu={cu} onApplied={onRefresh} />
+        <Row className="g-3">
+          <Col lg={8}>
+            <TransmissionIntervalBar cu={cu} onApplied={onRefresh} />
+          </Col>
+          <Col lg={4}>
+            <AutoRestoreCard cu={cu} onApplied={onRefresh} />
+          </Col>
+        </Row>
         <p className="text-muted mb-0">{t("sensorConfig.noSensors")}</p>
       </section>
     );
@@ -36,7 +45,14 @@ export function SensorConfigTab({ cu, onRefresh }: { cu: ControlUnitDTO; onRefre
 
   return (
     <section className="d-flex flex-column gap-3">
-      <TransmissionIntervalBar cu={cu} onApplied={onRefresh} />
+      <Row className="g-3">
+        <Col lg={8}>
+          <TransmissionIntervalBar cu={cu} onApplied={onRefresh} />
+        </Col>
+        <Col lg={4}>
+          <AutoRestoreCard cu={cu} onApplied={onRefresh} />
+        </Col>
+      </Row>
       <QuickConfigPanel state={state} />
       <AdvancedConfigPanel state={state} />
       <ConfigStatusLegend />

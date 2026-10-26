@@ -28,6 +28,8 @@ export interface ControlUnitDTO {
   transmissionInterval: number;
   /** Versione di configurazione che il server considera attiva (sul filo ne viaggia il byte basso). */
   configVersion?: number;
+  /** Se il server rimanda la configurazione dopo un riavvio del dispositivo. */
+  autoRestoreConfig?: boolean;
   /**
    * Report scartati perché la CU dichiarava un CFG_VER diverso: > 0 significa che si stanno
    * perdendo misure, e che serve riallineare la configurazione o resettare la CU.
