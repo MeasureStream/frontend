@@ -147,7 +147,7 @@ export function OverviewTab({ cu, onRefresh }: Props) {
             <div className="small">
               {t("detail.configMismatch.body", {
                 reported: cu.lastReportedConfigVersion ?? "?",
-                expected: (cu.configVersion ?? 0) % 256,
+                expected: cu.configVersionOnWire ?? (cu.configVersion ?? 0) % 256,
                 count: mismatches,
               })}
             </div>
@@ -174,12 +174,15 @@ export function OverviewTab({ cu, onRefresh }: Props) {
             </Badge>
           ))}
 
-          {/* Avvisi: fatti accaduti. Restano finché l'utente non dice «visto». */}
+          {/* Fatti accaduti. Restano finché l'utente non dice «visto».
+              Il colore viene dalla gravità dichiarata dal server, non dal codice: un
+              riallineamento riuscito e una configurazione non applicata sono due notizie
+              opposte, e mostrarle uguali insegna a ignorarle entrambe. */}
           {openEvents.map((event) => (
             <Badge
               key={event.id}
-              bg="warning"
-              text="dark"
+              bg={event.severity === "info" ? "success" : "warning"}
+              text={event.severity === "info" ? undefined : "dark"}
               className="d-inline-flex align-items-center gap-2"
             >
               {event.description}

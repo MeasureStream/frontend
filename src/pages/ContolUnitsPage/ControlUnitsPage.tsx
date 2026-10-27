@@ -43,7 +43,10 @@ const POWER_LABEL_KEY: Record<PowerSource, TranslationKey> = {
 export function hasVersionMismatch(cu: ControlUnitDTO): boolean {
   const cfgMismatch =
     (cu.configMismatchCount ?? 0) > 0 ||
-    (cu.lastReportedConfigVersion != null && cu.lastReportedConfigVersion !== cu.configVersion);
+    /* Il confronto e' fra due valori sul filo. Con il contatore assoluto era sempre
+       diverso — quello cresce a ogni adozione — e il triangolo restava acceso per sempre. */
+    (cu.lastReportedConfigVersion != null &&
+      cu.lastReportedConfigVersion !== (cu.configVersionOnWire ?? (cu.configVersion ?? 0) % 256));
   const cmdMismatch = cu.appliedCmdSeq != null && cu.appliedCmdSeq !== cu.cmdSeq;
   return cfgMismatch || cmdMismatch;
 }

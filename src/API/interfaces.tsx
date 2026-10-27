@@ -28,6 +28,12 @@ export interface ControlUnitDTO {
   transmissionInterval: number;
   /** Versione di configurazione che il server considera attiva (sul filo ne viaggia il byte basso). */
   configVersion?: number;
+  /**
+   * Il CFG_VER come viaggia sul filo: un byte, cioè il contatore assoluto modulo 256.
+   * È questo che va confrontato con quello che la CU dichiara — l'altro cresce a ogni
+   * adozione, perché il server somma sempre in avanti.
+   */
+  configVersionOnWire?: number;
   /** Se il server rimanda la configurazione dopo un riavvio del dispositivo. */
   autoRestoreConfig?: boolean;
   /**

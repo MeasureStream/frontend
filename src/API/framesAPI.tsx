@@ -59,9 +59,13 @@ export interface AlarmDTO {
  */
 export type EventOrigin = "device" | "status" | "server";
 
+/** Quanto pesa un evento: decide il colore, non il significato. */
+export type EventSeverity = "info" | "warning";
+
 export interface DeviceEventDTO {
   id: number;
   origin: EventOrigin;
+  severity: EventSeverity;
   receivedAt: string;
   /** Ricavato dall'età dichiarata dalla CU, con l'incertezza della fascia di codifica. */
   occurredAt?: string | null;
