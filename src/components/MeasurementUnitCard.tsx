@@ -49,6 +49,30 @@ export function MeasurementUnitCard({ mu, handleSetDirty }: Props) {
                   v{mu.modelMajor}
                 </span>
               )}
+
+              {/*
+                Lo stato dichiarato dalla MU, bit per bit: è l'unica finestra sul lato
+                opposto del bus UART, e distingue i silenzi che altrimenti si assomigliano
+                — una MU che non c'è, una che c'è e non campiona, una che campiona e i cui
+                dati si fermano prima di arrivare.
+
+                Si mostrano solo i bit che segnalano un problema: quelli che descrivono il
+                funzionamento normale non meritano un badge, e la gravità la dichiara il
+                dizionario di protocollo, non questo file. I testi arrivano dal server già
+                risolti (eccezione i18n documentata in CLAUDE.md).
+              */}
+              {(mu.statusFlags ?? [])
+                .filter((flag) => flag.severity !== "info")
+                .map((flag) => (
+                  <Badge
+                    key={flag.bit}
+                    bg="warning"
+                    text="dark"
+                    title={t("mu.statusBit", { bit: flag.bit })}
+                  >
+                    {flag.description}
+                  </Badge>
+                ))}
             </div>
             <small className="text-muted font-monospace opacity-75">Model: {mu.model}</small>
           </div>

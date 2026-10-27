@@ -101,6 +101,8 @@ export interface StatusFlagDTO {
   kind?: string | null;
   /** Per una MU: `mu` se il bit arriva dal bus UART, `cu` se lo aggiunge la Control Unit. */
   origin?: string | null;
+  /** `info` per il funzionamento normale, `warning` per ciò che va guardato. */
+  severity?: string | null;
 }
 
 export interface SensorDTO {
