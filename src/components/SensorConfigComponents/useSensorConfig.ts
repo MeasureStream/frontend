@@ -18,7 +18,7 @@ import {
   type ValueField,
 } from "../../API/sensorConfig/sensorConfigTypes";
 import { buildSensorConfigCommands } from "../../API/sensorConfig/sensorConfigCommands";
-import { sendSensorConfig } from "../../API/sensorConfig/sensorConfigApi";
+import { resendSensorConfig, sendSensorConfig } from "../../API/sensorConfig/sensorConfigApi";
 import { useAuth } from "../../API/AuthContext";
 import { useI18n } from "../../i18n/I18nContext";
 
@@ -245,6 +245,33 @@ export function useSensorConfig(cu: ControlUnitDTO) {
     }
   }, [pendingRows.length, sending, rows, cu.devEui, cu.id, configVersion, xsrfToken]);
 
+  /**
+   * Rimanda la configurazione che c'è, identica.
+   *
+   * Non passa da `buildSensorConfigCommands` perché non c'è niente da confrontare: è il
+   * server a ricomporre i comandi dallo stato che ha già. Si usa dopo un riavvio del
+   * dispositivo, quando la configurazione sul server è quella giusta e manca solo sul nodo.
+   */
+  const forceResend = useCallback(async () => {
+    if (sending) return;
+
+    setSending(true);
+    setLastError(null);
+    try {
+      const outcome = await resendSensorConfig(xsrfToken, cu.id);
+      if (!outcome.ok) {
+        setLastError(outcome.error ?? "");
+        setWarnings([]);
+        return;
+      }
+      setConfigVersion(outcome.result?.configVersion ?? configVersion);
+      setWarnings(outcome.result?.warnings ?? []);
+      setJustSaved(true);
+    } finally {
+      setSending(false);
+    }
+  }, [sending, cu.id, configVersion, xsrfToken]);
+
   /* ---------------------------------------------------------------- *
    * Ambito e selezione
    * ---------------------------------------------------------------- */
@@ -321,7 +348,7 @@ export function useSensorConfig(cu: ControlUnitDTO) {
     scope, selected, query, filter, dense, advancedOpen, justSaved, sending, lastError, warnings,
     setQuery, setFilter, setDense, setAdvancedOpen,
     toggleWholeDevice, toggleMu, toggleCategory, toggleRow, toggleRows, clearSelection,
-    setValues, setRowField, setRowPeriod, setRowMeasure, resetToTemplate, revert, save,
+    setValues, setRowField, setRowPeriod, setRowMeasure, resetToTemplate, revert, save, forceResend,
   };
 }
 

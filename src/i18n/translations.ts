@@ -210,6 +210,7 @@ export const it = {
     "Configurazione disallineata: la CU dichiara una versione diversa da quella attesa (CFG_VER o CMD_SEQ)",
   "devices.alarmsActiveOne": "1 allarme attivo da prendere in carico",
   "devices.alarmsActive": "{count} allarmi attivi da prendere in carico",
+  "mu.statusBit": "bit {bit} dello stato dichiarato dalla MU",
   "mu.modelMajorTitle": "MAJOR {major} del modello di MU: la versione con cui il server compone gli slot e legge il report",
   "sensor.templateMajorTitle": "MAJOR {major} del template del sensore (versione risolta {version})",
   "devices.signal": "Segnale",
@@ -364,6 +365,9 @@ export const it = {
 
   // --- Configurazione sensori: azioni ---
   "sensorConfig.resetTemplate": "↺ Default template",
+  "sensorConfig.forceResend": "⟳ Forza configurazione",
+  "sensorConfig.forceResendHint":
+    "Rimanda al dispositivo la configurazione che c'è, identica: utile dopo un riavvio della CU",
   "sensorConfig.revert": "Annulla modifiche in attesa",
   "sensorConfig.save": "Salva configurazione",
   "sensorConfig.saveWithCount": "Salva configurazione ({count})",

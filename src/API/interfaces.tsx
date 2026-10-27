@@ -28,6 +28,12 @@ export interface ControlUnitDTO {
   transmissionInterval: number;
   /** Versione di configurazione che il server considera attiva (sul filo ne viaggia il byte basso). */
   configVersion?: number;
+  /**
+   * Il CFG_VER come viaggia sul filo: un byte, cioè il contatore assoluto modulo 256.
+   * È questo che va confrontato con quello che la CU dichiara — l'altro cresce a ogni
+   * adozione, perché il server somma sempre in avanti.
+   */
+  configVersionOnWire?: number;
   /** Se il server rimanda la configurazione dopo un riavvio del dispositivo. */
   autoRestoreConfig?: boolean;
   /**
@@ -95,6 +101,8 @@ export interface StatusFlagDTO {
   kind?: string | null;
   /** Per una MU: `mu` se il bit arriva dal bus UART, `cu` se lo aggiunge la Control Unit. */
   origin?: string | null;
+  /** `info` per il funzionamento normale, `warning` per ciò che va guardato. */
+  severity?: string | null;
 }
 
 export interface SensorDTO {
