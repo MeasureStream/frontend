@@ -183,6 +183,17 @@ export function QuickConfigPanel({ state }: { state: SensorConfigState }) {
           <Button size="sm" variant="outline-secondary" disabled={!hasScope} onClick={state.resetToTemplate}>
             {t("sensorConfig.resetTemplate")}
           </Button>
+          {/* Rimanda ciò che c'è, identico: serve dopo un riavvio del dispositivo, quando la
+              configurazione giusta è sul server e manca solo sul nodo. */}
+          <Button
+            size="sm"
+            variant="outline-secondary"
+            disabled={state.sending}
+            title={t("sensorConfig.forceResendHint")}
+            onClick={state.forceResend}
+          >
+            {t("sensorConfig.forceResend")}
+          </Button>
         </PendingActionsFooter>
       </div>
     </section>

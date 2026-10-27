@@ -364,6 +364,9 @@ export const it = {
 
   // --- Configurazione sensori: azioni ---
   "sensorConfig.resetTemplate": "↺ Default template",
+  "sensorConfig.forceResend": "⟳ Forza configurazione",
+  "sensorConfig.forceResendHint":
+    "Rimanda al dispositivo la configurazione che c'è, identica: utile dopo un riavvio della CU",
   "sensorConfig.revert": "Annulla modifiche in attesa",
   "sensorConfig.save": "Salva configurazione",
   "sensorConfig.saveWithCount": "Salva configurazione ({count})",

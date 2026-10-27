@@ -87,6 +87,32 @@ export async function sendSensorConfig(
   }
 }
 
+/**
+ * Rimanda la configurazione corrente, identica, senza che nulla sia cambiato.
+ *
+ * Serve dopo un riavvio del dispositivo: rimette in pari la CU senza dover cambiare un
+ * valore e rimetterlo com'era, che è il modo in cui lo si farebbe senza un pulsante.
+ */
+export async function resendSensorConfig(
+  xsrfToken: string | null,
+  controlUnitId: number,
+): Promise<SensorConfigSendResult> {
+  const url = `${BASE_URL}/API/controlunits/${controlUnitId}/sensor-config/resend`;
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json", "X-XSRF-TOKEN": xsrfToken || "" },
+    });
+
+    if (!response.ok) return { ok: false, error: await readProblemDetail(response) };
+    return { ok: true, result: (await response.json()) as SensorConfigResult };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
 async function readProblemDetail(response: Response): Promise<string> {
   try {
     const body = await response.json();
