@@ -76,6 +76,8 @@ export interface DeviceEventDTO {
   code: number;
   param?: number | null;
   description?: string | null;
+  /** Quante volte il fatto si è ripetuto mentre l'avviso era aperto. */
+  occurrences?: number;
   acknowledged: boolean;
 }
 

@@ -21,20 +21,30 @@ import { transmissionLabel, transmissionTickLabel } from "./transmissionLabels";
 
 export function TransmissionIntervalBar({
   cu,
+  index,
+  onChange,
   onApplied,
 }: {
   cu: ControlUnitDTO;
+  /**
+   * L'indice scelto adesso. Lo tiene `useSensorConfig` e non questo componente, perché
+   * **parte con la configurazione dei sensori**: la 0x21 lo trasporta nel suo primo blocco,
+   * quindi mandarlo insieme non costa un downlink in più. Finché viveva qui, chi muoveva il
+   * cursore senza premere «Applica» leggeva "15 min" a schermo mentre il server leggeva lo
+   * zero che aveva nel database — e rifiutava la configurazione.
+   */
+  index: number;
+  onChange: (index: number) => void;
   onApplied?: () => void;
 }) {
   const { t } = useI18n();
   const { xsrfToken } = useAuth();
 
-  const [index, setIndex] = useState(cu.transmissionInterval);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  /** Vero finché il dispositivo non ha un periodo: è la condizione che blocca la 0x21. */
-  const notConfigured = cu.transmissionInterval <= 0;
+  /** Nessun periodo: né in opera, né scelto qui adesso. È la condizione che blocca la 0x21. */
+  const notConfigured = cu.transmissionInterval <= 0 && index <= 0;
   const changed = index !== cu.transmissionInterval;
 
   const apply = async () => {
@@ -71,6 +81,15 @@ export function TransmissionIntervalBar({
         </Alert>
       )}
 
+      {/* Un valore scelto e non ancora in opera non è un errore: è in viaggio con la
+          configurazione. Dirlo evita l'equivoco che è costato questa riga — vedere "15 min"
+          a schermo e credere che il dispositivo lo sappia già. */}
+      {!notConfigured && changed && (
+        <div className="ms-cfg-note ms-cfg-note-warn mb-2">
+          {t("sensorConfig.transmission.pending")}
+        </div>
+      )}
+
       <div className="d-flex align-items-center gap-3 flex-wrap">
         <div className="flex-grow-1" style={{ minWidth: 260 }}>
           <input
@@ -80,7 +99,7 @@ export function TransmissionIntervalBar({
             max={maxTransmissionIndex()}
             value={index}
             disabled={sending}
-            onChange={(e) => setIndex(parseInt(e.target.value))}
+            onChange={(e) => onChange(parseInt(e.target.value))}
           />
           <RangeTicks
             max={maxTransmissionIndex()}

@@ -103,6 +103,12 @@ export interface SensorConfigCommandSet {
   devEui: string;
   /** CFG_VER desiderata: la CU la rimanda indietro per confermare (§7.6). */
   configVersion: number;
+  /**
+   * Periodo di trasmissione, come indice di scala, quando la pagina ne porta uno nuovo.
+   * Viaggia qui perché la 0x21 lo trasporta già nel blocco 0: insieme alla configurazione
+   * non costa un downlink, impostarlo prima con la 0x24 sì. Null quando non cambia.
+   */
+  transmissionIndex: number | null;
   sampling: SamplingCommand[];
   processing: ProcessingCommand[];
   thresholds: ThresholdCommand[];
@@ -193,7 +199,7 @@ function alarmFlags(v: SensorConfigValues): AlarmFlags {
  */
 export function buildSensorConfigCommands(
   rows: SensorConfigRow[],
-  opts: { devEui: string; configVersion: number },
+  opts: { devEui: string; configVersion: number; transmissionIndex?: number | null },
 ): SensorConfigCommandSet {
   const pending = rows.filter((r) => rowStatus(r) === "pending");
 
@@ -242,6 +248,7 @@ export function buildSensorConfigCommands(
   return {
     devEui: opts.devEui,
     configVersion: opts.configVersion,
+    transmissionIndex: opts.transmissionIndex ?? null,
     sampling,
     processing,
     thresholds,

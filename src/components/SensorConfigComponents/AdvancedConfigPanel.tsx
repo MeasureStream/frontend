@@ -108,6 +108,8 @@ export function AdvancedConfigPanel({ state }: { state: SensorConfigState }) {
 
           <PendingActionsFooter
             pendingCount={pendingRows.length}
+            hasOtherPending={state.transmissionPending}
+            blockedReason={state.transmissionMissing ? t("sensorConfig.transmission.blocked") : null}
             justSaved={state.justSaved}
             sending={state.sending}
             lastError={state.lastError}
