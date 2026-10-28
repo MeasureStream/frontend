@@ -14,6 +14,17 @@ import { useI18n } from "../../i18n/I18nContext";
 
 interface Props {
   pendingCount: number;
+  /**
+   * Qualcosa da inviare anche senza righe in attesa: oggi è il periodo di trasmissione
+   * scelto nella barra in cima, che viaggia dentro la 0x21.
+   */
+  hasOtherPending?: boolean;
+  /**
+   * Se valorizzato, il salvataggio è impedito e questa è la ragione. Si mostra al posto del
+   * suggerimento: un pulsante spento senza motivo scritto accanto è un vicolo cieco, e il
+   * motivo lo si scopriva soltanto da un rifiuto del server.
+   */
+  blockedReason?: string | null;
   justSaved: boolean;
   /** Invio in corso: il pulsante si blocca, così un clic ripetuto non costa un downlink. */
   sending: boolean;
@@ -29,6 +40,8 @@ interface Props {
 
 export function PendingActionsFooter({
   pendingCount,
+  hasOtherPending = false,
+  blockedReason = null,
   justSaved,
   sending,
   lastError,
@@ -47,11 +60,15 @@ export function PendingActionsFooter({
         ? t("sensorConfig.saveWithCount", { count: pendingCount })
         : t("sensorConfig.save");
 
-  const hint = justSaved
-    ? t("sensorConfig.saveHintSaved")
-    : pendingCount
-      ? t("sensorConfig.saveHintPending")
-      : t("sensorConfig.saveHintNone");
+  const hint = blockedReason
+    ? blockedReason
+    : justSaved
+      ? t("sensorConfig.saveHintSaved")
+      : pendingCount || hasOtherPending
+        ? t("sensorConfig.saveHintPending")
+        : t("sensorConfig.saveHintNone");
+
+  const canSave = (pendingCount > 0 || hasOtherPending) && !sending && !blockedReason;
 
   return (
     <>
@@ -73,13 +90,13 @@ export function PendingActionsFooter({
         <div className="text-start">
           <Button
             variant={justSaved ? "success" : "primary"}
-            disabled={!pendingCount || sending}
+            disabled={!canSave}
             onClick={onSave}
           >
             {sending && <Spinner animation="border" size="sm" className="me-2" />}
             {saveLabel}
           </Button>
-          <div className="ms-cfg-note mt-1">{hint}</div>
+          <div className={`ms-cfg-note mt-1${blockedReason ? " ms-cfg-note-warn" : ""}`}>{hint}</div>
         </div>
       </div>
 

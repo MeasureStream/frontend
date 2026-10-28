@@ -376,6 +376,10 @@ export const it = {
   "sensorConfig.transmission.apply": "Applica",
   "sensorConfig.transmission.required":
     "Senza un intervallo di trasmissione la configurazione dei sensori non può partire: il comando dei periodi lo trasporta come valore assoluto, e zero significa «non trasmettere». Impostalo qui sopra.",
+  "sensorConfig.transmission.pending":
+    "Scelto ma non ancora in opera: parte insieme alla configurazione dei sensori, dentro lo stesso comando. Premi Applica solo se vuoi mandarlo subito, da solo.",
+  "sensorConfig.transmission.blocked":
+    "Scegli un intervallo di trasmissione qui sopra: senza quello la configurazione non può partire.",
   "sensorConfig.autoRestore.title": "Ripristino automatico",
   "sensorConfig.autoRestore.body":
     "La configurazione verrà ripristinata automaticamente in caso di riavvio del dispositivo, se le MU collegate sono rimaste le stesse.",

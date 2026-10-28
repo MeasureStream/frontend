@@ -32,7 +32,12 @@ export function SensorConfigTab({ cu, onRefresh }: { cu: ControlUnitDTO; onRefre
       <section className="d-flex flex-column gap-3">
         <Row className="g-3">
           <Col lg={8}>
-            <TransmissionIntervalBar cu={cu} onApplied={onRefresh} />
+            <TransmissionIntervalBar
+              cu={cu}
+              index={state.transmissionIndex}
+              onChange={state.setTransmissionIndex}
+              onApplied={onRefresh}
+            />
           </Col>
           <Col lg={4}>
             <AutoRestoreCard cu={cu} onApplied={onRefresh} />
@@ -47,7 +52,12 @@ export function SensorConfigTab({ cu, onRefresh }: { cu: ControlUnitDTO; onRefre
     <section className="d-flex flex-column gap-3">
       <Row className="g-3">
         <Col lg={8}>
-          <TransmissionIntervalBar cu={cu} onApplied={onRefresh} />
+          <TransmissionIntervalBar
+              cu={cu}
+              index={state.transmissionIndex}
+              onChange={state.setTransmissionIndex}
+              onApplied={onRefresh}
+            />
         </Col>
         <Col lg={4}>
           <AutoRestoreCard cu={cu} onApplied={onRefresh} />

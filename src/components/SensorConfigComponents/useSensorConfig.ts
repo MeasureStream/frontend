@@ -51,6 +51,15 @@ export function useSensorConfig(cu: ControlUnitDTO) {
   const [warnings, setWarnings] = useState<string[]>([]);
   /** CFG_VER su cui la pagina sta lavorando: lo decide il server, qui si segue. */
   const [configVersion, setConfigVersion] = useState(cu.configVersion ?? 0);
+  /**
+   * Periodo di trasmissione scelto nella barra in cima.
+   *
+   * Sta qui e non nella barra perché **parte con la configurazione**: la 0x21 lo trasporta
+   * nel suo primo blocco, quindi mandarlo insieme non costa un downlink in più. Quando
+   * viveva solo nella barra, chi muoveva il cursore senza premere «Applica» vedeva "15 min"
+   * a schermo e il server leggeva lo zero che aveva nel database — e rifiutava.
+   */
+  const [transmissionIndex, setTransmissionIndex] = useState(cu.transmissionInterval);
 
   /*
    * La CU si aggiorna da sola ogni 60 s: ricostruire le righe a ogni refresh
@@ -81,6 +90,21 @@ export function useSensorConfig(cu: ControlUnitDTO) {
    * ---------------------------------------------------------------- */
 
   const pendingRows = useMemo(() => rows.filter((r) => rowStatus(r) === "pending"), [rows]);
+
+  /* Il valore in opera cambia solo quando il server lo conferma: allora il cursore lo
+     adotta, e una modifica in attesa non sopravvive al proprio invio. */
+  useEffect(() => {
+    setTransmissionIndex(cu.transmissionInterval);
+  }, [cu.id, cu.transmissionInterval]);
+
+  /** Un periodo scelto e non ancora in opera: viaggerà con la prossima configurazione. */
+  const transmissionPending = transmissionIndex > 0 && transmissionIndex !== cu.transmissionInterval;
+
+  /**
+   * Nessun periodo di trasmissione, né in opera né scelto adesso: la configurazione non
+   * può partire, e dirlo qui è meglio che farlo scoprire da un rifiuto del server.
+   */
+  const transmissionMissing = cu.transmissionInterval <= 0 && !transmissionPending;
 
   /** Categorie presenti sulla CU, con quanti sensori le usano. */
   const categories = useMemo(() => {
@@ -222,12 +246,22 @@ export function useSensorConfig(cu: ControlUnitDTO) {
    * ricezione.
    */
   const save = useCallback(async () => {
-    if (!pendingRows.length || sending) return;
+    if ((!pendingRows.length && !transmissionPending) || sending) return;
+    if (transmissionMissing) {
+      setLastError(t("sensorConfig.transmission.blocked"));
+      return;
+    }
 
     setSending(true);
     setLastError(null);
     try {
-      const commands = buildSensorConfigCommands(rows, { devEui: cu.devEui, configVersion });
+      const commands = buildSensorConfigCommands(rows, {
+        devEui: cu.devEui,
+        configVersion,
+        // Solo se è cambiato: un valore identico a quello in opera non è una modifica, e
+        // farebbe partire la 0x21 per niente.
+        transmissionIndex: transmissionPending ? transmissionIndex : null,
+      });
       const outcome = await sendSensorConfig(xsrfToken, cu.id, commands);
 
       if (!outcome.ok) {
@@ -243,7 +277,19 @@ export function useSensorConfig(cu: ControlUnitDTO) {
     } finally {
       setSending(false);
     }
-  }, [pendingRows.length, sending, rows, cu.devEui, cu.id, configVersion, xsrfToken]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    pendingRows.length,
+    sending,
+    rows,
+    cu.devEui,
+    cu.id,
+    configVersion,
+    xsrfToken,
+    transmissionIndex,
+    transmissionPending,
+    transmissionMissing,
+  ]);
 
   /**
    * Rimanda la configurazione che c'è, identica.
@@ -346,6 +392,7 @@ export function useSensorConfig(cu: ControlUnitDTO) {
     rows, pendingRows, visibleRows, scopeRows, targetRows, singleCategory,
     categories, mus, estimate,
     scope, selected, query, filter, dense, advancedOpen, justSaved, sending, lastError, warnings,
+    transmissionIndex, setTransmissionIndex, transmissionPending, transmissionMissing,
     setQuery, setFilter, setDense, setAdvancedOpen,
     toggleWholeDevice, toggleMu, toggleCategory, toggleRow, toggleRows, clearSelection,
     setValues, setRowField, setRowPeriod, setRowMeasure, resetToTemplate, revert, save, forceResend,
