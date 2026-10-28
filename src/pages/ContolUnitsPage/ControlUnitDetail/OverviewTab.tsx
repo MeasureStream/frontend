@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Row, Col, Card, ProgressBar, Button, Form, Alert, Badge } from "react-bootstrap";
 import {
   BsActivity, BsBroadcast, BsCalendarEvent, BsGear, BsOpencollective,
@@ -65,11 +65,38 @@ export function OverviewTab({ cu, onRefresh }: Props) {
    */
   const stateFlags = (cu.statusFlags ?? []).filter((flag) => flag.kind !== "event");
 
-  /** La X sul badge: l'avviso esce dagli aperti, la riga resta nello storico. */
-  const dismissEvent = async (eventId: number) => {
+  /**
+   * Gli avvisi aperti raggruppati per testo: **una notifica sola per tipo**.
+   *
+   * Lo stesso guasto su tre sensori faceva tre badge identici, e una condizione che dura ne
+   * faceva uno per uplink: la testata diventava una fila di copie, e una fila di copie non
+   * si legge — si ignora. Il server non apre più di un avviso per (MU, canale, codice); qui
+   * si uniscono anche quelli che differiscono solo per il canale, perché il testo è lo
+   * stesso e distinguerli a occhio è impossibile. Il numero accanto dice quante volte il
+   * fatto è stato visto in tutto, il suggerimento dice su quali canali, e il dettaglio per
+   * intero resta nella scheda «Eventi e diagnostica».
+   */
+  const eventGroups = useMemo(() => {
+    const groups = new Map<string, DeviceEventDTO[]>();
+    openEvents.forEach((event) => {
+      const key = `${event.severity}|${event.description ?? `#${event.code}`}`;
+      const found = groups.get(key);
+      if (found) found.push(event);
+      else groups.set(key, [event]);
+    });
+    return [...groups.values()];
+  }, [openEvents]);
+
+  /**
+   * La X sul badge: gli avvisi escono dagli aperti, le righe restano nello storico.
+   *
+   * Prende una lista perché il badge è un gruppo. Chiuderne uno solo lascerebbe il badge
+   * dov'era, apparentemente immobile: chi preme la X intende chiudere quello che legge.
+   */
+  const dismissEvents = async (ids: number[]) => {
     try {
-      await acknowledgeEvent(xsrfToken ?? "", cu.id, eventId);
-      setOpenEvents((prev) => prev.filter((e) => e.id !== eventId));
+      await Promise.all(ids.map((id) => acknowledgeEvent(xsrfToken ?? "", cu.id, id)));
+      setOpenEvents((prev) => prev.filter((e) => !ids.includes(e.id)));
     } catch (err) {
       console.error("Presa in carico dell'evento fallita:", err);
     }
@@ -178,23 +205,35 @@ export function OverviewTab({ cu, onRefresh }: Props) {
               Il colore viene dalla gravità dichiarata dal server, non dal codice: un
               riallineamento riuscito e una configurazione non applicata sono due notizie
               opposte, e mostrarle uguali insegna a ignorarle entrambe. */}
-          {openEvents.map((event) => (
-            <Badge
-              key={event.id}
-              bg={event.severity === "info" ? "success" : "warning"}
-              text={event.severity === "info" ? undefined : "dark"}
-              className="d-inline-flex align-items-center gap-2"
-            >
-              {event.description}
-              <BsXCircle
-                role="button"
-                aria-label={t("detail.deviceStatus.dismiss")}
-                title={t("detail.deviceStatus.dismiss")}
-                onClick={() => dismissEvent(event.id)}
-                style={{ cursor: "pointer" }}
-              />
-            </Badge>
-          ))}
+          {eventGroups.map((group) => {
+            const first = group[0];
+            const times = group.reduce((total, e) => total + (e.occurrences ?? 1), 0);
+            return (
+              <Badge
+                key={first.id}
+                bg={first.severity === "info" ? "success" : "warning"}
+                text={first.severity === "info" ? undefined : "dark"}
+                className="d-inline-flex align-items-center gap-2"
+                title={group
+                  .map((e) =>
+                    e.sensorIndex === 0xff
+                      ? t("detail.events.subjectDevice")
+                      : t("detail.events.subjectSensor", { mu: e.source, slot: e.sensorIndex }),
+                  )
+                  .join(" · ")}
+              >
+                {first.description}
+                {times > 1 && <span className="fw-normal opacity-75">×{times}</span>}
+                <BsXCircle
+                  role="button"
+                  aria-label={t("detail.deviceStatus.dismiss")}
+                  title={t("detail.deviceStatus.dismiss")}
+                  onClick={() => dismissEvents(group.map((e) => e.id))}
+                  style={{ cursor: "pointer" }}
+                />
+              </Badge>
+            );
+          })}
         </div>
       )}
 

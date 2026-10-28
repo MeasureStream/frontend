@@ -508,6 +508,8 @@ export const it = {
   "detail.deviceStatus.protocol": "Protocollo v{version}",
   "detail.deviceStatus.bit": "bit {bit} della parola di stato",
   "detail.deviceStatus.dismiss": "Segna come visto: l'avviso sparisce, lo storico resta",
+  "detail.events.subjectDevice": "Dispositivo",
+  "detail.events.subjectSensor": "MU {mu} · slot {slot}",
   "sensorConfig.category.accelerometer": "Accelerometro",
   "sensorConfig.category.gyroscope": "Giroscopio",
   "sensorConfig.category.temperature": "Temperatura",
