@@ -85,10 +85,9 @@ export function AdminRequestModal({ show, onHide, operation, subject, facts }: P
       </Modal.Header>
 
       <Modal.Body>
-        <p className="mb-2">
-          {t("adminRequest.intro", { operation: t(ADMIN_OPERATIONS[operation].name), subject })}
-        </p>
-        <p className="text-muted small">{t(ADMIN_OPERATIONS[operation].effect)}</p>
+        {/* Nessun preambolo: l'operazione l'ha appena chiesta l'utente e il titolo la
+            nomina. La prima riga dice la sola cosa che l'utente non sa gia': cosa comporta. */}
+        <p>{t(ADMIN_OPERATIONS[operation].effect)}</p>
 
         <Form.Group className="mb-3">
           <Form.Label className="small fw-semibold">{t("adminRequest.reasonLabel")}</Form.Label>

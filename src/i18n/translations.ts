@@ -242,8 +242,6 @@ export const it = {
 
   // --- Richieste di operazioni riservate (mail all'assistenza) ---
   "adminRequest.title": "Serve un amministratore",
-  "adminRequest.intro":
-    "«{operation}» su {subject} non si esegue da soli. Qui si prepara la richiesta: il testo qui sotto si apre nel tuo programma di posta, indirizzato all'assistenza, e lo mandi tu.",
   "adminRequest.reasonLabel": "Motivo della richiesta",
   "adminRequest.reasonPlaceholder": "Perché serve questa operazione? Due righe bastano.",
   "adminRequest.reasonHint":
