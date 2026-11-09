@@ -26,6 +26,7 @@ interface NavbarProps {
 /** Sezioni del sito, nell'ordine in cui compaiono al centro della barra. */
 const SECTIONS: { to: string; key: TranslationKey; badge?: "messages"; adminOnly?: boolean }[] = [
   { to: "/", key: "nav.overview" },
+  { to: "/mie-mu", key: "nav.myUnits" },
   { to: "/hub", key: "nav.metrologyHub" },
   { to: "/verifica-certificati", key: "nav.verifyCertificates" },
   { to: "/messaggi", key: "nav.messages", badge: "messages" },
