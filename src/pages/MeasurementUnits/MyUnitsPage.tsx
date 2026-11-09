@@ -14,7 +14,7 @@
  */
 import { useCallback, useEffect, useState } from "react";
 import { Alert, Badge, Button, Container, Form, Modal, Spinner, Table } from "react-bootstrap";
-import { BsCpu, BsEraser, BsBoxArrowRight } from "react-icons/bs";
+import { BsCpu, BsEraser, BsBoxArrowRight, BsEnvelopeAt } from "react-icons/bs";
 import { Link, useNavigate } from "react-router";
 import {
   dissociateUnit,
@@ -23,6 +23,7 @@ import {
   type MeasurementUnitSummary,
 } from "../../API/myUnitsAPI";
 import { useAuth } from "../../API/AuthContext";
+import { AdminRequestModal } from "../../components/AdminRequestModal";
 import { useI18n } from "../../i18n/I18nContext";
 
 export function MyUnitsPage() {
@@ -37,6 +38,8 @@ export function MyUnitsPage() {
   const [failed, setFailed] = useState(false);
   /** La MU che sta per essere formattata: la conferma dice cosa sparisce. */
   const [toErase, setToErase] = useState<MeasurementUnitSummary | null>(null);
+  /** La MU per cui si sta chiedendo la formattazione a un amministratore. */
+  const [toRequest, setToRequest] = useState<MeasurementUnitSummary | null>(null);
   const [working, setWorking] = useState(false);
 
   const load = useCallback(() => {
@@ -195,7 +198,7 @@ export function MyUnitsPage() {
                         {t("myUnits.dissociate")}
                       </Button>
                     )}
-                    {isAdmin && (
+                    {isAdmin ? (
                       <Button
                         size="sm"
                         variant="outline-danger"
@@ -206,6 +209,18 @@ export function MyUnitsPage() {
                         <BsEraser className="me-1" />
                         {t("myUnits.erase")}
                       </Button>
+                    ) : (
+                      /* A un utente il pulsante non sparisce: prepara la richiesta. Sparire
+                         lascerebbe senza strada chi ha una MU da formattare per davvero. */
+                      <Button
+                        size="sm"
+                        variant="outline-secondary"
+                        title={t("myUnits.requestEraseHint")}
+                        onClick={() => setToRequest(unit)}
+                      >
+                        <BsEnvelopeAt className="me-1" />
+                        {t("myUnits.requestErase")}
+                      </Button>
                     )}
                   </td>
                 </tr>
@@ -213,6 +228,43 @@ export function MyUnitsPage() {
             </tbody>
           </Table>
         </div>
+      )}
+
+      {toRequest && (
+        <AdminRequestModal
+          show={!!toRequest}
+          onHide={() => setToRequest(null)}
+          operation="eraseMeasurementUnit"
+          subject={toRequest.label}
+          facts={[
+            { label: t("adminRequest.fact.internalId"), value: toRequest.id },
+            { label: t("adminRequest.fact.extendedId"), value: toRequest.extendedId },
+            {
+              label: t("adminRequest.fact.model"),
+              value: `0x${toRequest.model.toString(16).toUpperCase().padStart(4, "0")}${
+                toRequest.modelMajor != null ? ` (MAJOR ${toRequest.modelMajor})` : ""
+              }`,
+            },
+            { label: t("adminRequest.fact.sensors"), value: toRequest.sensorCount },
+            {
+              label: t("adminRequest.fact.lastControlUnit"),
+              value: toRequest.controlUnit
+                ? `${toRequest.controlUnit.name ?? toRequest.controlUnit.deviceId ?? "—"} (#${toRequest.controlUnit.id})`
+                : null,
+            },
+            {
+              label: t("adminRequest.fact.inUse"),
+              value: !toRequest.attached
+                ? t("myUnits.state.detached")
+                : toRequest.online
+                  ? t("myUnits.state.active")
+                  : t("myUnits.state.offline"),
+            },
+            { label: t("adminRequest.fact.lastSeen"), value: when(toRequest.lastSeen) },
+            { label: t("adminRequest.fact.openAlarms"), value: toRequest.openAlarms },
+            { label: t("adminRequest.fact.openEvents"), value: toRequest.openEvents },
+          ]}
+        />
       )}
 
       <Modal show={!!toErase} onHide={() => setToErase(null)} centered>

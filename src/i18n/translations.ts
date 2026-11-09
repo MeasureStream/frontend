@@ -201,6 +201,9 @@ export const it = {
     "Toglie la MU dall'elenco senza cancellare niente. Se ricompare in una notifica di topologia torna visibile.",
   "myUnits.erase": "Formatta",
   "myUnits.eraseHint": "Cancella la MU, i suoi sensori e le misure che ha prodotto. Solo amministratori.",
+  "myUnits.requestErase": "Richiedi formattazione",
+  "myUnits.requestEraseHint":
+    "Prepara una richiesta via mail: la formattazione cancella le misure, quindi la esegue un amministratore. Per toglierla solo dall'elenco basta «Dissocia».",
   "myUnits.eraseTitle": "Formattare questa unità?",
   "myUnits.eraseBody": "Stai per cancellare {label} e tutto quello che ha prodotto:",
   "myUnits.eraseSensors": "{count} sensori censiti",
@@ -237,6 +240,55 @@ export const it = {
   "myUnits.events.yes": "Sì",
   "myUnits.events.no": "No",
 
+  // --- Richieste di operazioni riservate (mail all'assistenza) ---
+  "adminRequest.title": "Serve un amministratore",
+  "adminRequest.intro":
+    "«{operation}» su {subject} non si esegue da soli. Qui si prepara la richiesta: il testo qui sotto si apre nel tuo programma di posta, indirizzato all'assistenza, e lo mandi tu.",
+  "adminRequest.reasonLabel": "Motivo della richiesta",
+  "adminRequest.reasonPlaceholder": "Perché serve questa operazione? Due righe bastano.",
+  "adminRequest.reasonHint":
+    "Facoltativo, fino a {max} caratteri. È l'unica cosa che l'amministratore non può ricavare da sé.",
+  "adminRequest.previewLabel": "Cosa viene scritto nella mail",
+  "adminRequest.recipient": "Destinatario:",
+  "adminRequest.copy": "Copia il testo",
+  "adminRequest.copied": "Copiato",
+  "adminRequest.copyFailed":
+    "Appunti non disponibili su questa pagina: seleziona il testo qui sopra e copialo a mano.",
+  "adminRequest.cancel": "Annulla",
+  "adminRequest.send": "Apri la richiesta",
+  "adminRequest.unknownUser": "utente senza anagrafica",
+  "adminRequest.op.eraseMu": "Formattazione di una Measurement Unit",
+  "adminRequest.op.eraseMuEffect":
+    "Cancella la MU, i suoi sensori, le misure che ha prodotto, gli eventi e gli allarmi. Non si può annullare.",
+  "adminRequest.op.deleteCu": "Eliminazione di una Control Unit",
+  "adminRequest.op.deleteCuEffect":
+    "Rimuove il dispositivo dal network e stacca le Measurement Unit collegate. Non si può annullare.",
+  "adminRequest.mailSubject": "[MeasureStream] Richiesta: {operation} — {subject}",
+  "adminRequest.mailIntro": "Richiesta di eseguire «{operation}» su {subject}.",
+  "adminRequest.mailRequester": "Richiedente",
+  "adminRequest.mailAccount": "Account",
+  "adminRequest.mailOperation": "Operazione",
+  "adminRequest.mailEffect": "Comporta",
+  "adminRequest.mailSubjectLine": "Oggetto della richiesta",
+  "adminRequest.mailDetails": "Dettagli",
+  "adminRequest.mailReason": "Motivo",
+  "adminRequest.mailReasonPlaceholder": "(non specificato)",
+  "adminRequest.mailFooter":
+    "Messaggio preparato dall'interfaccia MeasureStream il {date} — pagina: {page}",
+  "adminRequest.fact.internalId": "ID interno",
+  "adminRequest.fact.extendedId": "Extended ID",
+  "adminRequest.fact.model": "Modello",
+  "adminRequest.fact.sensors": "Sensori censiti",
+  "adminRequest.fact.lastControlUnit": "Ultima Control Unit",
+  "adminRequest.fact.inUse": "In uso",
+  "adminRequest.fact.lastSeen": "Ultimo contatto",
+  "adminRequest.fact.openAlarms": "Allarmi aperti",
+  "adminRequest.fact.openEvents": "Avvisi aperti",
+  "adminRequest.fact.devEui": "DevEUI",
+  "adminRequest.fact.deviceId": "Device ID su TTN",
+  "adminRequest.fact.location": "Posizione dichiarata",
+  "adminRequest.fact.measurementUnits": "MU collegate",
+
   // --- Riferimenti campione (solo amministratori) ---
   "standards.title": "Riferimenti campione",
   "standards.subtitle": "Strumenti campione usati come riferimento nelle tarature",
@@ -271,6 +323,7 @@ export const it = {
   "devices.title": "Benvenuto, ecco i tuoi dispositivi:",
   "devices.subtitle": "Monitoraggio in tempo reale del network LoRaWAN",
   "devices.deleteTitle": "Elimina {name}",
+  "devices.deleteRequestTitle": "Chiedi l'eliminazione di {name} a un amministratore",
   "devices.alarmsOk": "Nessun allarme attivo",
   "devices.versionMismatch":
     "Configurazione disallineata: la CU dichiara una versione diversa da quella attesa (CFG_VER o CMD_SEQ)",
