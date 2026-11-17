@@ -6,6 +6,8 @@ import { useMemo, useState } from "react";
 import { ControlUnitDTO, formatDevEui } from "../../API/interfaces";
 import { useActiveAlarms } from "../../API/useActiveAlarms";
 import { DeleteCUModal } from "../../components/DeleteCUModal";
+import { AdminRequestModal } from "../../components/AdminRequestModal";
+import { useAuth } from "../../API/AuthContext";
 import { CUsFilterComponent, normalizeLocation } from "../../components/CUsFilterComponent";
 import { EmptyDevicesLanding } from "./EmptyDevicesLanding";
 import { useI18n } from "../../i18n/I18nContext";
@@ -132,10 +134,14 @@ interface ControlUnitsPageProps {
 
 export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPageProps) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  /** Eliminare una CU resta agli amministratori: a un utente si apre la richiesta. */
+  const [showRequestModal, setShowRequestModal] = useState(false);
   const [selectedCU, setSelectedCU] = useState<ControlUnitDTO | null>(null);
   /** Località selezionata nel filtro; `null` = tutte. */
   const [locationFilter, setLocationFilter] = useState<string | null>(null);
   const { t, locale } = useI18n();
+  const { role } = useAuth();
+  const isAdmin = role === "ADMIN";
   /** Allarmi aperti per CU: alimenta il pallino verde/rosso sulle card. */
   const activeAlarms = useActiveAlarms(controlUnits);
 
@@ -163,7 +169,11 @@ export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPagePr
 
   const openDeleteModal = (cu: ControlUnitDTO) => {
     setSelectedCU(cu);
-    setShowDeleteModal(true);
+    // Il server rifiuta l'eliminazione a chi non e' amministratore. Portarci comunque
+    // significherebbe far premere «Sì, elimina» per incassare un errore: meglio aprire
+    // subito la richiesta, che e' la cosa che l'utente puo' davvero fare.
+    if (isAdmin) setShowDeleteModal(true);
+    else setShowRequestModal(true);
   };
 
   const handleDeleteSuccess = () => {
@@ -236,7 +246,11 @@ export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPagePr
                         <button
                           className="btn btn-link text-muted p-0 border-0 d-flex align-items-center lh-1"
                           onClick={() => openDeleteModal(cu)}
-                          title={t("devices.deleteTitle", { name: cu.name })}
+                          title={
+                            isAdmin
+                              ? t("devices.deleteTitle", { name: cu.name })
+                              : t("devices.deleteRequestTitle", { name: cu.name })
+                          }
                           style={{ background: 'none' }}
                         >
                           <BsTrash size={18} className="text-danger" />
@@ -308,6 +322,29 @@ export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPagePr
         controlUnit={selectedCU}
         onSuccess={handleDeleteSuccess}
       />
+
+      {selectedCU && (
+        <AdminRequestModal
+          show={showRequestModal}
+          onHide={() => setShowRequestModal(false)}
+          operation="deleteControlUnit"
+          subject={selectedCU.name}
+          facts={[
+            { label: t("adminRequest.fact.internalId"), value: selectedCU.id },
+            { label: t("adminRequest.fact.devEui"), value: formatDevEui(selectedCU.devEui) },
+            { label: t("adminRequest.fact.deviceId"), value: selectedCU.deviceId },
+            { label: t("adminRequest.fact.location"), value: selectedCU.semanticLocation },
+            {
+              label: t("adminRequest.fact.measurementUnits"),
+              value: selectedCU.measurementUnits?.length ?? 0,
+            },
+            {
+              label: t("adminRequest.fact.lastSeen"),
+              value: selectedCU.lastSeen ? new Date(selectedCU.lastSeen).toLocaleString(locale) : null,
+            },
+          ]}
+        />
+      )}
     </Container>
   );
 }

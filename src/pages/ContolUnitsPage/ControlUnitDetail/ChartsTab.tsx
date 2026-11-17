@@ -6,11 +6,9 @@
  * di aprirne uno alla volta. Due card per riga: con tre i punti diventavano
  * illeggibili sulle scale strette.
  */
-import { Row, Col } from "react-bootstrap";
 import { BsBarChartFill } from "react-icons/bs";
 import type { ControlUnitDTO } from "../../../API/interfaces";
-import { ChartPreviewCard } from "../../../components/ChartPreviewCard";
-import { sensorType } from "../../../API/sensorConfig/sensorConfigAdapter";
+import { SensorChartsGrid, muLabel } from "../../../components/SensorChartsGrid";
 import { useI18n } from "../../../i18n/I18nContext";
 
 interface Props {
@@ -20,11 +18,6 @@ interface Props {
    * scarico e cancellazione delle misure, tolti finché non tornano su sensor-manager.
    */
   onRefresh: () => void;
-}
-
-/** Etichetta della MU, la stessa usata dalle card dei sensori. */
-function muLabel(extendedId: number): string {
-  return `MU h${(Number(extendedId) & 0xffff).toString(16).toUpperCase()}`;
 }
 
 export function ChartsTab({ cu }: Props) {
@@ -50,28 +43,11 @@ export function ChartsTab({ cu }: Props) {
                 card sotto sarebbe la stessa scritta ripetuta per ogni sensore. */}
             <h3 className="fw-bold font-monospace text-primary mb-3">{muLabel(mu.extendedId)}</h3>
 
-            <Row className="row-cols-1 row-cols-lg-2 g-4">
-              {[...mu.sensors]
-                .sort((a, b) => a.sensorIndex - b.sensorIndex)
-                .map((sensor) => (
-                  <Col key={sensor.id}>
-                    <ChartPreviewCard
-                      sensorId={sensor.id}
-                      sensor={sensor}
-                      // Nella card basta il tipo di sensore; la MU la ripete il modal,
-                      // che si apre da solo e deve bastare a sé stesso.
-                      title={sensorType(sensor.template, t).label}
-                      muLabel={muLabel(mu.extendedId)}
-                      // Il pannello si ricarica solo se la CU si è fatta viva: senza
-                      // un contatto nuovo i dati sarebbero gli stessi.
-                      lastContact={cu.lastSeen}
-                      // TODO passo 11: il tipo di misura attivo si ricava dalle metriche
-                      // dello slot nel modello di MU, non piu' da una costante.
-                      measurementType={"avg-std"}
-                    />
-                  </Col>
-                ))}
-            </Row>
+            <SensorChartsGrid
+              sensors={mu.sensors}
+              label={muLabel(mu.extendedId)}
+              lastContact={cu.lastSeen}
+            />
           </div>
         ))}
     </section>

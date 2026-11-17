@@ -16,6 +16,8 @@ import { MetrologyHubPage } from "./pages/MetrologyHub/MetrologyHubPage";
 import { CertificateVerifyPage } from "./pages/CertificateVerify/CertificateVerifyPage";
 import { MessagesPage } from "./pages/Messages/MessagesPage";
 import { ReferenceStandardsPage } from "./pages/ReferenceStandards/ReferenceStandardsPage";
+import { MyUnitsPage } from "./pages/MeasurementUnits/MyUnitsPage";
+import { MeasurementUnitDetailPage } from "./pages/MeasurementUnits/MeasurementUnitDetailPage";
 
 function App() {
   const { xsrfToken, setXsrfToken, dirty, setDirty, role, setRole, setUser } = useAuth(); // Usa il contesto
@@ -148,6 +150,11 @@ function App() {
             <Route path="/verifica-certificati" element={<CertificateVerifyPage />} />
             <Route path="/messaggi" element={<MessagesPage />} />
             <Route path="/riferimenti-campione" element={<ReferenceStandardsPage />} />
+
+            {/* Le MU come flotta: esistono anche staccate da ogni CU, e da staccate
+                restavano invisibili insieme alle misure che hanno prodotto. */}
+            <Route path="/mie-mu" element={<MyUnitsPage />} />
+            <Route path="/mie-mu/:id" element={<MeasurementUnitDetailPage />} />
 
           </Routes>
         </Container>
