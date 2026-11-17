@@ -436,6 +436,26 @@ export const it = {
   "charts.title": "Grafici dei sensori",
   "charts.empty": "Nessuna MU associata a questa Control Unit.",
   "charts.loading": "Caricamento del grafico…",
+  "charts.channel": "canale {index}",
+  "charts.channelFallback": "Sensore {index}",
+  "charts.zoom": "Ingrandisci",
+  "charts.controls.view": "Vista",
+  "charts.controls.viewDefault": "Secondo il sensore",
+  "charts.controls.from": "Da",
+  "charts.controls.to": "A",
+  "charts.controls.reset": "Ripristina",
+  "charts.controls.autoHint":
+    "Senza estremi ogni pannello mostra l'ultima ora di dati che ha registrato, non l'ultima ora dell'orologio.",
+  "charts.view.punctual": "Puntuale",
+  "charts.view.avgStd": "Media e deviazione",
+  "charts.view.maxMin": "Massimo e minimo",
+  "charts.view.integral": "Integrale",
+
+  // --- Paginazione delle tabelle ---
+  "pager.label": "Paginazione",
+  "pager.previous": "Precedente",
+  "pager.next": "Successiva",
+  "pager.goTo": "Pagina {page}",
 
   // --- Scheda Storico allarmi ---
   "alarms.title": "Storico allarmi",

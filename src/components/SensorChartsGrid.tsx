@@ -9,6 +9,7 @@
 import { Row, Col } from "react-bootstrap";
 import type { SensorDTO } from "../API/interfaces";
 import { ChartPreviewCard } from "./ChartPreviewCard";
+import type { ChartSettings } from "./SensorChartsControls";
 import { sensorType } from "../API/sensorConfig/sensorConfigAdapter";
 import { useI18n } from "../i18n/I18nContext";
 
@@ -26,9 +27,14 @@ interface Props {
    * senza un contatto nuovo i dati sarebbero gli stessi.
    */
   lastContact?: string | null;
+  /**
+   * Vista e intervallo decisi dalla barra della scheda. La griglia non li interpreta:
+   * li consegna a ogni card, che sa farsi il proprio indirizzo Grafana.
+   */
+  settings?: ChartSettings;
 }
 
-export function SensorChartsGrid({ sensors, label, lastContact }: Props) {
+export function SensorChartsGrid({ sensors, label, lastContact, settings }: Props) {
   const { t } = useI18n();
 
   return (
@@ -44,6 +50,7 @@ export function SensorChartsGrid({ sensors, label, lastContact }: Props) {
               title={sensorType(sensor.template, t).label}
               muLabel={label}
               lastContact={lastContact}
+              settings={settings}
               // TODO passo 11: il tipo di misura attivo si ricava dalle metriche dello slot
               // nel modello di MU, non piu' da una costante.
               measurementType={"avg-std"}

@@ -142,6 +142,12 @@ export interface SensorDTO {
   template: TemplateRef | null;
   /** Comodità: equivale a `template !== null`. */
   templateResolved?: boolean;
+  /**
+   * Quando questo sensore ha misurato l'ultima volta (ISO 8601). Ci si ancora la finestra
+   * dei grafici: senza, l'asse parte da «adesso» e un sensore che tace da giorni mostra un
+   * rettangolo vuoto. Assente finché non ha prodotto una misura buona.
+   */
+  lastValueAt?: string | null;
 }
 
 /** Le cinque famiglie del registro. */

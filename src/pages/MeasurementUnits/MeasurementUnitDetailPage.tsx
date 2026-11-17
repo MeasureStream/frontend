@@ -13,6 +13,11 @@ import { Link, useLocation, useParams } from "react-router";
 import { getUnit, type MeasurementUnitSummary } from "../../API/myUnitsAPI";
 import type { MeasurementUnitDTO } from "../../API/interfaces";
 import { SensorChartsGrid, muLabel } from "../../components/SensorChartsGrid";
+import {
+  AUTO_CHART_SETTINGS,
+  SensorChartsControls,
+  type ChartSettings,
+} from "../../components/SensorChartsControls";
 import { MeasurementUnitEvents } from "../../components/MeasurementUnitEvents";
 import { useI18n } from "../../i18n/I18nContext";
 
@@ -29,6 +34,8 @@ export function MeasurementUnitDetailPage() {
   const summary = (useLocation().state as { summary?: MeasurementUnitSummary } | null)?.summary;
 
   const [unit, setUnit] = useState<MeasurementUnitDTO | null>(null);
+  /** La barra vale per tutti i pannelli della MU, come nella scheda di una CU. */
+  const [settings, setSettings] = useState<ChartSettings>(AUTO_CHART_SETTINGS);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
 
@@ -138,9 +145,17 @@ export function MeasurementUnitDetailPage() {
           </header>
 
           <section className="mb-5">
-            <h4 className="d-flex align-items-center gap-2 fw-bold mb-3">
-              <BsBarChartFill className="text-primary" /> {t("charts.title")}
-            </h4>
+            <div className="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+              <h4 className="d-flex align-items-center gap-2 fw-bold mb-0">
+                <BsBarChartFill className="text-primary" /> {t("charts.title")}
+              </h4>
+
+              {/* Senza pannelli non c'è niente da regolare: la barra compare con i grafici. */}
+              {unit.sensors.length > 0 && (
+                <SensorChartsControls settings={settings} onChange={setSettings} />
+              )}
+            </div>
+
             {unit.sensors.length === 0 ? (
               <p className="text-muted">{t("charts.empty")}</p>
             ) : (
@@ -148,6 +163,7 @@ export function MeasurementUnitDetailPage() {
                 sensors={unit.sensors}
                 label={label}
                 lastContact={summary?.lastSeen ?? unit.statusAt ?? null}
+                settings={settings}
               />
             )}
           </section>

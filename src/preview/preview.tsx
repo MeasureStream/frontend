@@ -108,6 +108,9 @@ function mockSensor(seed: SensorSeed, index: number, muIndex: number): SensorDTO
     configurable: true,
     template: mockTemplate(seed, index),
     templateResolved: true,
+    /* Ultima misura di qualche ora fa: è il caso che conta da guardare, perché la
+       finestra predefinita dei grafici si ancora qui e non ad «adesso». */
+    lastValueAt: minutesAgo(190),
   };
 }
 
