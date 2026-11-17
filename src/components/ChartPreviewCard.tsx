@@ -1,7 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Button, Modal, Card, Form, Spinner } from "react-bootstrap";
+import { Modal, Card, Spinner } from "react-bootstrap";
 import { SensorDTO } from "../API/interfaces";
 import { useAutoRefresh } from "../API/useAutoRefresh";
+import {
+  AUTO_CHART_SETTINGS,
+  SensorChartsControls,
+  isChartView,
+  type ChartSettings,
+} from "./SensorChartsControls";
 import { useI18n } from "../i18n/I18nContext";
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
@@ -32,10 +38,77 @@ const CHART_REFRESH_MS = 60_000;
  */
 const MIN_RELOAD_GAP_MS = 78_000;
 
+/** Un'ora di dati: l'ampiezza della finestra predefinita. */
+const DEFAULT_SPAN_MS = 3_600_000;
+
+/** Quale pannello del dashboard Grafana disegna quale vista. */
+const PANEL_OF_VIEW: Record<string, string> = {
+  integral: "panel-1",
+  puntual: "panel-2",
+  "max-min": "panel-3",
+  "avg-std": "panel-4",
+};
+
 /** Un iframe del buffer: `ready` diventa vero quando ha finito di caricare. */
 interface PanelFrame {
   id: number;
   ready: boolean;
+  /**
+   * L'URL con cui è stato montato. Ogni buffer tiene il suo: cambiando vista o
+   * intervallo, il pannello precedente resta visibile con il suo indirizzo finché il
+   * nuovo non è pronto. Condividendo una sola stringa si ricaricherebbero insieme, e
+   * chi guarda vedrebbe lo splash di Grafana al posto del grafico.
+   */
+  url: string;
+}
+
+/** `datetime-local` → ISO 8601. Null se la stringa è vuota o non è una data. */
+function isoOf(local: string): string | null {
+  if (!local) return null;
+  const parsed = new Date(local);
+  return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
+}
+
+/**
+ * La finestra temporale del pannello.
+ *
+ * Ordine: gli estremi scelti a mano nella barra; in mancanza, **l'ultima ora di dati del
+ * sensore** — ultima misura meno un'ora, fino all'ultima misura; e solo se il sensore non
+ * ha mai misurato, l'ultima ora dell'orologio. È la differenza fra un grafico e un «No
+ * data» su un sensore spento o su una CU che trasmette ogni sei ore.
+ *
+ * Il calcolo è qui e non sul server: `lastValueAt` viaggia già dentro il DTO del sensore,
+ * scritto quando la misura è stata salvata, quindi disegnare la finestra non costa una
+ * query né alla Pi né a Grafana.
+ */
+function resolveWindow(settings: ChartSettings, lastValueAt?: string | null) {
+  const last = lastValueAt ? new Date(lastValueAt) : null;
+  const usable = last && !Number.isNaN(last.getTime()) ? last : null;
+
+  const autoTo = usable ? usable.toISOString() : "now";
+  const autoFrom = usable ? new Date(usable.getTime() - DEFAULT_SPAN_MS).toISOString() : "now-1h";
+
+  return {
+    from: isoOf(settings.from) ?? autoFrom,
+    to: isoOf(settings.to) ?? autoTo,
+  };
+}
+
+/** L'indirizzo del pannello solo-grafico, con sensore, vista e finestra. */
+function grafanaPanelUrl(sensorId: string | number, view: string, from: string, to: string): string {
+  const base =
+    BASE_URL === "https://www.christiandellisanti.uk"
+      ? "https://grafana.christiandellisanti.uk"
+      : "http://localhost:3000";
+
+  const panelId = PANEL_OF_VIEW[view] ?? PANEL_OF_VIEW.puntual;
+
+  /* Niente `&refresh=`: su `d-solo` Grafana lo ignora (vedi CHART_REFRESH_MS). */
+  return (
+    `${base}/d-solo/adlw9mw/dashboard-measurements-of-different-types` +
+    `?orgId=1&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}` +
+    `&timezone=browser&var-sensor_id=${sensorId}&panelId=${panelId}&theme=light`
+  );
 }
 
 /**
@@ -74,18 +147,48 @@ interface Props {
    * qualcosa di nuovo: finché non cambia, il pannello non viene ricaricato.
    */
   lastContact?: string | null;
+  /**
+   * Vista e intervallo imposti dalla barra della scheda, uguali per tutti i pannelli.
+   * Assenti o vuoti: ogni pannello si regola da sé sull'ultima misura del suo sensore.
+   */
+  settings?: ChartSettings;
 }
 
-export function ChartPreviewCard({ sensorId, sensor, measurementType, title, muLabel, lastContact }: Props) {
+export function ChartPreviewCard({
+  sensorId,
+  sensor,
+  measurementType,
+  title,
+  muLabel,
+  lastContact,
+  settings = AUTO_CHART_SETTINGS,
+}: Props) {
   const { t } = useI18n();
   const [show, setShow] = useState(false);
-  const [from, setFrom] = useState("");
-  const [to, setTo] = useState("");
   const [modalReady, setModalReady] = useState(false);
+
+  /**
+   * La barra della scheda decide per tutti; se non ha scelto una vista vale quella del
+   * sensore. Il modal parte da qui e poi fa storia a sé: chi apre un pannello per
+   * guardarlo da vicino cambia spesso intervallo, e non deve farlo a tutta la pagina.
+   */
+  const pageView = settings.view && isChartView(settings.view) ? settings.view : null;
+  const sensorView = isChartView(measurementType) ? measurementType : "puntual";
+  const previewView = pageView ?? sensorView;
+
+  const previewWindow = useMemo(
+    () => resolveWindow(settings, sensor.lastValueAt),
+    [settings, sensor.lastValueAt],
+  );
+
+  const previewUrl = useMemo(
+    () => grafanaPanelUrl(sensorId, previewView, previewWindow.from, previewWindow.to),
+    [sensorId, previewView, previewWindow.from, previewWindow.to],
+  );
 
   /* Anteprima a doppio buffer: in coda c'è l'iframe che sta caricando, visibile
      resta l'ultimo che ha finito. All'inizio ce n'è uno solo, ancora vuoto. */
-  const [frames, setFrames] = useState<PanelFrame[]>([{ id: 0, ready: false }]);
+  const [frames, setFrames] = useState<PanelFrame[]>(() => [{ id: 0, ready: false, url: previewUrl }]);
   const shownFrame = [...frames].reverse().find((f) => f.ready) ?? null;
 
   /* Si aggiorna solo ciò che è davvero sotto gli occhi: su una scheda con dodici
@@ -116,8 +219,31 @@ export function ChartPreviewCard({ sensorId, sensor, measurementType, title, muL
     if (Date.now() - lastLoad.current.at < MIN_RELOAD_GAP_MS) return;
     if ((lastContact ?? null) === lastLoad.current.contact) return;
 
-    setFrames((prev) => (prev.some((f) => !f.ready) ? prev : [...prev, { id: prev[prev.length - 1].id + 1, ready: false }]));
+    setFrames((prev) =>
+      prev.some((f) => !f.ready)
+        ? prev
+        : [...prev, { id: prev[prev.length - 1].id + 1, ready: false, url: previewUrl }],
+    );
   }, CHART_REFRESH_MS);
+
+  /* Vista o intervallo cambiati dalla barra: stesso meccanismo del refresh, un buffer
+     nuovo dietro quello che si sta guardando. Al primo render non si accoda niente —
+     il buffer iniziale è già montato con l'URL giusto. */
+  const mounted = useRef(false);
+  useEffect(() => {
+    if (!mounted.current) {
+      mounted.current = true;
+      return;
+    }
+    setFrames((prev) => {
+      const next = { id: prev[prev.length - 1].id + 1, ready: false, url: previewUrl };
+      /* Al massimo due: quello che si sta guardando e quello che sta arrivando. Chi
+         cambia idea tre volte di fila non deve lasciarsi dietro tre iframe in attesa —
+         succede davvero quando Grafana non risponde e nessuno di loro finisce mai. */
+      const shown = [...prev].reverse().find((f) => f.ready);
+      return shown ? [shown, next] : [next];
+    });
+  }, [previewUrl]);
 
   /** Il nuovo pannello è pronto: prende il posto dei precedenti, che si smontano. */
   const handleFrameLoad = (id: number) => {
@@ -129,81 +255,22 @@ export function ChartPreviewCard({ sensorId, sensor, measurementType, title, muL
     });
   };
 
-  const heading = title ?? `Sensore ${sensor.sensorIndex}`;
+  const heading = title ?? t("charts.channelFallback", { index: sensor.sensorIndex });
   /** Nel modal si antepone la MU, che nella griglia è già scritta sopra il gruppo. */
   const modalHeading = muLabel ? `${muLabel} · ${heading}` : heading;
 
-  // Inizializziamo lo stato con measurementType (se valido), altrimenti fallback su "puntual"
-  const [selectedView, setSelectedView] = useState<string>(() => {
-    const validViews = ["puntual", "avg-std", "max-min", "integral"];
-    return validViews.includes(measurementType) ? measurementType : "puntual";
-  });
-
-  /* Cambiare vista o intervallo ricarica il pannello: il velo torna su, altrimenti
-     si vedrebbe lo splash di Grafana al posto del grafico precedente. */
-  const reloadModalWith = (apply: () => void) => {
-    setModalReady(false);
-    apply();
-  };
+  /** Vista e intervallo del modal: partono da quelli della pagina, poi vivono da soli. */
+  const [modalSettings, setModalSettings] = useState<ChartSettings>(settings);
+  const modalView = modalSettings.view && isChartView(modalSettings.view) ? modalSettings.view : sensorView;
+  const modalWindow = resolveWindow(modalSettings, sensor.lastValueAt);
+  const modalUrl = grafanaPanelUrl(sensorId, modalView, modalWindow.from, modalWindow.to);
 
   const handleClose = () => setShow(false);
   const handleShow = () => {
-    // Quando apriamo il modal, impostiamo il default sul measurementType della prop
-    const validViews = ["puntual", "avg-std", "max-min", "integral"];
-    setSelectedView(validViews.includes(measurementType) ? measurementType : "puntual");
+    setModalSettings(settings);
     setModalReady(false);
     setShow(true);
   };
-
-  // Mappatura delle viste con i codici panel-X
-  const getPanelId = (viewType: string) => {
-    switch (viewType) {
-      case "integral": return "panel-1";
-      case "puntual": return "panel-2";
-      case "max-min": return "panel-3";
-      case "avg-std": return "panel-4";
-      default: return "panel-2";
-    }
-  };
-
-  // --- GENERAZIONE URL GRAFANA ---
-  /**
-   * @param isFullView pannello del modal (intervallo scelto dall'utente) invece dell'anteprima
-   */
-  const getGrafanaUrl = (isFullView: boolean) => {
-    const base = BASE_URL === "https://www.christiandellisanti.uk"
-      ? "https://grafana.christiandellisanti.uk"
-      : "http://localhost:3000";
-
-    const orgId = 1;
-    const theme = "light";
-
-    // Per l'anteprima (card piccola) usiamo il measurementType del sensore, nel modal usiamo la selezione attiva
-    const activeView = isFullView ? selectedView : (["puntual", "avg-std", "max-min", "integral"].includes(measurementType) ? measurementType : "puntual");
-    const panelId = getPanelId(activeView);
-
-    const fromParam = isFullView
-      ? (from ? new Date(from).toISOString() : "now-6h")
-      : "now-1h";
-    const toParam = isFullView
-      ? (to ? new Date(to).toISOString() : "now")
-      : "now";
-
-    /* Niente `&refresh=`: su `d-solo` Grafana lo ignora (vedi CHART_REFRESH_MS).
-       L'intervallo resta relativo, cosi' ogni ricaricamento del buffer mostra
-       l'ultima ora rispetto a quel momento. */
-    return `${base}/d-solo/adlw9mw/dashboard-measurements-of-different-types?orgId=${orgId}&from=${encodeURIComponent(fromParam)}&to=${encodeURIComponent(toParam)}&timezone=browser&var-sensor_id=${sensorId}&panelId=${panelId}&theme=${theme}`;
-  };
-
-  /* L'URL dell'anteprima dipende solo dal sensore e dal tipo di misura: memorizzarlo
-     garantisce che resti la stessa stringa a ogni render, cosi' gli iframe gia'
-     montati non si ricaricano da soli. A ricaricare ci pensa il doppio buffer,
-     montando un elemento nuovo con lo stesso URL. */
-  const previewUrl = useMemo(
-    () => getGrafanaUrl(false),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [sensorId, measurementType],
-  );
 
   return (
     <>
@@ -217,9 +284,9 @@ export function ChartPreviewCard({ sensorId, sensor, measurementType, title, muL
           <div className="d-flex justify-content-between align-items-center mb-2 px-2">
             <h6 className="mb-0 fw-bold text-dark">
               {heading}
-              <small className="text-muted ms-2">canale {sensor.sensorIndex}</small>
+              <small className="text-muted ms-2">{t("charts.channel", { index: sensor.sensorIndex })}</small>
             </h6>
-            <span className="badge bg-light text-primary border">Zoom Chart</span>
+            <span className="badge bg-light text-primary border">{t("charts.zoom")}</span>
           </div>
 
           {/* Due card per riga: l'anteprima può essere più alta e i punti restano leggibili. */}
@@ -235,7 +302,7 @@ export function ChartPreviewCard({ sensorId, sensor, measurementType, title, muL
             {frames.map((frame) => (
               <iframe
                 key={frame.id}
-                src={previewUrl}
+                src={frame.url}
                 frameBorder="0"
                 title={`Preview ${sensorId}`}
                 onLoad={() => handleFrameLoad(frame.id)}
@@ -260,60 +327,24 @@ export function ChartPreviewCard({ sensorId, sensor, measurementType, title, muL
           <Modal.Title>
             {modalHeading}
             <small className="text-muted ms-2">
-              canale {sensor.sensorIndex} · {sensor.modelName}
+              {t("charts.channel", { index: sensor.sensorIndex })} · {sensor.modelName}
             </small>
           </Modal.Title>
         </Modal.Header>
         <Modal.Body style={{ height: '85vh', display: 'flex', flexDirection: 'column' }}>
 
-          {/* BARRA DEI CONTROLLI */}
-          <div className="mb-3 d-flex gap-2 align-items-center flex-wrap bg-light p-3 rounded border">
-
-            {/* SELETTORE TIPO DI PANNELLO */}
-            <div className="d-flex align-items-center gap-2">
-              <label className="small fw-bold">View:</label>
-              <Form.Select
-                size="sm"
-                value={selectedView}
-                onChange={(e) => reloadModalWith(() => setSelectedView(e.target.value))}
-                style={{ width: '160px' }}
-              >
-                <option value="puntual">Puntual</option>
-                <option value="avg-std">Avg - Std</option>
-                <option value="max-min">Max - Min</option>
-                <option value="integral">Integral</option>
-              </Form.Select>
-            </div>
-
-            <div className="d-flex align-items-center gap-2">
-              <label className="small fw-bold">From:</label>
-              <input
-                type="datetime-local"
-                value={from}
-                onChange={(e) => reloadModalWith(() => setFrom(e.target.value))}
-                className="form-control form-control-sm"
-              />
-            </div>
-            <div className="d-flex align-items-center gap-2">
-              <label className="small fw-bold">To:</label>
-              <input
-                type="datetime-local"
-                value={to}
-                onChange={(e) => reloadModalWith(() => setTo(e.target.value))}
-                className="form-control form-control-sm"
-              />
-            </div>
-
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => reloadModalWith(() => { setFrom(""); setTo(""); })}
-            >
-              Reset (Last 6h)
-            </Button>
-            {/* «Download JSON» e «Delete Range» tolti il 14/09/2026: chiamavano measure-manager,
-                dismesso. Da reintegrare con endpoint di sensor-manager sulla tabella measurements. */}
-          </div>
+          {/* La stessa barra della scheda, qui per un pannello solo. Cambiare qualcosa
+              ricarica il pannello: il velo torna su, altrimenti si vedrebbe lo splash di
+              Grafana al posto del grafico precedente. */}
+          <SensorChartsControls
+            settings={modalSettings}
+            onChange={(next) => {
+              setModalReady(false);
+              setModalSettings(next);
+            }}
+          />
+          {/* «Download JSON» e «Delete Range» tolti il 14/09/2026: chiamavano measure-manager,
+              dismesso. Da reintegrare con endpoint di sensor-manager sulla tabella measurements. */}
 
           {/* GRAFICO FULL SIZE */}
           <div className="flex-grow-1 position-relative">
@@ -321,8 +352,8 @@ export function ChartPreviewCard({ sensorId, sensor, measurementType, title, muL
             <iframe
               /* Qui l'URL cambia quando l'utente sceglie vista o intervallo: è una
                  ricarica voluta, e il velo torna finché il pannello non è pronto. */
-              key={`${selectedView}-${from}-${to}`}
-              src={getGrafanaUrl(true)}
+              key={modalUrl}
+              src={modalUrl}
               width="100%"
               height="100%"
               frameBorder="0"

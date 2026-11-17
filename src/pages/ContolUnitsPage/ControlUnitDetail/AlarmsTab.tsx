@@ -22,6 +22,7 @@ import {
   type DeviceEventDTO,
   type UplinkFrameDTO,
 } from "../../../API/framesAPI";
+import { TablePager, pageCountOf, pageOf } from "../../../components/TablePager";
 import { useAuth } from "../../../API/AuthContext";
 import { useAutoRefresh } from "../../../API/useAutoRefresh";
 import { useI18n } from "../../../i18n/I18nContext";
@@ -89,6 +90,11 @@ export function AlarmsTab({ cu, onRefresh }: Props) {
   /** Errore del caricamento: va detto sottovoce, dov'era la tabella. */
   const [loadError, setLoadError] = useState(false);
   const [working, setWorking] = useState(false);
+  /* Storico lungo, pagine corte: senza, duecento eventi spingevano i report ricevuti a
+     tre schermate di distanza. Le righe sono tutte qui, la pagina e' solo come si
+     guardano. */
+  const [eventPage, setEventPage] = useState(1);
+  const [framePage, setFramePage] = useState(1);
 
   const load = useCallback(() => {
     Promise.all([getAlarms(cu.id), getEvents(cu.id), getFrames(cu.id)])
@@ -250,7 +256,7 @@ export function AlarmsTab({ cu, onRefresh }: Props) {
               </tr>
             </thead>
             <tbody>
-              {events.map((event) => (
+              {pageOf(events, eventPage).map((event) => (
                 <tr key={event.id} className={event.acknowledged ? "text-muted" : undefined}>
                   <td className="font-monospace small text-nowrap">
                     {whenHappened(event, locale)}
@@ -277,6 +283,8 @@ export function AlarmsTab({ cu, onRefresh }: Props) {
             </tbody>
           </Table>
         )}
+
+        <TablePager page={eventPage} count={pageCountOf(events.length)} onChange={setEventPage} />
       </div>
 
       {/* --- REPORT RICEVUTI --- */}
@@ -300,7 +308,7 @@ export function AlarmsTab({ cu, onRefresh }: Props) {
               </tr>
             </thead>
             <tbody>
-              {frames.map((frame) => {
+              {pageOf(frames, framePage).map((frame) => {
                 const badge = statusBadge(frame.status);
                 return (
                   <tr key={frame.id} className={frame.acknowledged ? "text-muted" : undefined}>
@@ -322,6 +330,10 @@ export function AlarmsTab({ cu, onRefresh }: Props) {
               })}
             </tbody>
           </Table>
+        )}
+
+        {frames !== null && (
+          <TablePager page={framePage} count={pageCountOf(frames.length)} onChange={setFramePage} />
         )}
       </div>
     </section>

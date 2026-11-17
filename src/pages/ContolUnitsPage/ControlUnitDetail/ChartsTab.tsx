@@ -6,9 +6,15 @@
  * di aprirne uno alla volta. Due card per riga: con tre i punti diventavano
  * illeggibili sulle scale strette.
  */
+import { useState } from "react";
 import { BsBarChartFill } from "react-icons/bs";
 import type { ControlUnitDTO } from "../../../API/interfaces";
 import { SensorChartsGrid, muLabel } from "../../../components/SensorChartsGrid";
+import {
+  AUTO_CHART_SETTINGS,
+  SensorChartsControls,
+  type ChartSettings,
+} from "../../../components/SensorChartsControls";
 import { useI18n } from "../../../i18n/I18nContext";
 
 interface Props {
@@ -23,6 +29,10 @@ interface Props {
 export function ChartsTab({ cu }: Props) {
   const { t } = useI18n();
 
+  /* Una scelta sola per tutta la scheda: confrontare quattro sensori sulla stessa
+     finestra temporale non deve costare quattro volte le stesse due date. */
+  const [settings, setSettings] = useState<ChartSettings>(AUTO_CHART_SETTINGS);
+
   if (!cu.measurementUnits.length) {
     return <p className="text-muted">{t("charts.empty")}</p>;
   }
@@ -31,9 +41,11 @@ export function ChartsTab({ cu }: Props) {
     <section>
       {/* Un po' d'aria prima del primo gruppo: senza il sottotitolo, titolo e nome
           della MU si toccavano. */}
-      <h4 className="d-flex align-items-center gap-2 fw-bold mb-4">
+      <h4 className="d-flex align-items-center gap-2 fw-bold mb-3">
         <BsBarChartFill className="text-primary" /> {t("charts.title")}
       </h4>
+
+      <SensorChartsControls settings={settings} onChange={setSettings} />
 
       {[...cu.measurementUnits]
         .sort((a, b) => a.localId - b.localId)
@@ -47,6 +59,7 @@ export function ChartsTab({ cu }: Props) {
               sensors={mu.sensors}
               label={muLabel(mu.extendedId)}
               lastContact={cu.lastSeen}
+              settings={settings}
             />
           </div>
         ))}

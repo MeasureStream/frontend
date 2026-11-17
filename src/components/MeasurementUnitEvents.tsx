@@ -1,5 +1,5 @@
 /**
- * Eventi e diagnostica di una MU, scorrevoli ed esportabili.
+ * Eventi e diagnostica di una MU: dieci righe per pagina, e l'intero storico in un file.
  *
  * Non è il sottoinsieme degli eventi di una CU: una MU che ha cambiato dispositivo porta con
  * sé la propria storia, ed è il motivo per cui la riga dell'evento tiene un riferimento
@@ -14,6 +14,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Alert, Badge, Button, Spinner, Table } from "react-bootstrap";
 import { BsDownload, BsJournalText } from "react-icons/bs";
 import { getUnitEvents } from "../API/myUnitsAPI";
+import { TablePager, pageCountOf, pageOf } from "./TablePager";
 import type { DeviceEventDTO } from "../API/framesAPI";
 import { useI18n } from "../i18n/I18nContext";
 
@@ -30,6 +31,7 @@ export function MeasurementUnitEvents({ unitId, label }: Props) {
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     let alive = true;
@@ -143,11 +145,11 @@ export function MeasurementUnitEvents({ unitId, label }: Props) {
       )}
 
       {!failed && !loading && events.length > 0 && (
-        /* Scorrevole, non paginata: cercare un fatto in uno storico si fa scorrendo, e una
-           paginazione costringerebbe a indovinare in quale pagina è finito. */
-        <div style={{ maxHeight: 460, overflowY: "auto" }}>
+        /* Dieci righe per volta, come le altre tabelle della piattaforma. L'export resta
+           intero: quello che si esporta e' lo storico, non la pagina che si sta guardando. */
+        <div>
           <Table hover size="sm" className="align-middle mb-0">
-            <thead className="position-sticky top-0 bg-white" style={{ zIndex: 1 }}>
+            <thead>
               <tr>
                 <th>{t("myUnits.events.received")}</th>
                 <th>{t("myUnits.events.occurred")}</th>
@@ -158,7 +160,7 @@ export function MeasurementUnitEvents({ unitId, label }: Props) {
               </tr>
             </thead>
             <tbody>
-              {events.map((event) => (
+              {pageOf(events, page).map((event) => (
                 <tr key={event.id}>
                   <td className="font-monospace small text-nowrap">{when(event.receivedAt)}</td>
                   <td className="font-monospace small text-nowrap">
@@ -190,6 +192,8 @@ export function MeasurementUnitEvents({ unitId, label }: Props) {
               ))}
             </tbody>
           </Table>
+
+          <TablePager page={page} count={pageCountOf(events.length)} onChange={setPage} />
         </div>
       )}
     </section>

@@ -13,6 +13,11 @@ import { Link, useLocation, useParams } from "react-router";
 import { getUnit, type MeasurementUnitSummary } from "../../API/myUnitsAPI";
 import type { MeasurementUnitDTO } from "../../API/interfaces";
 import { SensorChartsGrid, muLabel } from "../../components/SensorChartsGrid";
+import {
+  AUTO_CHART_SETTINGS,
+  SensorChartsControls,
+  type ChartSettings,
+} from "../../components/SensorChartsControls";
 import { MeasurementUnitEvents } from "../../components/MeasurementUnitEvents";
 import { useI18n } from "../../i18n/I18nContext";
 
@@ -29,6 +34,8 @@ export function MeasurementUnitDetailPage() {
   const summary = (useLocation().state as { summary?: MeasurementUnitSummary } | null)?.summary;
 
   const [unit, setUnit] = useState<MeasurementUnitDTO | null>(null);
+  /** La barra vale per tutti i pannelli della MU, come nella scheda di una CU. */
+  const [settings, setSettings] = useState<ChartSettings>(AUTO_CHART_SETTINGS);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
 
@@ -144,11 +151,15 @@ export function MeasurementUnitDetailPage() {
             {unit.sensors.length === 0 ? (
               <p className="text-muted">{t("charts.empty")}</p>
             ) : (
-              <SensorChartsGrid
-                sensors={unit.sensors}
-                label={label}
-                lastContact={summary?.lastSeen ?? unit.statusAt ?? null}
-              />
+              <>
+                <SensorChartsControls settings={settings} onChange={setSettings} />
+                <SensorChartsGrid
+                  sensors={unit.sensors}
+                  label={label}
+                  lastContact={summary?.lastSeen ?? unit.statusAt ?? null}
+                  settings={settings}
+                />
+              </>
             )}
           </section>
 
