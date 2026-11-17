@@ -4,6 +4,10 @@ import { BsBatteryCharging, BsUsbPlugFill, BsCheck2Circle, BsXCircle, BsExclamat
 import { Link } from "react-router";
 import { useMemo, useState } from "react";
 import { ControlUnitDTO, formatDevEui } from "../../API/interfaces";
+/* La regola del disallineamento sta fuori: la usa anche la tabella di «Mie CUs», e una
+   pagina non è il posto da cui importarla. */
+import { hasVersionMismatch } from "../../API/cuAlignment";
+import { parseServerDate } from "../../API/cuTiming";
 import { useActiveAlarms } from "../../API/useActiveAlarms";
 import { DeleteCUModal } from "../../components/DeleteCUModal";
 import { AdminRequestModal } from "../../components/AdminRequestModal";
@@ -32,26 +36,6 @@ const POWER_LABEL_KEY: Record<PowerSource, TranslationKey> = {
   CHARGING: "devices.power.charging",
   EXTERNAL: "devices.power.external",
 };
-
-/**
- * Configurazione disallineata: il server e la CU non parlano della stessa versione.
- *
- * Due sintomi distinti, stesso significato pratico — quello che si vede in pagina
- * non è detto sia quello che il dispositivo sta applicando:
- * — `CFG_VER`: la CU dichiara una versione di configurazione diversa da quella attesa,
- *   oppure ha fatto scartare dei report per questo motivo;
- * — `CMD_SEQ`: l'ultimo comando inviato non risulta applicato.
- */
-export function hasVersionMismatch(cu: ControlUnitDTO): boolean {
-  const cfgMismatch =
-    (cu.configMismatchCount ?? 0) > 0 ||
-    /* Il confronto e' fra due valori sul filo. Con il contatore assoluto era sempre
-       diverso — quello cresce a ogni adozione — e il triangolo restava acceso per sempre. */
-    (cu.lastReportedConfigVersion != null &&
-      cu.lastReportedConfigVersion !== (cu.configVersionOnWire ?? (cu.configVersion ?? 0) % 256));
-  const cmdMismatch = cu.appliedCmdSeq != null && cu.appliedCmdSeq !== cu.cmdSeq;
-  return cfgMismatch || cmdMismatch;
-}
 
 /** Icona, colore e spiegazione dello stato di salute mostrato sulla card. */
 function deviceHealth(
@@ -340,7 +324,9 @@ export function ControlUnitsPage({ controlUnits, onRefresh }: ControlUnitsPagePr
             },
             {
               label: t("adminRequest.fact.lastSeen"),
-              value: selectedCU.lastSeen ? new Date(selectedCU.lastSeen).toLocaleString(locale) : null,
+              // `parseServerDate` e non `new Date`: l'istante arriva in UTC senza la Z, e
+              // letto come ora locale finirebbe nella mail spostato di un'ora o due.
+              value: parseServerDate(selectedCU.lastSeen)?.toLocaleString(locale) ?? null,
             },
           ]}
         />

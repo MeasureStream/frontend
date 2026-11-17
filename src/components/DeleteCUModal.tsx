@@ -2,12 +2,17 @@ import { Modal, Button, Spinner } from "react-bootstrap";
 import { useState } from "react";
 import { DeleteCu } from "../API/ControlUnitAPI";
 import { useAuth } from "../API/AuthContext";
-import { ControlUnitDTO } from "../API/interfaces";
 
 interface DeleteCUModalProps {
   show: boolean;
   onHide: () => void;
-  controlUnit: ControlUnitDTO | null;
+  /**
+   * Quel tanto di CU che serve a cancellarla e a nominarla nella domanda.
+   *
+   * Prima era il DTO intero, e la tabella di «Mie CUs» — che del DTO intero non ha bisogno,
+   * e per questo non lo chiede — non poteva usare questa finestra.
+   */
+  controlUnit: { id: number; name: string } | null;
   onSuccess: () => void;
 }
 

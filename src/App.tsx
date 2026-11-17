@@ -16,6 +16,7 @@ import { MetrologyHubPage } from "./pages/MetrologyHub/MetrologyHubPage";
 import { CertificateVerifyPage } from "./pages/CertificateVerify/CertificateVerifyPage";
 import { MessagesPage } from "./pages/Messages/MessagesPage";
 import { ReferenceStandardsPage } from "./pages/ReferenceStandards/ReferenceStandardsPage";
+import { MyControlUnitsPage } from "./pages/ContolUnitsPage/MyControlUnitsPage";
 import { MyUnitsPage } from "./pages/MeasurementUnits/MyUnitsPage";
 import { MeasurementUnitDetailPage } from "./pages/MeasurementUnits/MeasurementUnitDetailPage";
 
@@ -150,6 +151,10 @@ function App() {
             <Route path="/verifica-certificati" element={<CertificateVerifyPage />} />
             <Route path="/messaggi" element={<MessagesPage />} />
             <Route path="/riferimenti-campione" element={<ReferenceStandardsPage />} />
+
+            {/* Le CU come flotta: la panoramica le guarda una per una, questa tabella
+                dice quale guardare. */}
+            <Route path="/mie-cu" element={<MyControlUnitsPage />} />
 
             {/* Le MU come flotta: esistono anche staccate da ogni CU, e da staccate
                 restavano invisibili insieme alle misure che hanno prodotto. */}
