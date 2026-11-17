@@ -132,11 +132,17 @@ async function EditCu(xsrfToken: string | null, cu: ControlUnitDTO) {
   return (await response.json()) as ControlUnitDTO
 }
 
-async function DeleteCu(xsrfToken: string | null, cu: ControlUnitDTO) {
+/**
+ * Elimina una CU.
+ *
+ * L'id va nella **query**: il server lo prende da `@RequestParam id`, non dal corpo. Prima
+ * partiva un `DELETE /API/controlunits` nudo con il DTO nel corpo, cioe' una richiesta senza
+ * il parametro obbligatorio: il server rispondeva 400 e la finestra mostrava «si è
+ * verificato un errore» qualunque fosse la CU. Il corpo non serve e non si manda piu'.
+ */
+async function DeleteCu(xsrfToken: string | null, cu: { id: number }) {
 
-
-  const url = `${API_URL}`;
-
+  const url = `${API_URL}?id=${cu.id}`;
 
   const response = await fetch(url, {
     method: 'DELETE',
@@ -144,7 +150,6 @@ async function DeleteCu(xsrfToken: string | null, cu: ControlUnitDTO) {
       'Content-Type': 'application/json',
       'X-XSRF-TOKEN': xsrfToken || '',  // Includi il token nell'intestazione
     },
-    body: JSON.stringify(cu),
   });
 
   if (!response.ok) {

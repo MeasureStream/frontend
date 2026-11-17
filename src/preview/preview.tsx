@@ -20,6 +20,7 @@ import "../App.css";
 
 import MyNavbar from "../components/MyNavbar";
 import { ControlUnitsPage } from "../pages/ContolUnitsPage/ControlUnitsPage";
+import { MyControlUnitsPage } from "../pages/ContolUnitsPage/MyControlUnitsPage";
 import { ControlUnitDetail } from "../pages/ContolUnitsPage/ControlUnitDetail/ControlUnitDetail";
 import { MetrologyHubPage } from "../pages/MetrologyHub/MetrologyHubPage";
 import { CertificateVerifyPage } from "../pages/CertificateVerify/CertificateVerifyPage";
@@ -28,6 +29,7 @@ import { ReferenceStandardsPage } from "../pages/ReferenceStandards/ReferenceSta
 import { I18nProvider } from "../i18n/I18nContext";
 import { AuthProvider } from "../API/AuthContext";
 import type { ControlUnitDTO, MeasurementUnitDTO, SensorDTO, TemplateRef } from "../API/interfaces";
+import type { ControlUnitSummary } from "../API/myControlUnitsAPI";
 import { primeTemplate } from "../API/templates/templatesAPI";
 
 const minutesAgo = (m: number) => new Date(Date.now() - m * 60_000).toISOString();
@@ -204,6 +206,77 @@ const MOCK_CUS: ControlUnitDTO[] = [
   mockCU({ id: 4, name: "Nodo mai visto — offline", devEui: "0x70B3D57ED00125E0", rssi: 0, lastSeen: null, status: 0 }),
 ];
 
+/* ------------------------------------------------------------------ *
+ * «Mie CUs» non riceve i dati come prop: li chiede a
+ * `/API/controlunits/summary`. Senza backend l'anteprima mostrerebbe solo
+ * il messaggio di errore, cioè l'unica parte della pagina che non serve
+ * guardare. Qui si risponde a quel percorso e a nient'altro: tutto il
+ * resto passa alla fetch vera.
+ * ------------------------------------------------------------------ */
+
+function mockSummary(
+  cu: ControlUnitDTO,
+  over: Partial<ControlUnitSummary> = {},
+): ControlUnitSummary {
+  return {
+    id: cu.id,
+    devEui: cu.devEui,
+    deviceId: cu.deviceId,
+    name: cu.name,
+    model: cu.model,
+    semanticLocation: cu.semanticLocation,
+    protocolVer: cu.protocolVer ?? null,
+    measurementUnitCount: cu.measurementUnits.length,
+    sensorCount: cu.measurementUnits.reduce((n, mu) => n + mu.sensors.length, 0),
+    online: cu.status === 1,
+    lastSeen: cu.lastSeen,
+    remainingBattery: cu.remainingBattery,
+    acPowered: cu.acPowered,
+    isCharging: cu.isCharging,
+    rssi: cu.rssi,
+    statusFlags: [],
+    openAlarms: 0,
+    openEvents: 0,
+    configMismatchCount: 0,
+    decodeFailureCount: 0,
+    configVersionOnWire: (cu.configVersion ?? 0) % 256,
+    lastReportedConfigVersion: cu.lastReportedConfigVersion ?? null,
+    cmdSeq: cu.cmdSeq ?? 0,
+    appliedCmdSeq: cu.appliedCmdSeq ?? null,
+    ...over,
+  };
+}
+
+/* Un caso per colonna: avvisi aperti, report persi, firmware senza ProtoVer,
+   batteria agli sgoccioli. Le righe tutte sane non mostrerebbero niente. */
+const MOCK_CU_SUMMARIES: ControlUnitSummary[] = [
+  mockSummary(MOCK_CUS[0], { openAlarms: 2, openEvents: 1 }),
+  mockSummary(MOCK_CUS[1]),
+  mockSummary(MOCK_CUS[2], { configMismatchCount: 7, lastReportedConfigVersion: 41 }),
+  mockSummary(MOCK_CUS[3], {
+    protocolVer: null,
+    statusFlags: [
+      { bit: 3, meaning: "LOW_BATTERY", description: "Batteria quasi scarica", severity: "warning" },
+    ],
+  }),
+  mockSummary(MOCK_CUS[4], { decodeFailureCount: 3 }),
+];
+
+const realFetch = window.fetch.bind(window);
+window.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
+  const url =
+    typeof input === "string" ? input : input instanceof Request ? input.url : String(input);
+  if (url.includes("/API/controlunits/summary")) {
+    return Promise.resolve(
+      new Response(JSON.stringify(MOCK_CU_SUMMARIES), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+  }
+  return realFetch(input, init);
+};
+
 const rootElement = document.getElementById("root");
 if (!rootElement) throw new Error("Elemento 'root' non trovato nel DOM.");
 
@@ -220,6 +293,7 @@ createRoot(rootElement).render(
           <MyNavbar me={{ name: "Marco", loginUrl: "#", principal: null, xsrfToken: "", logoutUrl: "#" }} />
           <Routes>
             <Route path="/" element={<ControlUnitsPage controlUnits={MOCK_CUS} />} />
+            <Route path="/mie-cu" element={<MyControlUnitsPage />} />
             <Route path="/cus/:id" element={<ControlUnitDetail allControlUnits={MOCK_CUS} />} />
             <Route path="/hub" element={<MetrologyHubPage />} />
             <Route path="/verifica-certificati" element={<CertificateVerifyPage />} />

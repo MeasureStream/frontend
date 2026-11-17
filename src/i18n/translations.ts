@@ -18,6 +18,7 @@ export const it = {
   "nav.logout": "Esci",
   "nav.language": "Lingua",
   "nav.overview": "Panoramica",
+  "nav.myControlUnits": "Mie CUs",
   "nav.myUnits": "Mie MUs",
   "nav.metrologyHub": "Documentazione",
   "nav.verifyCertificates": "Verifica certificati",
@@ -239,6 +240,47 @@ export const it = {
   "myUnits.events.slot": "Slot {slot}",
   "myUnits.events.yes": "Sì",
   "myUnits.events.no": "No",
+
+  // --- Mie CUs: le Control Unit come flotta, in tabella invece che a schede ---
+  "myCus.title": "Mie CUs",
+  "myCus.subtitle":
+    "Tutti i tuoi dispositivi su una tabella: quante MU portano, quanti avvisi hanno aperto, quante misure hanno perso. La panoramica li guarda uno per uno, questo elenco dice quale guardare.",
+  "myCus.onlyIssues": "Solo quelle con avvisi",
+  "myCus.count": "{shown} di {total}",
+  "myCus.loadError": "Elenco non caricato: riprova fra poco.",
+  "myCus.empty": "Nessuna Control Unit censita finora.",
+  "myCus.noIssues": "Nessun dispositivo con avvisi aperti: la flotta è in ordine.",
+  "myCus.rowTitle": "Apri la scheda di {name}",
+  "myCus.col.cu": "Dispositivo",
+  "myCus.col.location": "Località",
+  "myCus.col.protocol": "Protocollo",
+  "myCus.col.topology": "Topologia",
+  "myCus.col.power": "Alimentazione",
+  "myCus.col.state": "Stato",
+  "myCus.col.diagnostics": "Diagnostica",
+  "myCus.col.lastSeen": "Ultimo contatto",
+  "myCus.col.actions": "Azioni",
+  "myCus.topology": "{count} MU",
+  "myCus.sensors": "{count} sensori",
+  "myCus.protocol.legacy": "pre-1.2",
+  "myCus.protocol.legacyTitle":
+    "Il firmware non dichiara ProtoVer: finché questa CU è in campo il server tiene accese anche le FPort dei formati precedenti.",
+  "myCus.protocolTitle": "ProtoVer dichiarato nel poll: 0x{hex}",
+  "myCus.state.online": "Attiva",
+  "myCus.state.offline": "Offline",
+  "myCus.state.ok": "OK",
+  "myCus.state.alarms": "{count} allarmi aperti",
+  "myCus.state.events": "{count} avvisi aperti",
+  "myCus.state.discarded": "{count} report scartati",
+  "myCus.state.discardedTitle":
+    "Report arrivati e non registrati: CFG_VER diverso da quello atteso, oppure payload illeggibile. Sono misure perse.",
+  "myCus.state.mismatch": "Configurazione disallineata",
+  "myCus.delete": "Elimina",
+  "myCus.deleteHint":
+    "Rimuove il dispositivo dal network e scollega le MU associate. Solo amministratori.",
+  "myCus.requestDelete": "Richiedi eliminazione",
+  "myCus.requestDeleteHint":
+    "Prepara una richiesta via mail: l'eliminazione la esegue un amministratore.",
 
   // --- Richieste di operazioni riservate (mail all'assistenza) ---
   "adminRequest.title": "Serve un amministratore",
