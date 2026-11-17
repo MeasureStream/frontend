@@ -145,21 +145,26 @@ export function MeasurementUnitDetailPage() {
           </header>
 
           <section className="mb-5">
-            <h4 className="d-flex align-items-center gap-2 fw-bold mb-3">
-              <BsBarChartFill className="text-primary" /> {t("charts.title")}
-            </h4>
+            <div className="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+              <h4 className="d-flex align-items-center gap-2 fw-bold mb-0">
+                <BsBarChartFill className="text-primary" /> {t("charts.title")}
+              </h4>
+
+              {/* Senza pannelli non c'è niente da regolare: la barra compare con i grafici. */}
+              {unit.sensors.length > 0 && (
+                <SensorChartsControls settings={settings} onChange={setSettings} />
+              )}
+            </div>
+
             {unit.sensors.length === 0 ? (
               <p className="text-muted">{t("charts.empty")}</p>
             ) : (
-              <>
-                <SensorChartsControls settings={settings} onChange={setSettings} />
-                <SensorChartsGrid
-                  sensors={unit.sensors}
-                  label={label}
-                  lastContact={summary?.lastSeen ?? unit.statusAt ?? null}
-                  settings={settings}
-                />
-              </>
+              <SensorChartsGrid
+                sensors={unit.sensors}
+                label={label}
+                lastContact={summary?.lastSeen ?? unit.statusAt ?? null}
+                settings={settings}
+              />
             )}
           </section>
 

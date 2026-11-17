@@ -41,11 +41,15 @@ export function ChartsTab({ cu }: Props) {
     <section>
       {/* Un po' d'aria prima del primo gruppo: senza il sottotitolo, titolo e nome
           della MU si toccavano. */}
-      <h4 className="d-flex align-items-center gap-2 fw-bold mb-3">
-        <BsBarChartFill className="text-primary" /> {t("charts.title")}
-      </h4>
+      {/* Titolo a sinistra, comandi a destra sulla stessa riga: la barra riguarda tutto
+          quello che sta sotto, e dirlo con la posizione costa meno di una didascalia. */}
+      <div className="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+        <h4 className="d-flex align-items-center gap-2 fw-bold mb-0">
+          <BsBarChartFill className="text-primary" /> {t("charts.title")}
+        </h4>
 
-      <SensorChartsControls settings={settings} onChange={setSettings} />
+        <SensorChartsControls settings={settings} onChange={setSettings} />
+      </div>
 
       {[...cu.measurementUnits]
         .sort((a, b) => a.localId - b.localId)

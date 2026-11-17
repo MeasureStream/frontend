@@ -439,7 +439,6 @@ export const it = {
   "charts.channel": "canale {index}",
   "charts.channelFallback": "Sensore {index}",
   "charts.zoom": "Ingrandisci",
-  "charts.controls.title": "Tutti i grafici",
   "charts.controls.view": "Vista",
   "charts.controls.viewDefault": "Secondo il sensore",
   "charts.controls.from": "Da",

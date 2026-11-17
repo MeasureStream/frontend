@@ -336,13 +336,15 @@ export function ChartPreviewCard({
           {/* La stessa barra della scheda, qui per un pannello solo. Cambiare qualcosa
               ricarica il pannello: il velo torna su, altrimenti si vedrebbe lo splash di
               Grafana al posto del grafico precedente. */}
-          <SensorChartsControls
-            settings={modalSettings}
-            onChange={(next) => {
-              setModalReady(false);
-              setModalSettings(next);
-            }}
-          />
+          <div className="bg-light p-2 rounded border mb-3">
+            <SensorChartsControls
+              settings={modalSettings}
+              onChange={(next) => {
+                setModalReady(false);
+                setModalSettings(next);
+              }}
+            />
+          </div>
           {/* «Download JSON» e «Delete Range» tolti il 14/09/2026: chiamavano measure-manager,
               dismesso. Da reintegrare con endpoint di sensor-manager sulla tabella measurements. */}
 

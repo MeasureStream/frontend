@@ -12,7 +12,7 @@
  * sei ore.
  */
 import { Button, Form } from "react-bootstrap";
-import { BsArrowCounterclockwise, BsSliders } from "react-icons/bs";
+import { BsArrowCounterclockwise } from "react-icons/bs";
 import { useI18n } from "../i18n/I18nContext";
 import type { TranslationKey } from "../i18n/translations";
 
@@ -56,54 +56,53 @@ export function SensorChartsControls({ settings, onChange }: Props) {
   const { t } = useI18n();
   const auto = isAutoSettings(settings);
 
+  /* Una riga sola, etichette accanto ai campi: la barra sta a destra del titolo della
+     scheda, e due righe la farebbero scendere sotto. Quando lo spazio non basta — finestra
+     stretta, schermo di un telefono — `flex-wrap` la manda a capo da sé.
+
+     La nota sta fuori dalla riga, non in coda: dentro, un figlio a tutta larghezza
+     costringeva la barra a prendersi l'intera riga, e il titolo finiva sopra invece che
+     accanto. Misurato: con la nota dentro, 1296 px; fuori, 806. */
   return (
-    <div className="ms-tile rounded-3 border-0 shadow-sm p-3 mb-4">
-      <div className="d-flex gap-3 align-items-end flex-wrap">
-        <div className="d-flex align-items-center gap-2 text-muted">
-          <BsSliders />
-          <span className="small fw-semibold">{t("charts.controls.title")}</span>
-        </div>
+    <div className="d-flex flex-column align-items-end gap-1">
+      <div className="d-flex align-items-center justify-content-end gap-2 flex-wrap">
+        <Form.Label className="small text-muted mb-0">{t("charts.controls.view")}</Form.Label>
+        <Form.Select
+          size="sm"
+          value={settings.view}
+          onChange={(e) => onChange({ ...settings, view: e.target.value })}
+          style={{ width: 175 }}
+        >
+          <option value="">{t("charts.controls.viewDefault")}</option>
+          {CHART_VIEWS.map((view) => (
+            <option key={view} value={view}>
+              {t(VIEW_LABELS[view])}
+            </option>
+          ))}
+        </Form.Select>
 
-        <Form.Group>
-          <Form.Label className="small fw-semibold mb-1">{t("charts.controls.view")}</Form.Label>
-          <Form.Select
-            size="sm"
-            value={settings.view}
-            onChange={(e) => onChange({ ...settings, view: e.target.value })}
-            style={{ width: 190 }}
-          >
-            <option value="">{t("charts.controls.viewDefault")}</option>
-            {CHART_VIEWS.map((view) => (
-              <option key={view} value={view}>
-                {t(VIEW_LABELS[view])}
-              </option>
-            ))}
-          </Form.Select>
-        </Form.Group>
+        <Form.Label className="small text-muted mb-0 ms-2">{t("charts.controls.from")}</Form.Label>
+        <Form.Control
+          type="datetime-local"
+          size="sm"
+          value={settings.from}
+          onChange={(e) => onChange({ ...settings, from: e.target.value })}
+          style={{ width: 185 }}
+        />
 
-        <Form.Group>
-          <Form.Label className="small fw-semibold mb-1">{t("charts.controls.from")}</Form.Label>
-          <Form.Control
-            type="datetime-local"
-            size="sm"
-            value={settings.from}
-            onChange={(e) => onChange({ ...settings, from: e.target.value })}
-          />
-        </Form.Group>
-
-        <Form.Group>
-          <Form.Label className="small fw-semibold mb-1">{t("charts.controls.to")}</Form.Label>
-          <Form.Control
-            type="datetime-local"
-            size="sm"
-            value={settings.to}
-            onChange={(e) => onChange({ ...settings, to: e.target.value })}
-          />
-        </Form.Group>
+        <Form.Label className="small text-muted mb-0 ms-2">{t("charts.controls.to")}</Form.Label>
+        <Form.Control
+          type="datetime-local"
+          size="sm"
+          value={settings.to}
+          onChange={(e) => onChange({ ...settings, to: e.target.value })}
+          style={{ width: 185 }}
+        />
 
         <Button
           variant="outline-secondary"
           size="sm"
+          className="ms-2"
           disabled={auto}
           onClick={() => onChange(AUTO_CHART_SETTINGS)}
         >
@@ -112,9 +111,9 @@ export function SensorChartsControls({ settings, onChange }: Props) {
         </Button>
       </div>
 
-      {/* Il comportamento predefinito va detto: «vuoto» non si legge da solo, e chi apre
-          la scheda deve sapere che l'asse dei tempi non parte da adesso. */}
-      {auto && <div className="ms-cfg-note mt-2">{t("charts.controls.autoHint")}</div>}
+      {/* Il comportamento predefinito va detto: «vuoto» non si legge da solo, e chi apre la
+          scheda deve sapere che l'asse dei tempi non parte da adesso. */}
+      {auto && <div className="ms-cfg-note text-end">{t("charts.controls.autoHint")}</div>}
     </div>
   );
 }
