@@ -1129,7 +1129,7 @@ export const it = {
   "registry.email": "Email per i promemoria",
   "registry.roles.title": "Ruoli metrologici",
   "registry.roles.help":
-    "Tecnico, approvatore e responsabile tecnico, con una validità nel tempo: chi ha approvato un certificato a marzo doveva esserlo a marzo. Un ruolo non si cancella, si chiude.",
+    "Tecnico, approvatore e responsabile tecnico, con una validità nel tempo: chi ha approvato un certificato a marzo doveva esserlo a marzo. Un ruolo non si cancella, si chiude. Con un laboratorio esterno il ruolo lega un utente app-lab al suo laboratorio: trascrive solo i certificati degli esemplari affidati a quel laboratorio e non è personale interno.",
   "registry.roles.role": "Ruolo",
   "registry.roles.validity": "Validità",
   "registry.roles.active": "attivo",
