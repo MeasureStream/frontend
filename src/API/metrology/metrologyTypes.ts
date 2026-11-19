@@ -282,6 +282,9 @@ export interface JobSummary {
 export interface CalibrationResultSummary {
   id: number;
   jobId: string;
+  /** SESSION_FIT (fit e as-found), VERIFICATION (as-left su punti indipendenti), CERT_FIT. */
+  kind?: "SESSION_FIT" | "VERIFICATION" | "CERT_FIT";
+  adjustmentApplied?: boolean | null;
   calibratedItemId: number;
   function?: CalibrationFunctionWire | null;
   covariance?: number[][] | null;

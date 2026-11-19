@@ -18,6 +18,7 @@ import { useMetrologyProfile } from "../../API/metrology/useMetrologyProfile";
 import { useI18n } from "../../i18n/I18nContext";
 import type { TranslationKey } from "../../i18n/translations";
 import { QualityFlagBadges } from "./QualityFlagBadges";
+import { ItemQualityPanel } from "./ItemQualityPanel";
 
 const STATE_PILL: Record<SensorCalibrationStatusDTO["state"], string> = {
   INSTANCE: "ms-pill ms-pill-applied",
@@ -43,6 +44,7 @@ export function SensorCalibrationPanel({ muId, muExtendedId }: Props) {
   const [rows, setRows] = useState<SensorCalibrationStatusDTO[] | null>(null);
   const [failed, setFailed] = useState(false);
   const [open, setOpen] = useState<number | null>(null);
+  const [quality, setQuality] = useState<number | null>(null);
 
   const load = useCallback(() => {
     getMuCalibrations(muId)
@@ -154,6 +156,9 @@ export function SensorCalibrationPanel({ muId, muExtendedId }: Props) {
                         <a className="btn btn-sm btn-outline-secondary me-1" href={sensorCsvUrl(muId, row.sensorId)} title={t("fieldCal.csvHelp")}>
                           <BsDownload /> CSV
                         </a>
+                        <Button size="sm" variant="outline-secondary" className="me-1" onClick={() => setQuality(quality === row.sensorId ? null : row.sensorId)} title={t("iq.toggleHelp")}>
+                          {t("iq.toggle")}
+                        </Button>
                         {row.history.length > 0 && (
                           <Button size="sm" variant="outline-secondary" className="me-1" onClick={() => setOpen(open === row.sensorId ? null : row.sensorId)}>
                             <BsClockHistory /> {t("fieldCal.history", { n: row.history.length })}
@@ -170,6 +175,20 @@ export function SensorCalibrationPanel({ muId, muExtendedId }: Props) {
                         )}
                       </td>
                     </tr>
+                    {quality === row.sensorId && (
+                      <tr>
+                        <td colSpan={7} className="bg-light">
+                          <ItemQualityPanel
+                            muId={muId}
+                            muExtendedId={muExtendedId}
+                            sensorId={row.sensorId}
+                            sensorIndex={row.sensorIndex}
+                            calibrations={row.history}
+                            canDecideIntervals={!!profile && (profile.admin || profile.roles.includes("APPROVER") || profile.roles.includes("TECHNICAL_MANAGER"))}
+                          />
+                        </td>
+                      </tr>
+                    )}
                     {open === row.sensorId && (
                       <tr>
                         <td colSpan={7} className="bg-light">

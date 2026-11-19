@@ -7,6 +7,7 @@
  * tabella con meno colonne e la sola azione di scarico.
  */
 import { useMemo, useState } from "react";
+import { DccImportModal } from "./DccImportModal";
 import { useNavigate } from "react-router";
 import { Alert, Button } from "react-bootstrap";
 import { BsFileEarmarkArrowUp, BsFilePlus, BsX } from "react-icons/bs";
@@ -29,6 +30,7 @@ interface Props {
 }
 
 export function CertificatesTab({ certificates, isAdmin, onRefresh }: Props) {
+  const [importingDcc, setImportingDcc] = useState(false);
   const { t } = useI18n();
   const navigate = useNavigate();
   /** Le righe su cui l'ultima azione di massa non e' riuscita, con il motivo del server. */
@@ -157,6 +159,9 @@ export function CertificatesTab({ certificates, isAdmin, onRefresh }: Props) {
 
           {isAdmin && (
             <>
+              <Button size="sm" variant="outline-primary" className="d-flex align-items-center gap-2" onClick={() => setImportingDcc(true)}>
+                <BsFileEarmarkArrowUp /> {t("dcc.button")}
+              </Button>
               <Button size="sm" variant="outline-primary" className="d-flex align-items-center gap-2" onClick={() => navigate("/certificati/nuovo")}>
                 <BsFileEarmarkArrowUp /> {t("cert.importPdf")}
               </Button>
@@ -184,6 +189,7 @@ export function CertificatesTab({ certificates, isAdmin, onRefresh }: Props) {
       </Alert>
 
       <DownloadFormatModal ids={downloadIds} onHide={() => setDownloadIds([])} onConfirm={confirmDownload} />
+      <DccImportModal show={importingDcc} onClose={() => setImportingDcc(false)} />
       <EditCertificateModal certificate={editing} onHide={() => setEditing(null)} onConfirm={confirmEdit} />
     </section>
   );

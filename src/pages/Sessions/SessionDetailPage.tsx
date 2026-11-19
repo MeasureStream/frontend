@@ -167,6 +167,7 @@ export function SessionDetailPage() {
               <div key={r.id} className="ms-tile rounded shadow-sm border-0 p-3 mb-3">
                 <div className="d-flex flex-wrap align-items-center gap-2 mb-2">
                   <span className="fw-semibold">{itemLabel(r.calibratedItemId)}</span>
+                  {r.kind && <Badge bg="light" text="dark">{t(`session.kind.${r.kind}` as TranslationKey)}</Badge>}
                   {conformity && (
                     <Badge bg={conformity.verdict === "CONFORM" ? "success" : "danger"}>{t(`session.verdict.${conformity.verdict}` as TranslationKey)}</Badge>
                   )}
@@ -209,7 +210,14 @@ export function SessionDetailPage() {
                   </Table>
                 )}
                 {r.budget?.asLeftOnFitPoints === true && <p className="small text-muted">{t("session.asLeftOnFitPoints")}</p>}
-                {!r.decision && canWork && (
+                {/* Le deviazioni dal metodo e gli avvisi del motore (passo 3.5): li vede chi decide e chi approva. */}
+                {((r.budget?.procedure as { methodDeviations?: string[] } | undefined)?.methodDeviations ?? []).map((d) => (
+                  <div key={d} className="small text-danger">{t("session.deviation")}: {d}</div>
+                ))}
+                {((r.budget?.warnings as string[] | undefined) ?? []).map((w) => (
+                  <div key={w} className="small text-warning">⚠ {w}</div>
+                ))}
+                {!r.decision && canWork && r.kind !== "VERIFICATION" && r.kind !== "CERT_FIT" && (
                   <div className="d-flex gap-2">
                     <Button size="sm" variant="warning" onClick={() => decide(r, "ADJUST")}>
                       {t("session.decision.ADJUST")}
