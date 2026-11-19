@@ -743,6 +743,7 @@ export const it = {
   "quality.flag.TIME_UNSYNC": "Orologio non sincronizzato",
   "quality.flag.NO_AGE": "Senza età",
   "quality.flag.CONFIG_MISMATCH": "Configurazione diversa",
+  "quality.flag.CAL_NOMINAL": "Formula di targa",
   "quality.help.notConverted": "Il valore è la lettura elettrica: nessuna formula lo ha convertito in una grandezza fisica.",
   "quality.help.CAL_INSTANCE": "Convertito con la funzione del certificato di questo esemplare, non con quella di targa del modello.",
   "quality.help.CAL_EXPIRED": "La taratura usata era scaduta: la funzione resta la migliore nota, ma la riferibilità non è più garantita.",
@@ -753,6 +754,18 @@ export const it = {
   "quality.help.NO_AGE":
     "Il report non porta il byte di età: la finestra di misura si chiude all'istante di ricezione. È il caso di ogni firmware che non lo dichiara ancora.",
   "quality.help.CONFIG_MISMATCH": "La configurazione del dispositivo non corrisponde a quella del certificato.",
+  "quality.help.CAL_NOMINAL": "Convertito con la formula nominale del modello: nessun certificato di questo esemplare era in vigore.",
+  "charts.csv": "Scarica CSV",
+  "charts.csvHelp": "I campioni della finestra mostrata: valore, grezzo, incertezza, flag, certificato e versione del template",
+  "sensorInfo.metrology": "Metrologia del modello (template)",
+  "sensorInfo.mpe": "Errore massimo ammesso",
+  "sensorInfo.mpeLegacy": "dedotto da un template precedente allo schema 2.2.0",
+  "sensorInfo.drift": "Deriva",
+  "sensorInfo.typeA": "Tipo A dalla varianza trasmessa",
+  "sensorInfo.requiresCalibration": "Nel perimetro di taratura",
+  "sensorInfo.notDeclared": "non dichiarata",
+  "sensorInfo.yes": "sì",
+  "sensorInfo.no": "no",
 
   // --- Metrologia: stati e azioni nuovi dello storico certificati ---
   "cert.status.approved": "Approvato",

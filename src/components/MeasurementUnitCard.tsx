@@ -8,6 +8,7 @@ import { useTemplate } from "../API/templates/useTemplates";
 import {
   calibrationCoefficients,
   calibrationType,
+  templateMetrology,
   prettyUnit,
 } from "../API/templates/templateFields";
 
@@ -167,10 +168,12 @@ export function MeasurementUnitCard({ mu, handleSetDirty }: Props) {
 function SensorInfoModal({ sensor, onHide }: { sensor: SensorDTO | null, onHide: () => void }) {
   // Il documento completo sta nel registro: il DTO porta solo il riferimento.
   const template = useTemplate(sensor?.template);
+  const { t } = useI18n();
   if (!sensor) return null;
 
   const unit = prettyUnit(sensor.template?.unit);
   const coefficients = calibrationCoefficients(template);
+  const metrology = templateMetrology(template);
 
   return (
     <Modal show={!!sensor} onHide={onHide} centered size="lg" contentClassName="rounded-4 border-0 shadow">
@@ -200,10 +203,33 @@ function SensorInfoModal({ sensor, onHide }: { sensor: SensorDTO | null, onHide:
                   <span className="text-muted">Phys Threshold</span>
                   <span className="fw-bold">{sensor.phyThreshold} {unit}</span>
                 </ListGroup.Item>
+                {/* I vecchi coeffA–coeffD non si mostrano più: sono deprecati e nessuno li usa per
+                    convertire (PIANO_METROLOGIA 1.15). La taratura dell'esemplare, se c'è, è nel
+                    pannello «Taratura sul campo» della MU. */}
                 <ListGroup.Item className="bg-transparent px-0">
-                  <div className="text-muted mb-2">Coefficienti di taratura del sensore</div>
-                  <div className="p-2 bg-white rounded border font-monospace text-center small">
-                    {sensor.coeffA ?? 0} | {sensor.coeffB ?? 0} | {sensor.coeffC ?? 0} | {sensor.coeffD ?? 0}
+                  <div className="text-muted mb-2">{t("sensorInfo.metrology")}</div>
+                  <div className="p-2 bg-white rounded border small">
+                    <div>
+                      {t("sensorInfo.mpe")}:{" "}
+                      {metrology.mpe.length
+                        ? metrology.mpe
+                            .map((e) => `${e.relative ? `${e.value} %` : `±${e.value} ${unit}`}${e.min != null || e.max != null ? ` (${e.min ?? "…"} … ${e.max ?? "…"})` : ""}`)
+                            .join("; ")
+                        : t("sensorInfo.notDeclared")}
+                      {metrology.mpeSource && metrology.mpeSource !== "mpe" && (
+                        <span className="text-muted"> · {t("sensorInfo.mpeLegacy")}</span>
+                      )}
+                    </div>
+                    <div>
+                      {t("sensorInfo.drift")}:{" "}
+                      {metrology.drift ? `${metrology.drift.value} ${unit} / ${metrology.drift.period}` : t("sensorInfo.notDeclared")}
+                    </div>
+                    <div>
+                      {t("sensorInfo.typeA")}: {metrology.typeAFromVariance ? t("sensorInfo.yes") : t("sensorInfo.no")}
+                    </div>
+                    <div>
+                      {t("sensorInfo.requiresCalibration")}: {metrology.requiresCalibration ? t("sensorInfo.yes") : t("sensorInfo.no")}
+                    </div>
                   </div>
                 </ListGroup.Item>
               </ListGroup>

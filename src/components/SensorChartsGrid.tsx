@@ -20,6 +20,8 @@ export function muLabel(extendedId: number): string {
 
 interface Props {
   sensors: SensorDTO[];
+  /** La MU dei sensori: abilita l'esportazione CSV nel grafico a schermo intero. */
+  muId?: number;
   /** Nome della MU: lo ripete il modal del grafico, che deve bastare a sé stesso. */
   label: string;
   /**
@@ -34,7 +36,7 @@ interface Props {
   settings?: ChartSettings;
 }
 
-export function SensorChartsGrid({ sensors, label, lastContact, settings }: Props) {
+export function SensorChartsGrid({ sensors, label, lastContact, settings, muId }: Props) {
   const { t } = useI18n();
 
   return (
@@ -51,6 +53,7 @@ export function SensorChartsGrid({ sensors, label, lastContact, settings }: Prop
               muLabel={label}
               lastContact={lastContact}
               settings={settings}
+              muId={muId}
               // TODO passo 11: il tipo di misura attivo si ricava dalle metriche dello slot
               // nel modello di MU, non piu' da una costante.
               measurementType={"avg-std"}

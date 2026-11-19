@@ -9,6 +9,7 @@ import {
   type ChartSettings,
 } from "./SensorChartsControls";
 import { useI18n } from "../i18n/I18nContext";
+import { sensorCsvUrl } from "../API/sensorCalibrationAPI";
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -130,6 +131,8 @@ function ChartSkeleton({ label }: { label: string }) {
 interface Props {
   sensorId: string | number;
   sensor: SensorDTO;
+  /** La MU del sensore: serve all'esportazione CSV, che sensor-manager espone per MU. */
+  muId?: number;
   measurementType: string;
   /**
    * Intestazione della card: il tipo di sensore, es. "Temperatura". Senza, si ricade
@@ -162,6 +165,7 @@ export function ChartPreviewCard({
   muLabel,
   lastContact,
   settings = AUTO_CHART_SETTINGS,
+  muId,
 }: Props) {
   const { t } = useI18n();
   const [show, setShow] = useState(false);
@@ -346,7 +350,24 @@ export function ChartPreviewCard({
             />
           </div>
           {/* «Download JSON» e «Delete Range» tolti il 14/09/2026: chiamavano measure-manager,
-              dismesso. Da reintegrare con endpoint di sensor-manager sulla tabella measurements. */}
+              dismesso. Al loro posto il CSV di sensor-manager (PIANO_METROLOGIA 2.8), sulla stessa
+              finestra del grafico: valore, grezzo, incertezza, flag, certificato e template. */}
+          {muId != null && (
+            <div className="d-flex justify-content-end mb-2">
+              <a
+                className="btn btn-sm btn-outline-secondary"
+                href={sensorCsvUrl(
+                  muId,
+                  Number(sensorId),
+                  modalWindow.from.startsWith("now") ? undefined : modalWindow.from,
+                  modalWindow.to.startsWith("now") ? undefined : modalWindow.to,
+                )}
+                title={t("charts.csvHelp")}
+              >
+                {t("charts.csv")}
+              </a>
+            </div>
+          )}
 
           {/* GRAFICO FULL SIZE */}
           <div className="flex-grow-1 position-relative">

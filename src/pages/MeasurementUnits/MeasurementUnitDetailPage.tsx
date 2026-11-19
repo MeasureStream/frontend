@@ -162,6 +162,7 @@ export function MeasurementUnitDetailPage() {
             ) : (
               <SensorChartsGrid
                 sensors={unit.sensors}
+                muId={unitId}
                 label={label}
                 lastContact={summary?.lastSeen ?? unit.statusAt ?? null}
                 settings={settings}
