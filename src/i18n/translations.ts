@@ -1126,6 +1126,7 @@ export const it = {
   "registry.user": "Utente",
   "registry.sub": "Identificativo Keycloak (sub)",
   "registry.name": "Nome",
+  "registry.email": "Email per i promemoria",
   "registry.roles.title": "Ruoli metrologici",
   "registry.roles.help":
     "Tecnico, approvatore e responsabile tecnico, con una validità nel tempo: chi ha approvato un certificato a marzo doveva esserlo a marzo. Un ruolo non si cancella, si chiude.",
@@ -1140,7 +1141,7 @@ export const it = {
   "registry.role.TECHNICAL_MANAGER": "Responsabile tecnico",
   "registry.companies.title": "Aziende cliente",
   "registry.companies.help":
-    "L'azienda è il cliente dell'Hub e l'intestatario dei DCC. Un utente sta in una sola azienda; chi non ne ha una compare fra i non assegnati.",
+    "L'azienda è il cliente dell'Hub e l'intestatario dei DCC. Un utente sta in una sola azienda; chi non ne ha una compare fra i non assegnati. I promemoria delle scadenze arrivano all'email dei membri: per cambiarla si aggiunge di nuovo lo stesso utente.",
   "registry.companies.noMembers": "Nessun membro",
   "registry.companies.new": "Nuova azienda",
   "registry.companies.addMember": "Aggiungi un membro a",

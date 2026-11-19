@@ -34,7 +34,7 @@ export function RegistryTab() {
   const [error, setError] = useState<string | null>(null);
 
   const [companyName, setCompanyName] = useState("");
-  const [member, setMember] = useState<{ companyId: string; sub: string; name: string }>({ companyId: "", sub: "", name: "" });
+  const [member, setMember] = useState<{ companyId: string; sub: string; name: string; email: string }>({ companyId: "", sub: "", name: "", email: "" });
   const [lab, setLab] = useState({ name: "", body: "", number: "", recognized: false });
   const [role, setRole] = useState<{ sub: string; name: string; role: MetrologyRoleType; from: string; to: string; labId: string }>({
     sub: "",
@@ -172,6 +172,7 @@ export function RegistryTab() {
             {c.members.map((m) => (
               <li key={m.userSub}>
                 {m.displayName ?? "—"} <span className="font-monospace text-muted">{m.userSub}</span>
+                {m.email && <span className="text-muted"> · {m.email}</span>}
                 <Button size="sm" variant="link" className="text-danger" onClick={() => act(() => removeCompanyMember(c.id, m.userSub))}>
                   <BsTrash />
                 </Button>
@@ -208,15 +209,28 @@ export function RegistryTab() {
           <Form.Label className="small">{t("registry.sub")}</Form.Label>
           <Form.Control size="sm" className="font-monospace" value={member.sub} onChange={(e) => setMember({ ...member, sub: e.target.value })} />
         </Col>
-        <Col md={3}>
+        <Col md={2}>
           <Form.Label className="small">{t("registry.name")}</Form.Label>
           <Form.Control size="sm" value={member.name} onChange={(e) => setMember({ ...member, name: e.target.value })} />
         </Col>
-        <Col md={2}>
+        <Col md={3}>
+          {/* I promemoria delle scadenze arrivano ai clienti a questo indirizzo (passo 4.6). */}
+          <Form.Label className="small">{t("registry.email")}</Form.Label>
+          <Form.Control size="sm" type="email" value={member.email} onChange={(e) => setMember({ ...member, email: e.target.value })} />
+        </Col>
+        <Col md={1}>
           <Button
             size="sm"
             disabled={!member.companyId || !member.sub.trim()}
-            onClick={() => act(() => addCompanyMember(Number(member.companyId), { userSub: member.sub.trim(), displayName: member.name || undefined }))}
+            onClick={() =>
+              act(() =>
+                addCompanyMember(Number(member.companyId), {
+                  userSub: member.sub.trim(),
+                  displayName: member.name || undefined,
+                  email: member.email.trim() || undefined,
+                })
+              )
+            }
           >
             {t("registry.add")}
           </Button>
