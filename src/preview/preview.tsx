@@ -311,7 +311,25 @@ const MOCK_CHART = {
 const MOCK_CHECKS = [
   { id: 1, calibratedItemId: 7, checkedAt: hoursAgo(24 * 20), referenceValue: -18.4, referenceU: 0.1, referenceK: 2, indicatedValue: -18.33, indicatedU: 0.58, error: 0.07, en: 0.12, tolerance: 0.5, verdict: "PASS", performedBy: "cliente" },
 ];
+/* La scheda Anagrafiche dell'Hub: aziende con i membri e la loro email, laboratori, ruoli. */
+const MOCK_COMPANIES = [
+  {
+    id: 1, name: "Surgelati Esempio S.p.A.",
+    members: [{ userSub: "0b5e7c2a-1111-4222-8333-444455556666", displayName: "Responsabile qualità", email: "qualita@example.com", addedAt: hoursAgo(500) }],
+  },
+];
+const MOCK_LABS = [
+  { id: 1, name: "Laboratorio interno", internal: true, recognized: true },
+  { id: 2, name: "Laboratorio Esterno S.r.l.", accreditationBody: "ACCREDIA", accreditationNumber: "LAT n. 123", internal: false, recognized: false },
+];
+const MOCK_ROLES = [
+  { id: 1, userSub: "5ab1e2c3-0000-4000-8000-000000000001", displayName: "Tecnico interno", role: "TECHNICIAN", validFrom: "2026-01-01", validTo: null, labCompanyId: null, grantedBy: "admin", activeToday: true },
+  { id: 2, userSub: "5ab1e2c3-0000-4000-8000-000000000002", displayName: "Tecnico del laboratorio esterno", role: "TECHNICIAN", validFrom: "2026-06-01", validTo: null, labCompanyId: 2, grantedBy: "admin", activeToday: true },
+];
 const METROLOGY_MOCKS: [RegExp, unknown][] = [
+  [/\/API\/metrology\/companies$/, MOCK_COMPANIES],
+  [/\/API\/metrology\/labs$/, MOCK_LABS],
+  [/\/API\/metrology\/roles$/, MOCK_ROLES],
   [/\/API\/metrology\/control-points\/1\/excursions/, MOCK_EXCURSIONS],
   [/\/API\/metrology\/control-points\/2\/excursions/, []],
   [/\/API\/metrology\/control-points\/1$/, MOCK_POINTS[0]],
