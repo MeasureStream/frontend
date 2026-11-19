@@ -2,9 +2,10 @@
  * Verifica certificati: si carica un DCC in XML o PDF e se ne controlla la
  * firma digitale con la chiave pubblica dell'emittente.
  *
- * La verifica vera la fa il backend (`API/dccVerification.ts`), che oggi non è
- * ancora collegato: in quel caso la pagina lo dichiara apertamente invece di
- * mostrare un esito inventato.
+ * La verifica vera la fa metrology-service (`API/dccVerification.ts`). Se il
+ * servizio non risponde la pagina lo dichiara invece di mostrare un esito
+ * inventato. Per i nostri certificati dice anche se il file è ancora la
+ * revisione in vigore: un DCC autentico ma sostituito non è quello che vale.
  */
 import { useState } from "react";
 import { Alert, Button, Container, Form } from "react-bootstrap";
@@ -16,6 +17,8 @@ import {
   type VerificationResult,
 } from "../../API/dccVerification";
 import { useI18n } from "../../i18n/I18nContext";
+import type { TranslationKey } from "../../i18n/translations";
+import { Link } from "react-router";
 
 export function CertificateVerifyPage() {
   const { t, locale } = useI18n();
@@ -105,6 +108,30 @@ export function CertificateVerifyPage() {
             </div>
           )}
           {result.reason && <div className="small mt-1">{result.reason}</div>}
+          {result.verdict && (
+            <div className="small mt-1 text-muted">
+              {t("verify.verdict")}: {t(`verify.verdict.${result.verdict}` as TranslationKey)}
+            </div>
+          )}
+          {result.signer && (
+            <div className="small text-muted text-break">
+              {t("verify.signer")}: {result.signer}
+            </div>
+          )}
+          {result.ours && (
+            <div className="small mt-2">
+              <Link to={`/certificati/${result.ours.certificateId}`}>
+                {t("verify.ours", { number: result.ours.number, revision: result.ours.revision })}
+              </Link>
+              {result.ours.superseded ? (
+                <div className="fw-semibold text-danger">{t("verify.superseded", { revision: result.ours.currentRevision })}</div>
+              ) : (
+                <div className="text-success">{t("verify.current")}</div>
+              )}
+            </div>
+          )}
+          {result.sha256 && <div className="small font-monospace text-muted text-break mt-1">SHA-256 {result.sha256}</div>}
+          <div className="small text-muted mt-2">{t("verify.notEidas")}</div>
         </Alert>
       )}
     </Container>

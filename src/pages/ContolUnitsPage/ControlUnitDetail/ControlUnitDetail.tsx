@@ -6,6 +6,7 @@
  * Il contenuto di ciascuna scheda vive nel proprio file (OverviewTab,
  * ChartsTab, AlarmsTab, SensorConfigTab).
  */
+import { CalibrationTab } from "./CalibrationTab";
 import { Container } from "react-bootstrap";
 import { useParams } from "react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -74,6 +75,7 @@ export function ControlUnitDetail({ allControlUnits }: { allControlUnits: Contro
 
       {activeTab === "overview" && <OverviewTab cu={cu} onRefresh={refreshSingleCU} />}
       {activeTab === "charts" && <ChartsTab cu={cu} onRefresh={refreshSingleCU} />}
+      {activeTab === "calibration" && <CalibrationTab cu={cu} />}
       {activeTab === "alarms" && <AlarmsTab cu={cu} onRefresh={refreshSingleCU} />}
       {activeTab === "sensorConfig" && <SensorConfigTab cu={cu} onRefresh={refreshSingleCU} />}
 

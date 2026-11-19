@@ -17,11 +17,15 @@ import type { TranslationKey } from "../../i18n/translations";
 /** Colore della pillola di stato, coerente con la legenda della piattaforma. */
 const STATUS_PILL: Record<CertificateDTO["status"], string> = {
   draft: "ms-pill",
+  approved: "ms-pill ms-pill-pending",
   signed: "ms-pill ms-pill-applied",
+  verified: "ms-pill ms-pill-applied",
   effective: "ms-pill ms-pill-applied",
   expiring: "ms-pill ms-pill-pending",
   expired: "ms-pill ms-pill-divergent",
   superseded: "ms-pill",
+  supersededByConfig: "ms-pill ms-pill-divergent",
+  invalidated: "ms-pill ms-pill-divergent",
   archived: "ms-pill",
 };
 
@@ -46,10 +50,13 @@ export function primaryActionFor(row: CertificateDTO, isAdmin: boolean): Primary
   if (row.conformity === "nonConform" && (row.status === "effective" || row.status === "signed")) {
     return { action: "manage", labelKey: "cert.action.manage", variant: "outline-danger" };
   }
-  if (isAdmin && row.status === "draft") {
+  if (isAdmin && row.status === "approved") {
     return { action: "sign", labelKey: "cert.action.sign", variant: "success" };
   }
-  if (isAdmin && row.status === "signed") {
+  if (isAdmin && row.status === "draft") {
+    return { action: "manage", labelKey: "cert.action.open", variant: "outline-primary" };
+  }
+  if (isAdmin && (row.status === "signed" || row.status === "verified")) {
     return { action: "makeEffective", labelKey: "cert.action.makeEffective", variant: "outline-success" };
   }
   return null;

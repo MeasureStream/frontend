@@ -11,6 +11,7 @@
  *   GET  /API/dcc/summary?clientId=…        → HubSummaryDTO
  *   GET  /API/dcc/certificates?clientId=…   → CertificateDTO[]
  *   GET  /API/dcc/clients                   → { id, name }[]      (solo admin)
+ *   POST /API/dcc/certificates/approve      { ids: number[] }     (approvatore)
  *   POST /API/dcc/certificates/sign         { ids: number[] }     (solo admin)
  *   POST /API/dcc/certificates/effective    { ids: number[] }     (solo admin)
  *   POST /API/dcc/certificates/invalidate   { ids: number[] }     (solo admin)
@@ -23,6 +24,7 @@
  */
 import type { CertificateDTO, DownloadFormat, HubRole, HubSummaryDTO } from "./hubTypes";
 import { demoCertificates, demoClients, demoSummary } from "./demoData";
+import { csrfHeaders } from "../csrf";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 const API_URL = `${BASE_URL}/API/dcc`;
@@ -70,17 +72,47 @@ export function getHubClients(): Promise<HubResponse<HubClient[]>> {
   return tryGet("/clients", demoClients());
 }
 
-/** Azione di massa dell'admin: firma, rende effettivi o invalida i certificati. */
-export async function runCertificateAction(
-  action: "sign" | "effective" | "invalidate",
-  ids: number[],
-): Promise<void> {
-  // TODO(backend): POST /API/dcc/certificates/{action} con il corpo { ids }.
-  console.info(`[dcc] azione "${action}" su ${ids.length} certificati:`, ids);
+/** L'esito di un'azione di massa, riga per riga: un errore non ferma le altre. */
+export interface ActionOutcome {
+  id: number;
+  ok: boolean;
+  error?: string | null;
 }
 
-/** Scarica i certificati indicati nel formato scelto. */
+/**
+ * Azione di massa: approva, firma, rende effettivi o invalida. Il server lavora un
+ * certificato alla volta e risponde con l'esito di ognuno, motivo compreso.
+ */
+export async function runCertificateAction(
+  action: "approve" | "sign" | "effective" | "invalidate",
+  ids: number[],
+  reason?: string,
+): Promise<ActionOutcome[]> {
+  const response = await fetch(`${API_URL}/certificates/${action}`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json", ...csrfHeaders() },
+    body: JSON.stringify({ ids, reason }),
+  });
+  if (!response.ok) {
+    return ids.map((id) => ({ id, ok: false, error: `${response.status} ${response.statusText}` }));
+  }
+  return (await response.json()) as ActionOutcome[];
+}
+
+/**
+ * Scarica i certificati indicati nel formato scelto. Ogni file e' un link normale: il browser
+ * porta il cookie di sessione e salva con il nome che da' il server.
+ */
 export async function downloadCertificates(ids: number[], format: DownloadFormat): Promise<void> {
-  // TODO(backend): GET /API/dcc/certificates/{id}/download?format=… e salvataggio del blob.
-  console.info(`[dcc] download ${format} di ${ids.length} certificati:`, ids);
+  ids.forEach((id, i) => {
+    window.setTimeout(() => {
+      const link = document.createElement("a");
+      link.href = `${API_URL}/certificates/${id}/download?format=${format}`;
+      link.rel = "noopener";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    }, i * 400);
+  });
 }

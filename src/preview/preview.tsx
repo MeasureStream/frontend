@@ -11,6 +11,8 @@
  *
  * Non entra nel bundle di produzione: `vite build` compila solo `index.html`.
  */
+import { CertificatePage } from "../pages/Certificates/CertificatePage";
+import { SessionDetailPage } from "../pages/Sessions/SessionDetailPage";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { MemoryRouter, Route, Routes } from "react-router";
@@ -299,6 +301,8 @@ createRoot(rootElement).render(
             <Route path="/verifica-certificati" element={<CertificateVerifyPage />} />
             <Route path="/messaggi" element={<MessagesPage />} />
             <Route path="/riferimenti-campione" element={<ReferenceStandardsPage />} />
+            <Route path="/certificati/:id" element={<CertificatePage />} />
+            <Route path="/tarature/:id" element={<SessionDetailPage />} />
           </Routes>
         </MemoryRouter>
       </AuthProvider>

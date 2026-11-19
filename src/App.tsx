@@ -19,6 +19,8 @@ import { ReferenceStandardsPage } from "./pages/ReferenceStandards/ReferenceStan
 import { MyControlUnitsPage } from "./pages/ContolUnitsPage/MyControlUnitsPage";
 import { MyUnitsPage } from "./pages/MeasurementUnits/MyUnitsPage";
 import { MeasurementUnitDetailPage } from "./pages/MeasurementUnits/MeasurementUnitDetailPage";
+import { CertificatePage } from "./pages/Certificates/CertificatePage";
+import { SessionDetailPage } from "./pages/Sessions/SessionDetailPage";
 
 function App() {
   const { xsrfToken, setXsrfToken, dirty, setDirty, role, setRole, setUser } = useAuth(); // Usa il contesto
@@ -151,6 +153,8 @@ function App() {
             <Route path="/verifica-certificati" element={<CertificateVerifyPage />} />
             <Route path="/messaggi" element={<MessagesPage />} />
             <Route path="/riferimenti-campione" element={<ReferenceStandardsPage />} />
+            <Route path="/certificati/:id" element={<CertificatePage />} />
+            <Route path="/tarature/:id" element={<SessionDetailPage />} />
 
             {/* Le CU come flotta: la panoramica le guarda una per una, questa tabella
                 dice quale guardare. */}

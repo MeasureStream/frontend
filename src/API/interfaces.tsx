@@ -85,6 +85,65 @@ export interface MeasurementUnitDTO {
   statusAt?: string | null;
   controlUnitId: number | null;
   sensors: SensorDTO[];
+  /** Il `sub` Keycloak del proprietario: serve a metrology-service, qui solo informativo. */
+  ownerSub?: string | null;
+}
+
+/* ------------------------------------------------------------------ *
+ * Taratura sul campo (GET /API/measurementunits/{id}/calibrations)
+ * ------------------------------------------------------------------ */
+
+/** Una taratura dell'esemplare come l'ha ricevuta sensor-manager da `calibration-activated`. */
+export interface ActiveCalibrationDTO {
+  id: number;
+  calibratedItemId?: number | null;
+  certificateId: number;
+  certificateNumber?: string | null;
+  revision: number;
+  functionType?: string | null;
+  validFrom: string;
+  validUntil?: string | null;
+  revokedAt?: string | null;
+  calibratedMin?: number | null;
+  calibratedMax?: number | null;
+  receivedAt: string;
+}
+
+/** L'ultimo valore convertito, con la sua incertezza e i suoi flag di qualità. */
+export interface SampleQualityDTO {
+  metric: string;
+  timestamp: string;
+  windowStart?: string | null;
+  windowEnd?: string | null;
+  value?: number | null;
+  converted?: boolean | null;
+  /** Incertezza tipo, k = 1. */
+  uStd?: number | null;
+  /** Incertezza estesa, k = 2. */
+  expandedU?: number | null;
+  uComponents?: Record<string, number> | null;
+  qualityFlags?: number | null;
+  flagNames: string[];
+  certificateId?: number | null;
+  certificateNumber?: string | null;
+  templateVersion?: string | null;
+}
+
+/**
+ * Con quale funzione si stanno convertendo adesso le misure di un sensore. Lo stato lo ricava
+ * la stessa risoluzione che usa la decodifica dei report: dice cosa succede davvero.
+ */
+export interface SensorCalibrationStatusDTO {
+  sensorId: number;
+  sensorIndex: number;
+  modelName: string;
+  channel?: string | null;
+  requiresCalibration: boolean;
+  /** INSTANCE in vigore, EXPIRED scaduta ma in uso, NOMINAL formula di targa, NOT_REQUIRED fuori perimetro. */
+  state: "INSTANCE" | "EXPIRED" | "NOMINAL" | "NOT_REQUIRED";
+  current?: ActiveCalibrationDTO | null;
+  history: ActiveCalibrationDTO[];
+  lastSample?: SampleQualityDTO | null;
 }
 
 /**
