@@ -18,11 +18,15 @@ import type { TranslationKey } from "../../i18n/translations";
 /** Etichetta tradotta di ogni stato del certificato. */
 export const STATUS_KEYS: Record<CertificateStatus, TranslationKey> = {
   draft: "cert.status.draft",
+  approved: "cert.status.approved",
   signed: "cert.status.signed",
+  verified: "cert.status.verified",
   effective: "cert.status.effective",
   expiring: "cert.status.expiring",
   expired: "cert.status.expired",
   superseded: "cert.status.superseded",
+  supersededByConfig: "cert.status.supersededByConfig",
+  invalidated: "cert.status.invalidated",
   archived: "cert.status.archived",
 };
 

@@ -9,12 +9,13 @@ import { BsPencilSquare } from "react-icons/bs";
 import { useI18n } from "../../../i18n/I18nContext";
 import type { TranslationKey } from "../../../i18n/translations";
 
-export type CUDetailTab = "overview" | "charts" | "alarms" | "sensorConfig";
+export type CUDetailTab = "overview" | "charts" | "calibration" | "alarms" | "sensorConfig";
 
 /** Schede di lettura, nell'ordine in cui compaiono. */
 const READ_TABS: { id: CUDetailTab; key: TranslationKey }[] = [
   { id: "overview", key: "detail.tabs.overview" },
   { id: "charts", key: "detail.tabs.charts" },
+  { id: "calibration", key: "detail.tabs.calibration" },
   { id: "alarms", key: "detail.tabs.alarms" },
 ];
 

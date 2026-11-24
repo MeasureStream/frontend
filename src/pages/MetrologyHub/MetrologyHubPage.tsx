@@ -7,7 +7,6 @@
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Alert, Container } from "react-bootstrap";
-import { BsClipboardCheck, BsJournalText, BsSliders } from "react-icons/bs";
 import { getCertificates, getHubClients, getHubSummary, type HubClient } from "../../API/metrologyHub/hubApi";
 import type { CertificateDTO, HubSummaryDTO } from "../../API/metrologyHub/hubTypes";
 import { useAuth } from "../../API/AuthContext";
@@ -16,7 +15,9 @@ import { useI18n } from "../../i18n/I18nContext";
 import { HubHeader } from "../../components/MetrologyHubComponents/HubHeader";
 import { HubTabs, type HubTab } from "./HubTabs";
 import { CertificatesTab } from "./CertificatesTab";
-import { HubPlaceholderTab } from "./HubPlaceholderTab";
+import { CalibrationsTab } from "./CalibrationsTab";
+import { RegistryTab } from "./RegistryTab";
+import { ConformityTab } from "./ConformityTab";
 
 export function MetrologyHubPage() {
   const { t } = useI18n();
@@ -62,11 +63,11 @@ export function MetrologyHubPage() {
       case "certificates":
         return <CertificatesTab certificates={certificates} isAdmin={isAdmin} onRefresh={load} />;
       case "calibrations":
-        return <HubPlaceholderTab titleKey="hub.soonTitle" textKey="hub.calibrationsSoon" icon={<BsJournalText />} />;
+        return <CalibrationsTab certificates={certificates} />;
       case "conformity":
-        return <HubPlaceholderTab titleKey="hub.soonTitle" textKey="hub.conformitySoon" icon={<BsClipboardCheck />} />;
+        return <ConformityTab />;
       case "registry":
-        return <HubPlaceholderTab titleKey="hub.soonTitle" textKey="hub.registrySoon" icon={<BsSliders />} />;
+        return <RegistryTab />;
     }
   }, [activeTab, certificates, isAdmin, load]);
 

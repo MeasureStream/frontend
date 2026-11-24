@@ -15,12 +15,16 @@ export type HubRole = "client" | "admin";
  * pronta, così la UI non fa aritmetica sulle date.
  */
 export type CertificateStatus =
-  | "draft"       // bozza, non ancora firmata
+  | "draft"       // bozza (interno) o in trascrizione (esterno)
+  | "approved"    // interno approvato, da firmare
   | "signed"      // firmata dal laboratorio, non ancora efficace
+  | "verified"    // esterno verificato a quattro occhi, da mettere in vigore
   | "effective"   // in vigore
   | "expiring"    // in vigore ma vicina alla scadenza
   | "expired"     // scaduta
   | "superseded"  // sostituita da una revisione successiva
+  | "supersededByConfig" // la configurazione del dispositivo non corrisponde piu' (fase 6)
+  | "invalidated" // invalidata, con il motivo
   | "archived";   // archiviata, solo storico
 
 /** Esito della verifica di conformità del sensore certificato. */
@@ -158,6 +162,19 @@ export interface CertificateDTO {
   validTo: string | null;
   conformity: Conformity;
   status: CertificateStatus;
+  /* --- Campi del ciclo di vita, da metrology-service (assenti nei dati dimostrativi) --- */
+  number?: string;
+  kind?: "INTERNAL" | "EXTERNAL";
+  source?: string;
+  subjectType?: "ITEM" | "REFERENCE";
+  subjectId?: number;
+  muExtendedId?: number | null;
+  sensorIndex?: number | null;
+  /** Lo stato esatto del server: dice cosa manca per andare avanti. */
+  rawStatus?: string;
+  originalDocumentId?: number | null;
+  pdfDocumentId?: number | null;
+  xmlDocumentId?: number | null;
 }
 
 /** Formati con cui si può scaricare un certificato. */
@@ -207,10 +224,10 @@ export const EMPTY_FILTERS: CertificateFilters = {
  * è il suo storico.
  */
 export const CLIENT_VISIBLE_STATUSES: CertificateStatus[] = [
-  "effective", "expiring", "expired", "superseded", "archived",
+  "effective", "expiring", "expired", "superseded", "supersededByConfig", "invalidated", "archived",
 ];
 
 /** Stati visibili all'admin: tutte le fasi, bozze e archivio compresi. */
 export const ADMIN_VISIBLE_STATUSES: CertificateStatus[] = [
-  "draft", "signed", "effective", "expiring", "expired", "superseded", "archived",
+  "draft", "approved", "signed", "verified", "effective", "expiring", "expired", "superseded", "supersededByConfig", "invalidated", "archived",
 ];

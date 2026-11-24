@@ -94,6 +94,62 @@ export function templateUncertainty(doc: SensorTemplate | undefined): number {
   return standard(named ?? entries[0]);
 }
 
+/** Un intervallo di errore massimo ammesso, dallo schema 2.2.0 (`metrology.mpe[]`). */
+export interface MpeEntry {
+  min?: number;
+  max?: number;
+  value: number;
+  relative?: boolean;
+  dsi?: string;
+}
+
+/** I campi metrologici dello schema 2.2.0, letti con gli stessi ripieghi di sensor-manager. */
+export interface TemplateMetrology {
+  mpe: MpeEntry[];
+  /** Da dove viene l'MPE: `mpe` o il campo storico da cui è stato dedotto. */
+  mpeSource: "mpe" | "Uncertainty.maxTollerance" | "readingUncertainty.absUncertainty" | null;
+  drift: { value: number; period: string; dsi?: string } | null;
+  typeAFromVariance: boolean;
+  requiresCalibration: boolean;
+}
+
+/**
+ * `mpe[]`, `drift`, `typeAFromVariance` e `requiresCalibration`. I template 2.1.0 non hanno
+ * `mpe`: come fa `MetrologySpec` lato server, lo si ricava da `Uncertainty.maxTollerance` o da
+ * `readingUncertainty.absUncertainty`, così l'interfaccia dice lo stesso numero che il server usa.
+ */
+export function templateMetrology(doc: SensorTemplate | undefined): TemplateMetrology {
+  const m = (doc?.metrology ?? {}) as Record<string, unknown>;
+  const find = (list: unknown, name: string): number | undefined => {
+    if (!Array.isArray(list)) return undefined;
+    const entry = list.find((e) => (e as { varName?: string })?.varName === name) as { value?: number } | undefined;
+    return typeof entry?.value === "number" && entry.value > 0 ? entry.value : undefined;
+  };
+
+  let mpe: MpeEntry[] = Array.isArray(m.mpe) ? (m.mpe as MpeEntry[]).filter((e) => typeof e?.value === "number") : [];
+  let mpeSource: TemplateMetrology["mpeSource"] = mpe.length ? "mpe" : null;
+  if (!mpe.length) {
+    const tolerance = find(m.Uncertainty, "maxTollerance");
+    const accuracy = find(m.readingUncertainty, "absUncertainty");
+    if (tolerance !== undefined) {
+      mpe = [{ value: tolerance }];
+      mpeSource = "Uncertainty.maxTollerance";
+    } else if (accuracy !== undefined) {
+      mpe = [{ value: accuracy }];
+      mpeSource = "readingUncertainty.absUncertainty";
+    }
+  }
+
+  const drift = m.drift as { value?: number; period?: string; dsi?: string } | undefined;
+  return {
+    mpe,
+    mpeSource,
+    drift: drift && typeof drift.value === "number" && drift.period ? { value: drift.value, period: drift.period, dsi: drift.dsi } : null,
+    typeAFromVariance: m.typeAFromVariance === true,
+    requiresCalibration: m.requiresCalibration !== false,
+  };
+}
+
 /* ------------------------------------------------------------------ *
  * Calibrazione
  * ------------------------------------------------------------------ */

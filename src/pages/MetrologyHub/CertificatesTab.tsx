@@ -7,6 +7,8 @@
  * tabella con meno colonne e la sola azione di scarico.
  */
 import { useMemo, useState } from "react";
+import { DccImportModal } from "./DccImportModal";
+import { useNavigate } from "react-router";
 import { Alert, Button } from "react-bootstrap";
 import { BsFileEarmarkArrowUp, BsFilePlus, BsX } from "react-icons/bs";
 import type { CertificateDTO, DownloadFormat } from "../../API/metrologyHub/hubTypes";
@@ -28,7 +30,11 @@ interface Props {
 }
 
 export function CertificatesTab({ certificates, isAdmin, onRefresh }: Props) {
+  const [importingDcc, setImportingDcc] = useState(false);
   const { t } = useI18n();
+  const navigate = useNavigate();
+  /** Le righe su cui l'ultima azione di massa non e' riuscita, con il motivo del server. */
+  const [failures, setFailures] = useState<{ id: number; error?: string | null }[]>([]);
 
   const [filters, setFilters] = useState<CertificateFilters>(EMPTY_FILTERS);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
@@ -40,32 +46,46 @@ export function CertificatesTab({ certificates, isAdmin, onRefresh }: Props) {
   const visible = useMemo(() => filterCertificates(certificates, filters), [certificates, filters]);
   const selected = useMemo(() => visible.filter((row) => selectedIds.includes(row.id)), [visible, selectedIds]);
 
-  /* Solo le bozze si firmano e solo i firmati diventano effettivi: le azioni
-     di massa restano spente finché la selezione non contiene qualcosa di
-     compatibile, così non si promettono operazioni impossibili. */
-  const signable = selected.some((row) => row.status === "draft");
-  const effectivable = selected.some((row) => row.status === "signed");
-  /* Si invalida solo ciò che è in vigore: su una bozza non avrebbe senso. */
-  const invalidable = selected.some((row) => row.status === "effective");
+  /* Una bozza interna si approva, un approvato si firma, un firmato o un esterno verificato
+     entra in vigore: le azioni di massa restano spente finche' la selezione non contiene
+     qualcosa di compatibile, cosi' non si promettono operazioni impossibili. Il server
+     ricontrolla comunque ruolo e quattro occhi riga per riga. */
+  const approvable = selected.some((row) => row.status === "draft" && row.kind === "INTERNAL");
+  const signable = selected.some((row) => row.status === "approved");
+  const effectivable = selected.some((row) => row.status === "signed" || row.status === "verified");
+  /* Si invalida cio' che non lo e' gia': anche una bozza sbagliata si scarta cosi'. */
+  const invalidable = selected.some((row) => row.status !== "invalidated" && row.status !== "superseded");
 
   const toggleRow = (id: number) =>
     setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
 
   const toggleAll = (value: boolean) => setSelectedIds(value ? visible.map((row) => row.id) : []);
 
-  const runBulk = async (action: "sign" | "effective" | "invalidate") => {
-    await runCertificateAction(action, selectedIds);
+  const runBulk = async (action: "approve" | "sign" | "effective" | "invalidate") => {
+    let reason: string | undefined;
+    if (action === "invalidate") {
+      reason = window.prompt(t("certPage.invalidatePrompt")) ?? undefined;
+      if (!reason) return;
+    }
+    const outcomes = await runCertificateAction(action, selectedIds, reason);
+    setFailures(outcomes.filter((o) => !o.ok));
     setSelectedIds([]);
     onRefresh();
   };
 
-  /** Azione primaria di riga: oggi registra l'intento, domani naviga al flusso. */
+  /**
+   * Azione primaria di riga. Firma ed entrata in vigore si fanno da qui; verificare una
+   * scadenza, gestire una non conformita' o aprire una bozza portano alla pagina del
+   * certificato, dove c'e' tutto il contesto.
+   */
   const handlePrimary = async (action: PrimaryAction, row: CertificateDTO) => {
-    if (action === "sign") return runCertificateAction("sign", [row.id]).then(onRefresh);
-    if (action === "makeEffective") return runCertificateAction("effective", [row.id]).then(onRefresh);
-    // TODO(flussi): "verify" porterà alla richiesta di taratura, "manage" alla
-    // gestione della non conformità (M7), entrambe ancora da realizzare.
-    console.info(`[dcc] azione "${action}" sul certificato ${row.id}`);
+    const finish = (outcomes: { id: number; ok: boolean; error?: string | null }[]) => {
+      setFailures(outcomes.filter((o) => !o.ok));
+      onRefresh();
+    };
+    if (action === "sign") return runCertificateAction("sign", [row.id]).then(finish);
+    if (action === "makeEffective") return runCertificateAction("effective", [row.id]).then(finish);
+    if (row.rawStatus) navigate(`/certificati/${row.id}`);
   };
 
   const confirmDownload = async (format: DownloadFormat) => {
@@ -92,7 +112,7 @@ export function CertificatesTab({ certificates, isAdmin, onRefresh }: Props) {
           onToggleAll={toggleAll}
           onDownload={setDownloadIds}
           onPrimaryAction={handlePrimary}
-          onEdit={setEditing}
+          onEdit={(row) => (row.rawStatus ? navigate(`/certificati/${row.id}`) : setEditing(row))}
         />
 
         {/* Barra contestuale: azioni di massa a sinistra, creazione a destra. */}
@@ -111,6 +131,9 @@ export function CertificatesTab({ certificates, isAdmin, onRefresh }: Props) {
 
           {isAdmin && (
             <>
+              <Button size="sm" variant="outline-success" disabled={!approvable} onClick={() => runBulk("approve")}>
+                {t("cert.bulk.approve")}
+              </Button>
               <Button size="sm" variant="outline-success" disabled={!signable} onClick={() => runBulk("sign")}>
                 {t("cert.bulk.sign")}
               </Button>
@@ -136,22 +159,37 @@ export function CertificatesTab({ certificates, isAdmin, onRefresh }: Props) {
 
           {isAdmin && (
             <>
-              <Button size="sm" variant="outline-primary" className="d-flex align-items-center gap-2">
-                <BsFileEarmarkArrowUp /> {t("cert.importXml")}
+              <Button size="sm" variant="outline-primary" className="d-flex align-items-center gap-2" onClick={() => setImportingDcc(true)}>
+                <BsFileEarmarkArrowUp /> {t("dcc.button")}
               </Button>
-              <Button size="sm" variant="success" className="d-flex align-items-center gap-2">
-                <BsFilePlus /> {t("cert.manualCreate")}
+              <Button size="sm" variant="outline-primary" className="d-flex align-items-center gap-2" onClick={() => navigate("/certificati/nuovo")}>
+                <BsFileEarmarkArrowUp /> {t("cert.importPdf")}
+              </Button>
+              <Button size="sm" variant="success" className="d-flex align-items-center gap-2" onClick={() => navigate("/riferimenti-campione")}>
+                <BsFilePlus /> {t("cert.references")}
               </Button>
             </>
           )}
         </div>
       </div>
 
+      {failures.length > 0 && (
+        <Alert variant="warning" className="py-2 small mt-3" dismissible onClose={() => setFailures([])}>
+          <strong className="d-block">{t("cert.bulk.failures")}</strong>
+          {failures.map((f) => (
+            <div key={f.id}>
+              #{f.id}: {f.error}
+            </div>
+          ))}
+        </Alert>
+      )}
+
       <Alert variant="light" className="border-0 ms-cfg-note mt-3 mb-0 px-0">
         {isAdmin ? t("cert.adminNote") : t("cert.clientNote")}
       </Alert>
 
       <DownloadFormatModal ids={downloadIds} onHide={() => setDownloadIds([])} onConfirm={confirmDownload} />
+      <DccImportModal show={importingDcc} onClose={() => setImportingDcc(false)} />
       <EditCertificateModal certificate={editing} onHide={() => setEditing(null)} onConfirm={confirmEdit} />
     </section>
   );

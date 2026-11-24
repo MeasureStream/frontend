@@ -61,6 +61,7 @@ export function ChartsTab({ cu }: Props) {
 
             <SensorChartsGrid
               sensors={mu.sensors}
+              muId={mu.id}
               label={muLabel(mu.extendedId)}
               lastContact={cu.lastSeen}
               settings={settings}

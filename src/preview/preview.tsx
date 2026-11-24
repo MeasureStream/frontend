@@ -11,6 +11,9 @@
  *
  * Non entra nel bundle di produzione: `vite build` compila solo `index.html`.
  */
+import { CertificatePage } from "../pages/Certificates/CertificatePage";
+import { SessionDetailPage } from "../pages/Sessions/SessionDetailPage";
+import { ControlPointPage } from "../pages/ControlPoints/ControlPointPage";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { MemoryRouter, Route, Routes } from "react-router";
@@ -262,10 +265,91 @@ const MOCK_CU_SUMMARIES: ControlUnitSummary[] = [
   mockSummary(MOCK_CUS[4], { decodeFailureCount: 3 }),
 ];
 
+/* Fasi 4 e 5 del piano metrologico: punti di controllo, non conformita', scadenze. */
+const hoursAgo = (h: number) => new Date(Date.now() - h * 3_600_000).toISOString();
+const MOCK_POINTS = [
+  {
+    id: 1, ownerSub: "cliente", name: "Cella surgelati 2", location: "Magazzino, piano terra", process: "Conservazione",
+    profile: { templateId: 501, version: "1.0.0" }, profileName: "Conservazione di surgelati, EN 12830 classe 0,5",
+    quantity: "temperature", dsi: "\\degreeCelsius", profileLimits: { high: -18 },
+    overrides: { limits: { high: -20 }, reason: "Piano HACCP aziendale, rev. 4" }, limitLow: null, limitHigh: -20,
+    historicClimate: false, guardZoneOpensExcursionAfter: "PT30M", createdAt: hoursAgo(900), archivedAt: null,
+    current: { id: 2, calibratedItemId: 7, muExtendedId: 0xa1b2, sensorIndex: 1, modelName: "ntc_temperature", metric: "mean", from: hoursAgo(300), to: null },
+    assignments: [
+      { id: 2, calibratedItemId: 7, muExtendedId: 0xa1b2, sensorIndex: 1, modelName: "ntc_temperature", metric: "mean", from: hoursAgo(300), to: null },
+      { id: 1, calibratedItemId: 5, muExtendedId: 0xb0e9, sensorIndex: 1, modelName: "ntc_temperature", metric: "mean", from: hoursAgo(900), to: hoursAgo(300) },
+    ],
+    lastVerdict: "GUARD_ZONE", lastValue: -19.96, lastAt: hoursAgo(0.2), openExcursions: 1, openNonconformities: 1, climate: null,
+  },
+  {
+    id: 2, ownerSub: "museo", name: "Sala degli arazzi", location: "Piano nobile", process: "Conservazione preventiva",
+    profile: { templateId: 502, version: "1.0.0" }, profileName: "Beni culturali igroscopici, clima storico (EN 15757)",
+    quantity: "relativeHumidity", dsi: "\\percent", profileLimits: {}, overrides: null, limitLow: null, limitHigh: null,
+    historicClimate: true, guardZoneOpensExcursionAfter: "PT6H", createdAt: hoursAgo(5000), archivedAt: null,
+    current: null, assignments: [], lastVerdict: "NOT_EVALUABLE", lastValue: 52.4, lastAt: hoursAgo(1),
+    openExcursions: 0, openNonconformities: 0, climate: { historyDays: 210, requiredDays: 395, computedAt: null },
+  },
+];
+const MOCK_NCS = [
+  { id: 11, type: "PROCESS", controlPointId: 1, subject: {}, title: "Escursione sopra il limite -20 a Cella surgelati 2", detectedAt: hoursAgo(5), severity: "MAJOR", state: "OPEN" },
+  { id: 12, type: "INSTRUMENT", calibratedItemId: 7, subject: {}, title: "As-found fuori tolleranza: MU 0x0000A1B2 sensore 1 (errore 0.62, tolleranza 0.5)", detectedAt: hoursAgo(50), severity: "MAJOR", state: "ACKNOWLEDGED", decision: "ADJUST", decisionReason: "Regolazione in sessione" },
+];
+const MOCK_SCHEDULE = [
+  { id: 1, subjectType: "ITEM", subjectId: 7, label: "MU 0x0000A1B2 sensore 1", kind: "INTERMEDIATE_CHECK", dueAt: hoursAgo(-24 * 12), daysLeft: 12, level: "WITHIN_30", source: "profilo 501 del punto di controllo «Cella surgelati 2» (P3M)" },
+  { id: 2, subjectType: "ITEM", subjectId: 7, label: "MU 0x0000A1B2 sensore 1", kind: "CALIBRATION", dueAt: hoursAgo(-24 * 300), daysLeft: 300, level: "OK", source: "certificato LAB-2026-0007 rev. 1" },
+  { id: 3, subjectType: "REFERENCE", subjectId: 1, label: "campione Fluke 9142 (B12345)", kind: "CALIBRATION", dueAt: hoursAgo(24 * 3), daysLeft: -3, level: "OVERDUE", source: "certificato LAT-042-2025-0318 rev. 1" },
+];
+const MOCK_EXCURSIONS = [
+  { id: 4, controlPointId: 1, kind: "LIMIT", side: "HIGH", limitValue: -20, startedAt: hoursAgo(5), endedAt: hoursAgo(4.5), peak: -18.7, peakAt: hoursAgo(4.8), degreeMinutes: 21.5, samples: 3, state: "CLOSED", nonconformityId: 11 },
+];
+const MOCK_CHART = {
+  calibratedItemId: 7, method: "SHEWHART_INDIVIDUALS",
+  points: [0.05, 0.07, 0.04, 0.06, 0.09, 0.11].map((v, i) => ({ at: hoursAgo(24 * 30 * (6 - i)), source: i === 0 ? "CALIBRATION" : "CHECK", value: v, expandedU: 0.2, label: `punto ${i + 1}` })),
+  center: 0.07, sigma: 0.022, ucl: 0.136, lcl: 0.004, uwl: 0.114, lwl: 0.026, cusumHigh: [], cusumLow: [], signals: [],
+  proposal: { id: 3, calibratedItemId: 7, method: "OIML_D10_STAIRCASE", currentDays: 365, proposedDays: 456, ratio: 0.2, reason: "as-found entro il 20 % della tolleranza (soglia 80 %): l'intervallo si allunga", state: "PROPOSED" },
+};
+const MOCK_CHECKS = [
+  { id: 1, calibratedItemId: 7, checkedAt: hoursAgo(24 * 20), referenceValue: -18.4, referenceU: 0.1, referenceK: 2, indicatedValue: -18.33, indicatedU: 0.58, error: 0.07, en: 0.12, tolerance: 0.5, verdict: "PASS", performedBy: "cliente" },
+];
+/* La scheda Anagrafiche dell'Hub: aziende con i membri e la loro email, laboratori, ruoli. */
+const MOCK_COMPANIES = [
+  {
+    id: 1, name: "Surgelati Esempio S.p.A.",
+    members: [{ userSub: "0b5e7c2a-1111-4222-8333-444455556666", displayName: "Responsabile qualità", email: "qualita@example.com", addedAt: hoursAgo(500) }],
+  },
+];
+const MOCK_LABS = [
+  { id: 1, name: "Laboratorio interno", internal: true, recognized: true },
+  { id: 2, name: "Laboratorio Esterno S.r.l.", accreditationBody: "ACCREDIA", accreditationNumber: "LAT n. 123", internal: false, recognized: false },
+];
+const MOCK_ROLES = [
+  { id: 1, userSub: "5ab1e2c3-0000-4000-8000-000000000001", displayName: "Tecnico interno", role: "TECHNICIAN", validFrom: "2026-01-01", validTo: null, labCompanyId: null, grantedBy: "admin", activeToday: true },
+  { id: 2, userSub: "5ab1e2c3-0000-4000-8000-000000000002", displayName: "Tecnico del laboratorio esterno", role: "TECHNICIAN", validFrom: "2026-06-01", validTo: null, labCompanyId: 2, grantedBy: "admin", activeToday: true },
+];
+const METROLOGY_MOCKS: [RegExp, unknown][] = [
+  [/\/API\/metrology\/companies$/, MOCK_COMPANIES],
+  [/\/API\/metrology\/labs$/, MOCK_LABS],
+  [/\/API\/metrology\/roles$/, MOCK_ROLES],
+  [/\/API\/metrology\/control-points\/1\/excursions/, MOCK_EXCURSIONS],
+  [/\/API\/metrology\/control-points\/2\/excursions/, []],
+  [/\/API\/metrology\/control-points\/1$/, MOCK_POINTS[0]],
+  [/\/API\/metrology\/control-points\/2$/, MOCK_POINTS[1]],
+  [/\/API\/metrology\/control-points$/, MOCK_POINTS],
+  [/\/API\/metrology\/nonconformities/, MOCK_NCS],
+  [/\/API\/metrology\/schedule/, MOCK_SCHEDULE],
+  [/\/API\/metrology\/items\/\d+\/control-chart/, MOCK_CHART],
+  [/\/API\/metrology\/checks\?/, MOCK_CHECKS],
+];
+
 const realFetch = window.fetch.bind(window);
 window.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
   const url =
     typeof input === "string" ? input : input instanceof Request ? input.url : String(input);
+  const path = url.split("?")[0] + (url.includes("/checks?") ? "?" : "");
+  const mock = METROLOGY_MOCKS.find(([pattern]) => pattern.test(path));
+  if (mock) {
+    return Promise.resolve(new Response(JSON.stringify(mock[1]), { status: 200, headers: { "Content-Type": "application/json" } }));
+  }
   if (url.includes("/API/controlunits/summary")) {
     return Promise.resolve(
       new Response(JSON.stringify(MOCK_CU_SUMMARIES), {
@@ -299,6 +383,9 @@ createRoot(rootElement).render(
             <Route path="/verifica-certificati" element={<CertificateVerifyPage />} />
             <Route path="/messaggi" element={<MessagesPage />} />
             <Route path="/riferimenti-campione" element={<ReferenceStandardsPage />} />
+            <Route path="/certificati/:id" element={<CertificatePage />} />
+            <Route path="/tarature/:id" element={<SessionDetailPage />} />
+            <Route path="/punti-di-controllo/:id" element={<ControlPointPage />} />
           </Routes>
         </MemoryRouter>
       </AuthProvider>

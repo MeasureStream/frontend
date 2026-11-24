@@ -19,6 +19,7 @@ import {
   type ChartSettings,
 } from "../../components/SensorChartsControls";
 import { MeasurementUnitEvents } from "../../components/MeasurementUnitEvents";
+import { SensorCalibrationPanel } from "../../components/Metrology/SensorCalibrationPanel";
 import { useI18n } from "../../i18n/I18nContext";
 
 export function MeasurementUnitDetailPage() {
@@ -161,12 +162,15 @@ export function MeasurementUnitDetailPage() {
             ) : (
               <SensorChartsGrid
                 sensors={unit.sensors}
+                muId={unitId}
                 label={label}
                 lastContact={summary?.lastSeen ?? unit.statusAt ?? null}
                 settings={settings}
               />
             )}
           </section>
+
+          <SensorCalibrationPanel muId={unitId} muExtendedId={unit.extendedId} />
 
           <MeasurementUnitEvents unitId={unitId} label={label} />
         </>
