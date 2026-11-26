@@ -1,5 +1,5 @@
 /**
- * Sezione "Documentazione": tarature, certificati DCC e conformità.
+ * Sezione «TIC» (testing, inspection and certification): tarature, certificati DCC e conformità.
  *
  * Guscio della sezione — carica i dati una volta sola, tiene l'intestazione
  * agganciata in alto (come nel dettaglio CU) e mostra la scheda attiva.
@@ -10,6 +10,7 @@ import { Alert, Container } from "react-bootstrap";
 import { getCertificates, getHubClients, getHubSummary, type HubClient } from "../../API/metrologyHub/hubApi";
 import type { CertificateDTO, HubSummaryDTO } from "../../API/metrologyHub/hubTypes";
 import { useAuth } from "../../API/AuthContext";
+import { useMetrologyProfile } from "../../API/metrology/useMetrologyProfile";
 import { useAutoRefresh } from "../../API/useAutoRefresh";
 import { useI18n } from "../../i18n/I18nContext";
 import { HubHeader } from "../../components/MetrologyHubComponents/HubHeader";
@@ -24,6 +25,9 @@ export function MetrologyHubPage() {
   const { role } = useAuth();
   const isAdmin = role === "ADMIN";
   const hubRole = isAdmin ? "admin" : "client";
+  const metrologyProfile = useMetrologyProfile();
+  /** La modalità rodaggio la vede solo l'amministratore, che è anche l'unico a poterla usare. */
+  const runIn = isAdmin && !!metrologyProfile?.runIn;
 
   const [activeTab, setActiveTab] = useState<HubTab>("certificates");
   /** Cliente osservato dall'admin; `null` = tutti i clienti. */
@@ -100,6 +104,8 @@ export function MetrologyHubPage() {
       {isDemo && (
         <Alert variant="warning" className="py-2 small">{t("hub.demoData")}</Alert>
       )}
+
+      {runIn && <Alert variant="info" className="py-2 small">{t("runIn.banner")}</Alert>}
 
       {tabContent}
     </Container>

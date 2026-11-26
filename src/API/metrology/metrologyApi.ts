@@ -100,6 +100,9 @@ export const createReference = (body: ReferenceRequest) =>
 export const updateReference = (id: number, body: ReferenceRequest) =>
   request<ReferenceDTO>(`${METROLOGY}/references/${id}`, json("PUT", body));
 
+/** Solo un campione mai usato: il server rifiuta, spiegando perché, se ha certificati o sessioni. */
+export const deleteReference = (id: number) => request<void>(`${METROLOGY}/references/${id}`, { method: "DELETE" });
+
 /* -------------------------------------------------------------- certificati */
 
 export const getCertificate = (id: number) => request<CertificateDetailDTO>(`${METROLOGY}/certificates/${id}`);
@@ -163,14 +166,32 @@ export const getLabs = () => request<LabCompanyDTO[]>(`${METROLOGY}/labs`);
 export const createLab = (lab: Partial<LabCompanyDTO> & { name: string }) =>
   request<LabCompanyDTO>(`${METROLOGY}/labs`, json("POST", lab));
 
+/** Aziende e laboratori si cancellano finché nessuno li usa; il server dice cosa li tiene. */
+export const deleteCompany = (id: number) => request<void>(`${METROLOGY}/companies/${id}`, { method: "DELETE" });
+
+export const deleteLab = (id: number) => request<void>(`${METROLOGY}/labs/${id}`, { method: "DELETE" });
+
 /* ------------------------------------------------------- ruoli metrologici */
+
+export interface RoleBody {
+  userSub: string;
+  displayName?: string;
+  role: MetrologyRoleType;
+  validFrom?: string;
+  validTo?: string;
+  labCompanyId?: number | null;
+}
 
 export const getRoles = () => request<RoleDTO[]>(`${METROLOGY}/roles`);
 
-export const grantRole = (body: { userSub: string; displayName?: string; role: MetrologyRoleType; validFrom?: string; validTo?: string; labCompanyId?: number | null }) =>
-  request<RoleDTO>(`${METROLOGY}/roles`, json("POST", body));
+export const grantRole = (body: RoleBody) => request<RoleDTO>(`${METROLOGY}/roles`, json("POST", body));
 
 export const endRole = (id: number) => request<RoleDTO>(`${METROLOGY}/roles/${id}/end`, { method: "POST" });
+
+/** Solo in modalità rodaggio: in esercizio un ruolo si chiude ([endRole]) e se ne concede un altro. */
+export const correctRole = (id: number, body: RoleBody) => request<RoleDTO>(`${METROLOGY}/roles/${id}`, json("PUT", body));
+
+export const deleteRole = (id: number) => request<void>(`${METROLOGY}/roles/${id}`, { method: "DELETE" });
 
 /* ------------------------------------------------------------------ sessioni */
 

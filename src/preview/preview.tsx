@@ -326,7 +326,26 @@ const MOCK_ROLES = [
   { id: 1, userSub: "5ab1e2c3-0000-4000-8000-000000000001", displayName: "Tecnico interno", role: "TECHNICIAN", validFrom: "2026-01-01", validTo: null, labCompanyId: null, grantedBy: "admin", activeToday: true },
   { id: 2, userSub: "5ab1e2c3-0000-4000-8000-000000000002", displayName: "Tecnico del laboratorio esterno", role: "TECHNICIAN", validFrom: "2026-06-01", validTo: null, labCompanyId: 2, grantedBy: "admin", activeToday: true },
 ];
+/* L'amministratore con la modalità rodaggio accesa: l'anteprima mostra i pulsanti per correggere ed eliminare. */
+const MOCK_PROFILE = {
+  sub: "admin", username: "admin", displayName: "Amministratore", admin: true, lab: false, roles: [],
+  canEnterCertificates: true, canApprove: true, canOpenSessions: true, signingAvailable: false, signingDevOnly: false, runIn: true,
+};
+/* Un campione in servizio e uno creato per prova, senza certificato. */
+const MOCK_REFERENCES = [
+  {
+    id: 1, name: "Fluke 9142", manufacturer: "Fluke / Hart Scientific", model: "9142", serialNumber: "B12345", modelTemplateId: 301, modelTemplateMajor: 1,
+    status: "IN_SERVICE", location: "Laboratorio", currentCertificateId: 5, currentCertificateNumber: "LAT-042-2025-0318", certificateIssuer: "LAT 042",
+    validUntil: hoursAgo(-24 * 90), usable: true, unusableReason: null,
+  },
+  {
+    id: 2, name: "Prova", serialNumber: "a", modelTemplateId: 301, modelTemplateMajor: 1, status: "IN_SERVICE",
+    usable: false, unusableReason: "Il campione non ha un certificato in vigore",
+  },
+];
 const METROLOGY_MOCKS: [RegExp, unknown][] = [
+  [/\/API\/metrology\/me$/, MOCK_PROFILE],
+  [/\/API\/metrology\/references$/, MOCK_REFERENCES],
   [/\/API\/metrology\/companies$/, MOCK_COMPANIES],
   [/\/API\/metrology\/labs$/, MOCK_LABS],
   [/\/API\/metrology\/roles$/, MOCK_ROLES],

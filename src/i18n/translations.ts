@@ -20,7 +20,7 @@ export const it = {
   "nav.overview": "Panoramica",
   "nav.myControlUnits": "Mie CUs",
   "nav.myUnits": "Mie MUs",
-  "nav.metrologyHub": "Documentazione",
+  "nav.metrologyHub": "TIC",
   "nav.verifyCertificates": "Verifica certificati",
   "nav.messages": "Messaggi",
   "nav.referenceStandards": "Riferimenti campione",
@@ -28,8 +28,8 @@ export const it = {
   "nav.account": "Utente collegato",
 
   // --- Hub Metrologico (tarature e DCC) ---
-  "hub.title": "Hub Metrologico",
-  "hub.subtitle": "Tarature, certificati digitali e conformità dei sensori",
+  "hub.title": "TIC",
+  "hub.subtitle": "Testing, inspection and certification: tarature, certificati digitali e conformità dei sensori",
   "hub.emptyTitle": "Nessuno storico da valutare",
   "hub.emptyText":
     "Non ci sono sensori censiti su questo account, quindi non esistono tarature né certificati da consultare. Collega una Control Unit e le sue Measurement Unit: da qui potrai poi seguire le richieste di taratura, rivedere i risultati e archiviare i Digital Calibration Certificate.",
@@ -853,6 +853,7 @@ export const it = {
   "iq.toggleHelp": "Verifiche intermedie, carta di controllo, intervallo, riconversioni",
   "iq.checks": "Verifiche intermedie",
   "iq.noChecks": "Nessuna verifica.",
+  "iq.confirmDelete": "Eliminare la verifica del {when}? Se aveva aperto una non conformità, quella resta e va chiusa a parte.",
   "iq.col.when": "Quando",
   "iq.col.error": "Errore",
   "iq.col.verdict": "Esito",
@@ -1150,6 +1151,21 @@ export const it = {
   "registry.labs.number": "Numero",
   "registry.labs.internal": "nostro",
   "registry.labs.recognized": "riconosciuto",
+  "registry.edit": "Modifica",
+  "registry.delete": "Elimina",
+  "registry.save": "Salva",
+  "registry.cancel": "Annulla",
+  "registry.confirmDelete": "Eliminare «{what}»? L'operazione resta nel registro delle azioni ma non si può annullare.",
+  "registry.roles.to": "Fino al",
+  "registry.roles.correct": "Salva la correzione",
+  "registry.roles.editing": "Stai correggendo il ruolo di {user}.",
+  "registry.roles.runInHelp":
+    "Modalità rodaggio: un ruolo dato per errore si può correggere o eliminare. In esercizio si potrà solo chiudere.",
+  "registry.companies.deleteHint": "Per eliminare l'azienda vanno prima tolti i membri",
+
+  // --- Metrologia: modalità rodaggio ---
+  "runIn.banner":
+    "Modalità rodaggio attiva: l'amministratore può correggere ed eliminare ruoli metrologici, verifiche intermedie e numeri di serie dei campioni. Ogni correzione resta nel registro. Va spenta (METROLOGY_RUN_IN) prima di emettere certificati veri.",
 
   // --- Metrologia: campioni di riferimento ---
   "standards.colSerial": "Numero di serie",
@@ -1164,6 +1180,11 @@ export const it = {
   "standards.newTitle": "Nuovo campione",
   "standards.manufacturer": "Costruttore",
   "standards.template": "Template",
+  "standards.statusLabel": "Stato",
+  "standards.editTitle": "Modifica del campione {serial}",
+  "standards.serialLocked": "Il numero di serie si cambia solo in modalità rodaggio, dall'amministratore.",
+  "standards.confirmDelete":
+    "Eliminare il campione {serial}? Si può solo se non ha mai avuto certificati, sessioni o verifiche; altrimenti va messo «Ritirato».",
 
   // --- Metrologia: verifica dei certificati ---
   "verify.verdict": "Esito",

@@ -25,6 +25,11 @@ export interface MetrologyProfileDTO {
   signingAvailable: boolean;
   /** Vero se la chiave di firma è quella di sviluppo: va detto accanto a ogni firma. */
   signingDevOnly: boolean;
+  /**
+   * Modalità rodaggio (METROLOGY_RUN_IN): l'amministratore può correggere e cancellare ciò che
+   * in esercizio resta immutabile. Assente sui server precedenti: vale come spenta.
+   */
+  runIn?: boolean;
 }
 
 export type ItemStatus = "IN_SERVICE" | "REPLACED" | "RETIRED";

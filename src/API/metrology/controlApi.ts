@@ -302,6 +302,8 @@ export const getSchedule = () => call<ScheduleEntryDTO[]>(`${METROLOGY}/schedule
 
 export const recordCheck = (body: CheckRequest) => call<IntermediateCheckDTO>(`${METROLOGY}/checks`, json("POST", body));
 export const getChecks = (itemId: number) => call<IntermediateCheckDTO[]>(`${METROLOGY}/checks?itemId=${itemId}`);
+/** Solo in modalità rodaggio e solo per l'amministratore: una verifica scritta male si cancella e si riscrive. */
+export const deleteCheck = (id: number) => call<void>(`${METROLOGY}/checks/${id}`, { method: "DELETE" });
 export const getControlChart = (itemId: number) => call<ControlChartDTO>(`${METROLOGY}/items/${itemId}/control-chart`);
 export const getIntervalProposals = (itemId: number) => call<IntervalProposalDTO[]>(`${METROLOGY}/items/${itemId}/interval-proposals`);
 export const acceptProposal = (id: number, reason?: string) =>

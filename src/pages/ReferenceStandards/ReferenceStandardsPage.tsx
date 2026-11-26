@@ -6,23 +6,54 @@
  * è la stessa regola con cui il server rifiuta di aprire una sessione, e qui si legge il motivo.
  * Il certificato di un campione si carica come quello di un esemplare, dalla pagina di import.
  *
+ * Il personale modifica un campione (nome, posizione, stato: «ritirato» per uno che non si usa
+ * più); il numero di serie si cambia solo in modalità rodaggio. L'amministratore cancella un
+ * campione creato per errore, se non ha mai avuto certificati, sessioni o verifiche: uno già
+ * usato si ritira, perché chi è stato tarato con lui deve poterlo ritrovare.
+ *
  * Nascondere la voce di menu non è un controllo di accesso: l'API risponde 403 a chi non è
  * personale del laboratorio.
  */
 import { useCallback, useEffect, useState } from "react";
 import { Alert, Button, Col, Container, Form, Row, Table } from "react-bootstrap";
-import { BsFileEarmarkPlus, BsRulers } from "react-icons/bs";
+import { BsFileEarmarkPlus, BsPencil, BsRulers, BsTrash } from "react-icons/bs";
 import { Link } from "react-router";
-import { errorText, createReference, getReferences } from "../../API/metrology/metrologyApi";
-import type { ReferenceDTO } from "../../API/metrology/metrologyTypes";
+import { errorText, createReference, deleteReference, getReferences, updateReference } from "../../API/metrology/metrologyApi";
+import type { ReferenceDTO, ReferenceRequest, ReferenceStatus } from "../../API/metrology/metrologyTypes";
+import { useMetrologyProfile } from "../../API/metrology/useMetrologyProfile";
+import { useBusyAction } from "../../API/useBusyAction";
 import { useI18n } from "../../i18n/I18nContext";
 import type { TranslationKey } from "../../i18n/translations";
 
+const STATUSES: ReferenceStatus[] = ["IN_SERVICE", "IN_CALIBRATION", "RETIRED"];
+
+interface FormState {
+  name: string;
+  serialNumber: string;
+  manufacturer: string;
+  model: string;
+  location: string;
+  templateId: string;
+  major: string;
+  status: ReferenceStatus;
+  notes: string;
+}
+
+const EMPTY: FormState = { name: "", serialNumber: "", manufacturer: "", model: "", location: "", templateId: "301", major: "1", status: "IN_SERVICE", notes: "" };
+
 export function ReferenceStandardsPage() {
   const { t, locale } = useI18n();
+  const profile = useMetrologyProfile();
+  const admin = !!profile?.admin;
+  const runIn = !!profile?.runIn;
+  const { busy, run } = useBusyAction();
   const [references, setReferences] = useState<ReferenceDTO[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [form, setForm] = useState({ name: "", serialNumber: "", manufacturer: "", model: "", location: "", templateId: "301", major: "1" });
+  const [form, setForm] = useState<FormState>(EMPTY);
+  /** Il campione che si sta modificando; null = se ne crea uno nuovo. */
+  const [editing, setEditing] = useState<ReferenceDTO | null>(null);
+  /** Il numero di serie identifica l'oggetto fisico: si corregge solo in rodaggio, e solo dall'amministratore. */
+  const serialLocked = editing != null && !(admin && runIn);
 
   const load = useCallback(() => {
     getReferences()
@@ -38,22 +69,68 @@ export function ReferenceStandardsPage() {
   }, []);
   useEffect(load, [load]);
 
-  const create = async () => {
-    try {
-      await createReference({
-        name: form.name,
-        serialNumber: form.serialNumber,
-        manufacturer: form.manufacturer || null,
-        model: form.model || null,
-        location: form.location || null,
-        modelTemplateId: form.templateId ? Number(form.templateId) : null,
-        modelTemplateMajor: form.major ? Number(form.major) : null,
-      });
-      setForm({ ...form, name: "", serialNumber: "", location: "" });
-      load();
-    } catch (err) {
-      setError(errorText(err, t("metrology.unreachable")));
-    }
+  /** Un'azione alla volta: un doppio clic su «Aggiungi» non crea due campioni. */
+  const act = (work: () => Promise<unknown>) =>
+    run(async () => {
+      try {
+        await work();
+        setError(null);
+        load();
+      } catch (err) {
+        setError(errorText(err, t("metrology.unreachable")));
+      }
+    });
+
+  const body = (): ReferenceRequest => ({
+    name: form.name,
+    serialNumber: form.serialNumber,
+    manufacturer: form.manufacturer || null,
+    model: form.model || null,
+    location: form.location || null,
+    modelTemplateId: form.templateId ? Number(form.templateId) : null,
+    modelTemplateMajor: form.major ? Number(form.major) : null,
+    status: form.status,
+    notes: form.notes || null,
+  });
+
+  const startEditing = (r: ReferenceDTO) => {
+    setEditing(r);
+    setForm({
+      name: r.name,
+      serialNumber: r.serialNumber,
+      manufacturer: r.manufacturer ?? "",
+      model: r.model ?? "",
+      location: r.location ?? "",
+      templateId: r.modelTemplateId != null ? String(r.modelTemplateId) : "",
+      major: r.modelTemplateMajor != null ? String(r.modelTemplateMajor) : "",
+      status: r.status,
+      notes: r.notes ?? "",
+    });
+  };
+
+  const stopEditing = () => {
+    setEditing(null);
+    setForm(EMPTY);
+  };
+
+  const save = () =>
+    act(async () => {
+      if (editing) {
+        await updateReference(editing.id, body());
+        stopEditing();
+      } else {
+        await createReference(body());
+        // Costruttore e template restano: di solito se ne inseriscono più dello stesso modello.
+        setForm({ ...form, name: "", serialNumber: "", location: "", status: "IN_SERVICE", notes: "" });
+      }
+    });
+
+  const remove = (r: ReferenceDTO) => {
+    if (!window.confirm(t("standards.confirmDelete", { serial: r.serialNumber }))) return;
+    act(async () => {
+      await deleteReference(r.id);
+      if (editing?.id === r.id) stopEditing();
+    });
   };
 
   return (
@@ -88,7 +165,7 @@ export function ReferenceStandardsPage() {
           </thead>
           <tbody>
             {references?.map((r) => (
-              <tr key={r.id}>
+              <tr key={r.id} className={editing?.id === r.id ? "table-warning" : undefined}>
                 <td className="fw-semibold">
                   {r.name}
                   <div className="text-muted fw-normal">{[r.manufacturer, r.model].filter(Boolean).join(" · ")}</div>
@@ -111,10 +188,18 @@ export function ReferenceStandardsPage() {
                   {!r.usable && r.unusableReason && <div className="text-muted">{r.unusableReason}</div>}
                   <div className="text-muted">{t(`standards.status.${r.status}` as TranslationKey)}</div>
                 </td>
-                <td className="text-end">
+                <td className="text-end text-nowrap">
                   <Link className="btn btn-sm btn-outline-primary" to={`/certificati/nuovo?reference=${r.id}`}>
                     <BsFileEarmarkPlus /> {t("fieldCal.upload")}
                   </Link>
+                  <Button size="sm" variant="link" className="ms-1" title={t("registry.edit")} disabled={busy} onClick={() => startEditing(r)}>
+                    <BsPencil />
+                  </Button>
+                  {admin && (
+                    <Button size="sm" variant="link" className="text-danger" title={t("registry.delete")} disabled={busy} onClick={() => remove(r)}>
+                      <BsTrash />
+                    </Button>
+                  )}
                 </td>
               </tr>
             ))}
@@ -123,7 +208,7 @@ export function ReferenceStandardsPage() {
       )}
 
       <div className="ms-tile rounded shadow-sm border-0 p-4 mt-4">
-        <h6 className="fw-bold">{t("standards.newTitle")}</h6>
+        <h6 className="fw-bold">{editing ? t("standards.editTitle", { serial: editing.serialNumber }) : t("standards.newTitle")}</h6>
         <Row className="g-2 align-items-end">
           <Col md={3}>
             <Form.Label className="small">{t("standards.colName")} *</Form.Label>
@@ -131,7 +216,13 @@ export function ReferenceStandardsPage() {
           </Col>
           <Col md={2}>
             <Form.Label className="small">{t("standards.colSerial")} *</Form.Label>
-            <Form.Control size="sm" value={form.serialNumber} onChange={(e) => setForm({ ...form, serialNumber: e.target.value })} />
+            <Form.Control
+              size="sm"
+              value={form.serialNumber}
+              disabled={serialLocked}
+              title={serialLocked ? t("standards.serialLocked") : undefined}
+              onChange={(e) => setForm({ ...form, serialNumber: e.target.value })}
+            />
           </Col>
           <Col md={2}>
             <Form.Label className="small">{t("standards.manufacturer")}</Form.Label>
@@ -146,9 +237,25 @@ export function ReferenceStandardsPage() {
             <Form.Control size="sm" value={form.templateId} onChange={(e) => setForm({ ...form, templateId: e.target.value })} />
           </Col>
           <Col md={2}>
-            <Button size="sm" disabled={!form.name.trim() || !form.serialNumber.trim()} onClick={create}>
-              {t("registry.add")}
+            <Form.Label className="small">{t("standards.statusLabel")}</Form.Label>
+            <Form.Select size="sm" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as ReferenceStatus })}>
+              {STATUSES.map((s) => (
+                <option key={s} value={s}>
+                  {t(`standards.status.${s}` as TranslationKey)}
+                </option>
+              ))}
+            </Form.Select>
+          </Col>
+          <Col xs={12} className="d-flex gap-2 align-items-center">
+            <Button size="sm" disabled={busy || !form.name.trim() || !form.serialNumber.trim()} onClick={save}>
+              {editing ? t("registry.save") : t("registry.add")}
             </Button>
+            {editing && (
+              <Button size="sm" variant="outline-secondary" disabled={busy} onClick={stopEditing}>
+                {t("registry.cancel")}
+              </Button>
+            )}
+            {serialLocked && <span className="small text-muted">{t("standards.serialLocked")}</span>}
           </Col>
         </Row>
       </div>

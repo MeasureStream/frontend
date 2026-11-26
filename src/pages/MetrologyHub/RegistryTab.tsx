@@ -4,30 +4,55 @@
  *
  * Senza questa pagina il controllo a quattro occhi non si potrebbe usare: chi è approvatore,
  * e da quando, lo decide l'amministratore qui, non in Keycloak.
+ *
+ * Aziende e laboratori inseriti per errore si cancellano finché nessuno li usa. In modalità
+ * rodaggio un ruolo si corregge o si cancella; in esercizio si chiude soltanto. Ogni azione
+ * resta nel registro, e il server ricontrolla tutto: un pulsante nascosto non è un permesso.
  */
 import { useCallback, useEffect, useState } from "react";
 import { Alert, Badge, Button, Col, Form, Row, Table } from "react-bootstrap";
-import { BsBuilding, BsPersonBadge, BsRulers, BsTrash } from "react-icons/bs";
-import { errorText,
+import { BsBuilding, BsPencil, BsPersonBadge, BsRulers, BsTrash } from "react-icons/bs";
+import {
+  errorText,
   addCompanyMember,
+  correctRole,
   createCompany,
   createLab,
+  deleteCompany,
+  deleteLab,
+  deleteRole,
   endRole,
   getCompanies,
   getLabs,
   getRoles,
   grantRole,
   removeCompanyMember,
+  type RoleBody,
 } from "../../API/metrology/metrologyApi";
 import type { CompanyDTO, LabCompanyDTO, MetrologyRoleType, RoleDTO } from "../../API/metrology/metrologyTypes";
-import { invalidateMetrologyProfile } from "../../API/metrology/useMetrologyProfile";
+import { invalidateMetrologyProfile, useMetrologyProfile } from "../../API/metrology/useMetrologyProfile";
+import { useBusyAction } from "../../API/useBusyAction";
 import { useI18n } from "../../i18n/I18nContext";
 import type { TranslationKey } from "../../i18n/translations";
 
 const ROLES: MetrologyRoleType[] = ["TECHNICIAN", "APPROVER", "TECHNICAL_MANAGER"];
 
+interface RoleForm {
+  sub: string;
+  name: string;
+  role: MetrologyRoleType;
+  from: string;
+  to: string;
+  labId: string;
+}
+
+const emptyRole = (): RoleForm => ({ sub: "", name: "", role: "TECHNICIAN", from: new Date().toISOString().slice(0, 10), to: "", labId: "" });
+
 export function RegistryTab() {
   const { t, locale } = useI18n();
+  const profile = useMetrologyProfile();
+  const runIn = !!profile?.runIn;
+  const { busy, run } = useBusyAction();
   const [companies, setCompanies] = useState<CompanyDTO[]>([]);
   const [labs, setLabs] = useState<LabCompanyDTO[]>([]);
   const [roles, setRoles] = useState<RoleDTO[]>([]);
@@ -36,14 +61,9 @@ export function RegistryTab() {
   const [companyName, setCompanyName] = useState("");
   const [member, setMember] = useState<{ companyId: string; sub: string; name: string; email: string }>({ companyId: "", sub: "", name: "", email: "" });
   const [lab, setLab] = useState({ name: "", body: "", number: "", recognized: false });
-  const [role, setRole] = useState<{ sub: string; name: string; role: MetrologyRoleType; from: string; to: string; labId: string }>({
-    sub: "",
-    name: "",
-    role: "TECHNICIAN",
-    from: new Date().toISOString().slice(0, 10),
-    to: "",
-    labId: "",
-  });
+  const [role, setRole] = useState<RoleForm>(emptyRole);
+  /** Il ruolo che si sta correggendo (solo in rodaggio); null = se ne concede uno nuovo. */
+  const [editingRole, setEditingRole] = useState<RoleDTO | null>(null);
 
   const load = useCallback(() => {
     getCompanies().then(setCompanies).catch((e) => setError(errorText(e, t("metrology.unreachable"))));
@@ -52,15 +72,49 @@ export function RegistryTab() {
   }, []);
   useEffect(load, [load]);
 
-  const act = async (work: () => Promise<unknown>) => {
-    setError(null);
-    try {
-      await work();
-      load();
-    } catch (err) {
-      setError(errorText(err, t("metrology.unreachable")));
-    }
+  /** Un'azione alla volta: finché il server non risponde, i pulsanti restano spenti. */
+  const act = (work: () => Promise<unknown>) =>
+    run(async () => {
+      setError(null);
+      try {
+        await work();
+        load();
+      } catch (err) {
+        setError(errorText(err, t("metrology.unreachable")));
+      }
+    });
+
+  /** Una cancellazione resta nel registro ma non si annulla: prima si chiede. */
+  const remove = (what: string, work: () => Promise<unknown>) => {
+    if (window.confirm(t("registry.confirmDelete", { what }))) act(work);
   };
+
+  const roleBody = (): RoleBody => ({
+    userSub: role.sub.trim(),
+    displayName: role.name || undefined,
+    role: role.role,
+    validFrom: role.from || undefined,
+    validTo: role.to || undefined,
+    labCompanyId: role.labId ? Number(role.labId) : null,
+  });
+
+  const startEditing = (r: RoleDTO) => {
+    setEditingRole(r);
+    setRole({ sub: r.userSub, name: r.displayName ?? "", role: r.role, from: r.validFrom, to: r.validTo ?? "", labId: r.labCompanyId != null ? String(r.labCompanyId) : "" });
+  };
+
+  const stopEditing = () => {
+    setEditingRole(null);
+    setRole(emptyRole());
+  };
+
+  const saveRole = () =>
+    act(async () => {
+      if (editingRole) await correctRole(editingRole.id, roleBody());
+      else await grantRole(roleBody());
+      stopEditing();
+      invalidateMetrologyProfile();
+    });
 
   return (
     <section className="py-2">
@@ -71,6 +125,7 @@ export function RegistryTab() {
         <BsPersonBadge className="text-primary" /> {t("registry.roles.title")}
       </h5>
       <p className="small text-muted">{t("registry.roles.help")}</p>
+      {runIn && <p className="small text-warning-emphasis">{t("registry.roles.runInHelp")}</p>}
       <div className="ms-cfg-panel shadow-sm mb-3">
         <Table responsive className="align-middle mb-0 small">
           <thead>
@@ -83,7 +138,7 @@ export function RegistryTab() {
           </thead>
           <tbody>
             {roles.map((r) => (
-              <tr key={r.id} className={r.activeToday ? "" : "text-muted"}>
+              <tr key={r.id} className={r.activeToday ? (editingRole?.id === r.id ? "table-warning" : "") : "text-muted"}>
                 <td>
                   {r.displayName ?? "—"} <span className="font-monospace text-muted">{r.userSub}</span>
                 </td>
@@ -92,11 +147,28 @@ export function RegistryTab() {
                   {new Date(r.validFrom).toLocaleDateString(locale)} → {r.validTo ? new Date(r.validTo).toLocaleDateString(locale) : "∞"}{" "}
                   {r.activeToday && <Badge bg="success">{t("registry.roles.active")}</Badge>}
                 </td>
-                <td className="text-end">
+                <td className="text-end text-nowrap">
                   {r.activeToday && (
-                    <Button size="sm" variant="outline-danger" onClick={() => act(() => endRole(r.id).then(invalidateMetrologyProfile))}>
+                    <Button size="sm" variant="outline-danger" disabled={busy} onClick={() => act(() => endRole(r.id).then(invalidateMetrologyProfile))}>
                       {t("registry.roles.end")}
                     </Button>
+                  )}
+                  {runIn && (
+                    <>
+                      <Button size="sm" variant="link" className="ms-1" title={t("registry.edit")} disabled={busy} onClick={() => startEditing(r)}>
+                        <BsPencil />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="link"
+                        className="text-danger"
+                        title={t("registry.delete")}
+                        disabled={busy}
+                        onClick={() => remove(r.displayName ?? r.userSub, () => deleteRole(r.id).then(invalidateMetrologyProfile))}
+                      >
+                        <BsTrash />
+                      </Button>
+                    </>
                   )}
                 </td>
               </tr>
@@ -104,6 +176,7 @@ export function RegistryTab() {
           </tbody>
         </Table>
       </div>
+      {editingRole && <div className="small text-warning-emphasis mb-1">{t("registry.roles.editing", { user: editingRole.displayName ?? editingRole.userSub })}</div>}
       <Row className="g-2 align-items-end mb-5">
         <Col md={3}>
           <Form.Label className="small">{t("registry.sub")}</Form.Label>
@@ -128,6 +201,10 @@ export function RegistryTab() {
           <Form.Control size="sm" type="date" value={role.from} onChange={(e) => setRole({ ...role, from: e.target.value })} />
         </Col>
         <Col md={2}>
+          <Form.Label className="small">{t("registry.roles.to")}</Form.Label>
+          <Form.Control size="sm" type="date" value={role.to} onChange={(e) => setRole({ ...role, to: e.target.value })} />
+        </Col>
+        <Col md={3}>
           <Form.Label className="small">{t("registry.roles.lab")}</Form.Label>
           <Form.Select size="sm" value={role.labId} onChange={(e) => setRole({ ...role, labId: e.target.value })}>
             <option value="">—</option>
@@ -138,25 +215,15 @@ export function RegistryTab() {
             ))}
           </Form.Select>
         </Col>
-        <Col md={1}>
-          <Button
-            size="sm"
-            disabled={!role.sub.trim()}
-            onClick={() =>
-              act(() =>
-                grantRole({
-                  userSub: role.sub.trim(),
-                  displayName: role.name || undefined,
-                  role: role.role,
-                  validFrom: role.from || undefined,
-                  validTo: role.to || undefined,
-                  labCompanyId: role.labId ? Number(role.labId) : null,
-                }).then(invalidateMetrologyProfile),
-              )
-            }
-          >
-            {t("registry.add")}
+        <Col md={4} className="d-flex gap-2">
+          <Button size="sm" disabled={busy || !role.sub.trim()} onClick={saveRole}>
+            {editingRole ? t("registry.roles.correct") : t("registry.add")}
           </Button>
+          {editingRole && (
+            <Button size="sm" variant="outline-secondary" disabled={busy} onClick={stopEditing}>
+              {t("registry.cancel")}
+            </Button>
+          )}
         </Col>
       </Row>
 
@@ -167,13 +234,26 @@ export function RegistryTab() {
       <p className="small text-muted">{t("registry.companies.help")}</p>
       {companies.map((c) => (
         <div key={c.id} className="ms-tile rounded shadow-sm border-0 p-3 mb-2">
-          <div className="fw-semibold">{c.name}</div>
+          <div className="fw-semibold d-flex align-items-center justify-content-between">
+            <span>{c.name}</span>
+            {/* Con dei membri non si cancella: il server lo rifiuterebbe comunque. */}
+            <Button
+              size="sm"
+              variant="link"
+              className="text-danger"
+              title={c.members.length > 0 ? t("registry.companies.deleteHint") : t("registry.delete")}
+              disabled={busy || c.members.length > 0}
+              onClick={() => remove(c.name, () => deleteCompany(c.id))}
+            >
+              <BsTrash />
+            </Button>
+          </div>
           <ul className="small mb-1">
             {c.members.map((m) => (
               <li key={m.userSub}>
                 {m.displayName ?? "—"} <span className="font-monospace text-muted">{m.userSub}</span>
                 {m.email && <span className="text-muted"> · {m.email}</span>}
-                <Button size="sm" variant="link" className="text-danger" onClick={() => act(() => removeCompanyMember(c.id, m.userSub))}>
+                <Button size="sm" variant="link" className="text-danger" disabled={busy} onClick={() => act(() => removeCompanyMember(c.id, m.userSub))}>
                   <BsTrash />
                 </Button>
               </li>
@@ -188,7 +268,7 @@ export function RegistryTab() {
           <Form.Control size="sm" value={companyName} onChange={(e) => setCompanyName(e.target.value)} />
         </Col>
         <Col md={2}>
-          <Button size="sm" disabled={!companyName.trim()} onClick={() => act(() => createCompany(companyName.trim()).then(() => setCompanyName("")))}>
+          <Button size="sm" disabled={busy || !companyName.trim()} onClick={() => act(() => createCompany(companyName.trim()).then(() => setCompanyName("")))}>
             {t("registry.add")}
           </Button>
         </Col>
@@ -221,7 +301,7 @@ export function RegistryTab() {
         <Col md={1}>
           <Button
             size="sm"
-            disabled={!member.companyId || !member.sub.trim()}
+            disabled={busy || !member.companyId || !member.sub.trim()}
             onClick={() =>
               act(() =>
                 addCompanyMember(Number(member.companyId), {
@@ -252,6 +332,14 @@ export function RegistryTab() {
                   {l.internal && <Badge bg="primary">{t("registry.labs.internal")}</Badge>}{" "}
                   {l.recognized && <Badge bg="success">{t("registry.labs.recognized")}</Badge>}
                 </td>
+                <td className="text-end">
+                  {/* Il laboratorio interno non si cancella; uno esterno solo se nessuno lo usa. */}
+                  {!l.internal && (
+                    <Button size="sm" variant="link" className="text-danger" title={t("registry.delete")} disabled={busy} onClick={() => remove(l.name, () => deleteLab(l.id))}>
+                      <BsTrash />
+                    </Button>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -276,7 +364,7 @@ export function RegistryTab() {
         <Col md={2}>
           <Button
             size="sm"
-            disabled={!lab.name.trim()}
+            disabled={busy || !lab.name.trim()}
             onClick={() =>
               act(() =>
                 createLab({ name: lab.name.trim(), accreditationBody: lab.body || null, accreditationNumber: lab.number || null, recognized: lab.recognized }).then(() =>

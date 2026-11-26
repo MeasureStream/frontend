@@ -2,12 +2,17 @@
  * La qualità di un sensore nel tempo (PIANO_METROLOGIA 5.1–5.2): verifiche intermedie con En ed
  * esito, carta di controllo (Shewhart e CUSUM), proposta d'intervallo OIML D 10 e riconversioni
  * dei dati già registrati. Si apre dal pannello «Taratura sul campo» della MU.
+ *
+ * In modalità rodaggio l'amministratore cancella una verifica scritta male, per riscriverla;
+ * in esercizio una verifica resta, e l'errore si corregge con una verifica nuova e una nota.
  */
 import { useCallback, useEffect, useState } from "react";
 import { Alert, Badge, Button, Col, Form, Row, Table } from "react-bootstrap";
+import { BsTrash } from "react-icons/bs";
 import {
   acceptProposal,
   checkReport,
+  deleteCheck,
   getChecks,
   getControlChart,
   getReconversions,
@@ -19,7 +24,9 @@ import {
   type ReconversionRunDTO,
 } from "../../API/metrology/controlApi";
 import { errorText, resolveItem } from "../../API/metrology/metrologyApi";
+import { useMetrologyProfile } from "../../API/metrology/useMetrologyProfile";
 import type { ActiveCalibrationDTO } from "../../API/interfaces";
+import { useBusyAction } from "../../API/useBusyAction";
 import { useI18n } from "../../i18n/I18nContext";
 import type { TranslationKey } from "../../i18n/translations";
 import { ReportButton } from "./ReportButton";
@@ -35,6 +42,10 @@ interface Props {
 
 export function ItemQualityPanel({ muId, muExtendedId, sensorId, sensorIndex, calibrations, canDecideIntervals }: Props) {
   const { t, locale } = useI18n();
+  const profile = useMetrologyProfile();
+  /** Solo l'amministratore, e solo in rodaggio: il server lo ricontrolla comunque. */
+  const canCorrect = !!profile?.admin && !!profile?.runIn;
+  const { busy, run } = useBusyAction();
   const [itemId, setItemId] = useState<number | null>(null);
   const [checks, setChecks] = useState<IntermediateCheckDTO[]>([]);
   const [chart, setChart] = useState<ControlChartDTO | null>(null);
@@ -59,14 +70,20 @@ export function ItemQualityPanel({ muId, muExtendedId, sensorId, sensorIndex, ca
     load();
   }, [load]);
 
-  const act = async (action: () => Promise<unknown>) => {
-    setError(null);
-    try {
-      await action();
-      await load();
-    } catch (err) {
-      setError(errorText(err, t("conf.unreachable")));
-    }
+  /** Un'azione alla volta: un doppio clic non registra due verifiche né due riconversioni. */
+  const act = (action: () => Promise<unknown>) =>
+    run(async () => {
+      setError(null);
+      try {
+        await action();
+        await load();
+      } catch (err) {
+        setError(errorText(err, t("conf.unreachable")));
+      }
+    });
+
+  const removeCheck = (c: IntermediateCheckDTO) => {
+    if (window.confirm(t("iq.confirmDelete", { when: when(c.checkedAt) }))) act(() => deleteCheck(c.id));
   };
 
   const when = (iso?: string | null) => (iso ? new Date(iso).toLocaleString(locale) : "—");
@@ -78,7 +95,7 @@ export function ItemQualityPanel({ muId, muExtendedId, sensorId, sensorIndex, ca
       <Row className="g-3">
         <Col lg={6}>
           <h6 className="fw-bold">{t("iq.checks")}</h6>
-          <CheckForm onSubmit={(body) => act(() => recordCheck({ ...body, muExtendedId, sensorIndex }))} />
+          <CheckForm busy={busy} onSubmit={(body) => act(() => recordCheck({ ...body, muExtendedId, sensorIndex }))} />
           <Table size="sm" className="small mt-2 mb-0">
             <thead>
               <tr className="text-muted">
@@ -105,7 +122,14 @@ export function ItemQualityPanel({ muId, muExtendedId, sensorId, sensorIndex, ca
                       {t(`iq.verdict.${c.verdict}` as TranslationKey)}
                     </Badge>
                   </td>
-                  <td><ReportButton label={t("iq.report")} generate={() => checkReport(c.id)} /></td>
+                  <td className="text-nowrap">
+                    <ReportButton label={t("iq.report")} generate={() => checkReport(c.id)} />
+                    {canCorrect && (
+                      <Button size="sm" variant="link" className="text-danger" title={t("registry.delete")} disabled={busy} onClick={() => removeCheck(c)}>
+                        <BsTrash />
+                      </Button>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -123,8 +147,8 @@ export function ItemQualityPanel({ muId, muExtendedId, sensorId, sensorIndex, ca
               <div className="text-muted">{proposal.reason}</div>
               {canDecideIntervals && (
                 <div className="mt-1 d-flex gap-1">
-                  <Button size="sm" variant="outline-success" onClick={() => act(() => acceptProposal(proposal.id))}>{t("iq.accept")}</Button>
-                  <Button size="sm" variant="outline-danger" onClick={() => act(() => rejectProposal(proposal.id, t("iq.rejectReason")))}>{t("iq.reject")}</Button>
+                  <Button size="sm" variant="outline-success" disabled={busy} onClick={() => act(() => acceptProposal(proposal.id))}>{t("iq.accept")}</Button>
+                  <Button size="sm" variant="outline-danger" disabled={busy} onClick={() => act(() => rejectProposal(proposal.id, t("iq.rejectReason")))}>{t("iq.reject")}</Button>
                 </div>
               )}
             </div>
@@ -133,7 +157,7 @@ export function ItemQualityPanel({ muId, muExtendedId, sensorId, sensorIndex, ca
         <Col xs={12}>
           <h6 className="fw-bold">{t("iq.reconversions")}</h6>
           <p className="text-muted small mb-1">{t("iq.reconversionsHelp")}</p>
-          <ReconversionForm calibrations={calibrations} onSubmit={(body) => act(() => requestReconversion(muId, sensorId, body))} />
+          <ReconversionForm busy={busy} calibrations={calibrations} onSubmit={(body) => act(() => requestReconversion(muId, sensorId, body))} />
           <Table size="sm" className="small mt-2 mb-0">
             <thead>
               <tr className="text-muted">
@@ -167,7 +191,7 @@ export function ItemQualityPanel({ muId, muExtendedId, sensorId, sensorIndex, ca
   );
 }
 
-function CheckForm({ onSubmit }: { onSubmit: (body: { referenceValue: number; referenceU: number; referenceK: number; indicatedValue: number; indicatedU?: number | null; referenceDescription?: string | null }) => void }) {
+function CheckForm({ busy, onSubmit }: { busy: boolean; onSubmit: (body: { referenceValue: number; referenceU: number; referenceK: number; indicatedValue: number; indicatedU?: number | null; referenceDescription?: string | null }) => void }) {
   const { t } = useI18n();
   const [ref, setRef] = useState("");
   const [u, setU] = useState("");
@@ -188,7 +212,7 @@ function CheckForm({ onSubmit }: { onSubmit: (body: { referenceValue: number; re
         <Button
           size="sm"
           variant="outline-primary"
-          disabled={!ready}
+          disabled={!ready || busy}
           onClick={() =>
             onSubmit({
               referenceValue: Number(ref),
@@ -207,7 +231,7 @@ function CheckForm({ onSubmit }: { onSubmit: (body: { referenceValue: number; re
   );
 }
 
-function ReconversionForm({ calibrations, onSubmit }: { calibrations: ActiveCalibrationDTO[]; onSubmit: (body: { calibrationId: number; mode: "GAP" | "DRIFT"; from: string; to: string; reason: string }) => void }) {
+function ReconversionForm({ busy, calibrations, onSubmit }: { busy: boolean; calibrations: ActiveCalibrationDTO[]; onSubmit: (body: { calibrationId: number; mode: "GAP" | "DRIFT"; from: string; to: string; reason: string }) => void }) {
   const { t } = useI18n();
   const [calibrationId, setCalibrationId] = useState<number | null>(calibrations[0]?.id ?? null);
   const [mode, setMode] = useState<"GAP" | "DRIFT">("DRIFT");
@@ -234,7 +258,7 @@ function ReconversionForm({ calibrations, onSubmit }: { calibrations: ActiveCali
       <Col md={2}><Form.Control size="sm" type="datetime-local" value={to} onChange={(e) => setTo(e.target.value)} /></Col>
       <Col md={3}><Form.Control size="sm" placeholder={t("iq.form.reason")} value={reason} onChange={(e) => setReason(e.target.value)} /></Col>
       <Col xs={12}>
-        <Button size="sm" variant="outline-primary" disabled={!calibrationId || !from || !to || !reason.trim()} onClick={() => calibrationId && onSubmit({ calibrationId, mode, from, to, reason })}>
+        <Button size="sm" variant="outline-primary" disabled={busy || !calibrationId || !from || !to || !reason.trim()} onClick={() => calibrationId && onSubmit({ calibrationId, mode, from, to, reason })}>
           {t("iq.form.reconvert")}
         </Button>
       </Col>
